@@ -1,103 +1,180 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { Canvas, useThree } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import * as THREE from "three";
+import { useRef, useState, useEffect } from "react";
+
+function snapToGrid(pos: THREE.Vector3, step = 0.5): THREE.Vector3 {
+  return new THREE.Vector3(
+    Math.round(pos.x / step) * step,
+    0,
+    Math.round(pos.z / step) * step
+  );
+}
+
+function DrawingSurface({ onClick3D }: { onClick3D: (pos: THREE.Vector3) => void }) {
+  const { camera } = useThree();
+  const raycaster = new THREE.Raycaster();
+  const plane = useRef<THREE.Mesh>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      const mouse = new THREE.Vector2(
+        (e.clientX / window.innerWidth) * 2 - 1,
+        -(e.clientY / window.innerHeight) * 2 + 1
+      );
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(plane.current!);
+      if (intersects.length > 0) {
+        const snapped = snapToGrid(intersects[0].point);
+        onClick3D(snapped);
+      }
+    };
+    window.addEventListener("mousedown", handleClick);
+    return () => window.removeEventListener("mousedown", handleClick);
+  }, [camera, onClick3D]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <mesh ref={plane} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <planeGeometry args={[50, 50]} />
+      <meshStandardMaterial transparent opacity={0} />
+    </mesh>
+  );
+}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+function LineBuilder({ points, color = "blue" }: { points: THREE.Vector3[]; color?: string }) {
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  return (
+    <primitive
+      object={
+        new THREE.Line(
+          geometry,
+          new THREE.LineBasicMaterial({ color, linewidth: 2 })
+        )
+      }
+    />
+  );
+}
+
+function HolePreview({ from, to, color = "skyblue" }: { from: THREE.Vector3; to: THREE.Vector3; color?: string }) {
+  const shape = new THREE.Shape();
+  shape.moveTo(from.x, from.z);
+  shape.lineTo(to.x, from.z);
+  shape.lineTo(to.x, to.z);
+  shape.lineTo(from.x, to.z);
+  shape.lineTo(from.x, from.z);
+  const geometry = new THREE.ShapeGeometry(shape);
+
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]}>
+      <meshStandardMaterial color={color} transparent opacity={0.4} />
+      <primitive object={geometry} />
+    </mesh>
+  );
+}
+
+function ExtrudedShape({ points, holes }: { points: THREE.Vector3[]; holes: { from: THREE.Vector3; to: THREE.Vector3 }[] }) {
+  const shape = new THREE.Shape();
+  shape.moveTo(points[0].x, points[0].z);
+  for (let i = 1; i < points.length; i++) {
+    shape.lineTo(points[i].x, points[i].z);
+  }
+
+  holes.forEach(({ from, to }) => {
+    const hole = new THREE.Path();
+    hole.moveTo(from.x, from.z);
+    hole.lineTo(to.x, from.z);
+    hole.lineTo(to.x, to.z);
+    hole.lineTo(from.x, to.z);
+    hole.lineTo(from.x, from.z);
+    shape.holes.push(hole);
+  });
+
+  const depth = 5;
+  const extrudeSettings = {
+    steps: 1,
+    depth,
+    bevelEnabled: false,
+  };
+
+  const wallGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  const floorGeometry = new THREE.ShapeGeometry(shape);
+  const ceilingGeometry = new THREE.ShapeGeometry(shape);
+
+  return (
+    <>
+      <mesh geometry={floorGeometry} rotation={[-Math.PI / 2, 0, 0]}>
+        <meshStandardMaterial color="#999" transparent opacity={0.9} />
+      </mesh>
+      <mesh geometry={wallGeometry} rotation={[-Math.PI / 2, 0, 0]}>
+        <meshStandardMaterial color="orange" transparent opacity={0.9} />
+      </mesh>
+      <mesh geometry={ceilingGeometry} rotation={[-Math.PI / 2, 0, 0]} position={[0, depth + 0.01, 0]}>
+        <meshStandardMaterial color="#999" transparent opacity={0.9} />
+      </mesh>
+    </>
+  );
+}
+
+export default function DrawingScene() {
+  const [points, setPoints] = useState<THREE.Vector3[]>([]);
+  const [holeLines, setHoleLines] = useState<THREE.Vector3[][]>([]);
+  const [holes, setHoles] = useState<{ from: THREE.Vector3; to: THREE.Vector3 }[]>([]);
+  const [tempHoleLine, setTempHoleLine] = useState<THREE.Vector3[]>([]);
+  const [closed, setClosed] = useState(false);
+  const [extruded, setExtruded] = useState(false);
+
+  const handleClick3D = (point: THREE.Vector3) => {
+    if (!closed) {
+      if (points.length > 2 && point.distanceTo(points[0]) < 0.2) {
+        setPoints([...points, points[0]]);
+        setClosed(true);
+      } else {
+        setPoints([...points, point]);
+      }
+    } else if (!extruded) {
+      if (tempHoleLine.length === 0) {
+        setTempHoleLine([point]);
+      } else {
+        const p1 = tempHoleLine[0];
+        const p2 = point;
+        const from = new THREE.Vector3(Math.min(p1.x, p2.x), 0, Math.min(p1.z, p2.z));
+        const to = new THREE.Vector3(Math.max(p1.x, p2.x), 2, Math.max(p1.z, p2.z));
+        setHoleLines([...holeLines, [p1, p2]]);
+        setHoles([...holes, { from, to }]);
+        setTempHoleLine([]);
+      }
+    }
+  };
+
+  return (
+    <div className="h-screen w-full relative">
+      <Canvas
+        camera={{ position: [10, 10, 10], fov: 50 }}
+        style={{ background: "#e0e0e0" }}
+      >
+        <ambientLight intensity={0.8} />
+        <directionalLight position={[10, 15, 10]} intensity={0.6} />
+        <OrbitControls />
+        <gridHelper args={[50, 50, "#888", "#ccc"]} />
+        <DrawingSurface onClick3D={handleClick3D} />
+        {!extruded && points.length > 1 && <LineBuilder points={points} />}
+        {!extruded && holeLines.map((line, i) => <LineBuilder key={i} points={line} color="red" />)}
+        {extruded && closed && <ExtrudedShape points={points} holes={holes} />}
+      </Canvas>
+
+      <div className="absolute top-4 left-4 space-y-2">
+        {closed && !extruded && (
+          <button
+            className="px-4 py-2 bg-purple-600 text-white rounded"
+            onClick={() => setExtruded(true)}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            Extruir estructura
+          </button>
+        )}
+      </div>
     </div>
   );
 }
