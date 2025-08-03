@@ -13,8 +13,6 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
     return null;
   }
 
-  // Crear múltiples meshes para construir la forma 3D manualmente
-  const meshes = [];
   const depth = 5;
 
   // Crear piso usando los puntos directamente
@@ -27,8 +25,8 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
   const floorGeometry = new THREE.BufferGeometry();
   
   // Triangular la forma usando earcut (simplificado para polígonos convexos)
-  const vertices = [];
-  const indices = [];
+  const vertices: number[] = [];
+  const indices: number[] = [];
   
   // Agregar vértices del piso
   planeCoordinates.forEach(coord => {
@@ -45,13 +43,13 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
   floorGeometry.computeVertexNormals();
 
   // Crear paredes
-  const wallGeometries = [];
+  const wallGeometries: THREE.BufferGeometry[] = [];
   for (let i = 0; i < planeCoordinates.length; i++) {
     const nextIndex = (i + 1) % planeCoordinates.length;
     const p1 = planeCoordinates[i];
     const p2 = planeCoordinates[nextIndex];
     
-    const wallGeometry = new THREE.PlaneGeometry();
+    const wallGeometry = new THREE.BufferGeometry();
     const wallVertices = new Float32Array([
       p1.x, 0, p1.z,     // bottom left
       p2.x, 0, p2.z,     // bottom right
@@ -68,18 +66,15 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
     wallGeometries.push(wallGeometry);
   }
 
-  // Crear techo (copia del piso pero a altura depth)
-  const ceilingGeometry = floorGeometry.clone();
-  const ceilingVertices: number[] = [];
-  planeCoordinates.forEach(coord => {
-    ceilingVertices.push(coord.x, depth, coord.z);
-  });
-  // Group the flat array into Vector3s
+  // Crear techo
+  const ceilingGeometry = new THREE.BufferGeometry();
   const ceilingPoints: THREE.Vector3[] = [];
-  for (let i = 0; i < ceilingVertices.length; i += 3) {
-    ceilingPoints.push(new THREE.Vector3(ceilingVertices[i], ceilingVertices[i + 1], ceilingVertices[i + 2]));
-  }
+  planeCoordinates.forEach(coord => {
+    ceilingPoints.push(new THREE.Vector3(coord.x, depth, coord.z));
+  });
   ceilingGeometry.setFromPoints(ceilingPoints);
+  ceilingGeometry.setIndex(indices); // Usar los mismos índices que el piso
+  ceilingGeometry.computeVertexNormals();
 
   return (
     <group>
@@ -90,7 +85,7 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
       
       {/* Paredes */}
       {wallGeometries.map((wallGeom, index) => (
-        <mesh key={index} geometry={wallGeom}>
+        <mesh key={`wall-${index}`} geometry={wallGeom}>
           <meshStandardMaterial color="#D2691E" />
         </mesh>
       ))}
@@ -100,6 +95,5 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
         <meshStandardMaterial color="#A0522D" side={THREE.DoubleSide} />
       </mesh>
     </group>
-
   );
 }

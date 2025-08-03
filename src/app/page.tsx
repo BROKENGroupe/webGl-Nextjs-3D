@@ -151,6 +151,13 @@ export default function DrawingScene() {
     }
   };
 
+  // Limpiar datos guardados en localStorage y reiniciar el estado
+  const handleClearStorage = () => {
+    localStorage.clear();
+    resetAll();
+    clearPlaneCoordinates();
+  };
+
   return (
     <div 
       className="h-screen w-full relative"
@@ -172,6 +179,7 @@ export default function DrawingScene() {
         <gridHelper args={[50, 50, "#888", "#ccc"]} />
         <DrawingSurface onClick3D={handleClick3D} />
         
+        {/* LÍNEAS 2D - Solo mostrar cuando NO está extruido */}
         {!isExtruded && currentPoints.length > 1 && (
           <LineBuilder 
             points={currentPoints} 
@@ -182,30 +190,19 @@ export default function DrawingScene() {
             onVertexRightClick={handleVertexRightClick}
           />
         )}
-        {!isExtruded && currentHoleLines.map((line, i) => <LineBuilder key={i} points={line} color="red" />)}
         
-        {/* Usar las coordenadas XZ guardadas para la extrusión */}
+        {/* LÍNEAS DE AGUJEROS 2D - Solo mostrar cuando NO está extruido */}
+        {!isExtruded && currentHoleLines.map((line, i) => 
+          <LineBuilder key={i} points={line} color="red" />
+        )}
+        
+        {/* FORMA 3D EXTRUIDA - Solo mostrar cuando está extruido */}
         {isExtruded && hasPlaneCoordinates && (
           <ExtrudedShape 
             planeCoordinates={planeXZCoordinates} 
             holeCoordinates={planeHoleCoordinates} 
           />
         )}
-        
-        {/* Mostrar las líneas 2D actuales también cuando está extruido */}
-        {isExtruded && currentPoints.length > 1 && (
-          <group position={[0, 2.01, 0]}> {/* Ligeramente arriba del techo */}
-            <LineBuilder 
-              points={currentPoints} 
-              color="#0066CC"
-            />
-          </group>
-        )}
-        {isExtruded && currentHoleLines.map((line, i) => (
-          <group key={i} position={[0, 2.01, 0]}>
-            <LineBuilder points={line} color="red" />
-          </group>
-        ))}
       </Canvas>
 
       {/* Controles de la aplicación */}
@@ -242,6 +239,14 @@ export default function DrawingScene() {
         >
           Nuevo Dibujo
         </button>
+        
+        <button 
+          onClick={handleClearStorage}
+          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded shadow-lg transition-colors text-xs"
+          title="Limpiar datos guardados"
+        >
+          🗑️ Limpiar Storage
+        </button>
       </div>
 
       {/* Panel de instrucciones dinámico */}
@@ -260,9 +265,9 @@ export default function DrawingScene() {
         {isClosed && !isExtruded && (
           <>
             <h3 className="font-semibold text-gray-800 mb-2">
-              Controles de Edición
+              Controles de Edición 2D
               {hasPlaneCoordinates && (
-                <span className="text-xs text-purple-600 ml-1">(Coordenadas XZ guardadas)</span>
+                <span className="text-xs text-purple-600 ml-1">(Coordenadas guardadas)</span>
               )}
             </h3>
             <div className="space-y-1 text-gray-600">
@@ -288,11 +293,12 @@ export default function DrawingScene() {
         
         {isExtruded && (
           <>
-            <h3 className="font-semibold text-gray-800 mb-2">Vista 3D</h3>
+            <h3 className="font-semibold text-gray-800 mb-2">Vista 3D - Forma Extruida</h3>
             <div className="space-y-1 text-gray-600">
               <div>• Usa el mouse para rotar la vista</div>
               <div>• Scroll para hacer zoom</div>
-              <div>• "Volver a 2D" para editar</div>
+              <div>• Arrastra para mover la cámara</div>
+              <div>• "Volver a 2D" para editar la forma</div>
               <div>• "Re-extruir" para aplicar cambios</div>
             </div>
           </>
@@ -306,7 +312,12 @@ export default function DrawingScene() {
         </div>
         {hasPlaneCoordinates && (
           <div className="text-purple-600">
-            Plano XZ: {planeXZCoordinates.length} puntos guardados
+            Plano guardado: {planeXZCoordinates.length} puntos
+          </div>
+        )}
+        {isExtruded && (
+          <div className="text-green-600">
+            Forma extruida activa
           </div>
         )}
       </div>
