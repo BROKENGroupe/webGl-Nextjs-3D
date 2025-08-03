@@ -158,6 +158,16 @@ export default function DrawingScene() {
     clearPlaneCoordinates();
   };
 
+  // Agregar función para limpiar datos corruptos
+  const handleCleanAndReset = () => {
+    console.log('🧹 Limpiando datos y reiniciando...');
+    localStorage.removeItem('drawing-storage');
+    resetAll();
+    clearPlaneCoordinates();
+    setContextMenu({ visible: false, x: 0, y: 0, itemType: null, itemIndex: null });
+    window.location.reload();
+  };
+
   return (
     <div 
       className="h-screen w-full relative"
@@ -179,28 +189,33 @@ export default function DrawingScene() {
         <gridHelper args={[50, 50, "#888", "#ccc"]} />
         <DrawingSurface onClick3D={handleClick3D} />
         
-        {/* LÍNEAS 2D - Solo mostrar cuando NO está extruido */}
-        {!isExtruded && currentPoints.length > 1 && (
-          <LineBuilder 
-            points={currentPoints} 
-            onPointMove={handlePointMove}
-            onDragStart={() => setDragging(true)}
-            onDragEnd={() => setDragging(false)}
-            onLineRightClick={handleLineRightClick}
-            onVertexRightClick={handleVertexRightClick}
-          />
+        {/* MODO 2D - Solo renderizar cuando NO está extruido Y hay puntos válidos */}
+        {!isExtruded && (
+          <>
+            {/* Líneas principales - Solo si hay más de 1 punto */}
+            {currentPoints.length > 1 && (
+              <LineBuilder 
+                points={currentPoints} 
+                onPointMove={handlePointMove}
+                onDragStart={() => setDragging(true)}
+                onDragEnd={() => setDragging(false)}
+                onLineRightClick={handleLineRightClick}
+                onVertexRightClick={handleVertexRightClick}
+              />
+            )}
+            
+            {/* TEMPORALMENTE DESHABILITADAS las líneas de agujeros hasta solucionar el problema */}
+            {/* {currentHoleLines.map((line, i) => (
+              <LineBuilder key={`hole-${i}`} points={line} color="red" />
+            ))} */}
+          </>
         )}
         
-        {/* LÍNEAS DE AGUJEROS 2D - Solo mostrar cuando NO está extruido */}
-        {!isExtruded && currentHoleLines.map((line, i) => 
-          <LineBuilder key={i} points={line} color="red" />
-        )}
-        
-        {/* FORMA 3D EXTRUIDA - Solo mostrar cuando está extruido */}
-        {isExtruded && hasPlaneCoordinates && (
+        {/* MODO 3D - Solo renderizar cuando está extruido Y hay coordenadas válidas */}
+        {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           <ExtrudedShape 
             planeCoordinates={planeXZCoordinates} 
-            holeCoordinates={planeHoleCoordinates} 
+            holeCoordinates={[]} // Temporalmente sin agujeros hasta solucionar el problema
           />
         )}
       </Canvas>
@@ -246,6 +261,14 @@ export default function DrawingScene() {
           title="Limpiar datos guardados"
         >
           🗑️ Limpiar Storage
+        </button>
+
+        <button 
+          onClick={handleCleanAndReset}
+          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow-lg transition-colors text-xs"
+          title="Limpieza completa y reinicio"
+        >
+          🔧 Reset Completo
         </button>
       </div>
 

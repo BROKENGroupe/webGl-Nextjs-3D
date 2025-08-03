@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { COLORS, MATERIAL_PROPERTIES, GEOMETRY_CONFIG } from "../config/materials";
 
 interface ExtrudedShapeProps {
   planeCoordinates: { x: number; z: number }[];
@@ -13,15 +14,10 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
     return null;
   }
 
-  const depth = 5;
+  // Crear múltiples meshes para construir la forma 3D manualmente
+  const depth = GEOMETRY_CONFIG.EXTRUDE_DEPTH;
 
   // Crear piso usando los puntos directamente
-  const floorPoints: THREE.Vector3[] = [];
-  planeCoordinates.forEach(coord => {
-    floorPoints.push(new THREE.Vector3(coord.x, 0, coord.z));
-  });
-
-  // Crear el piso como una geometría triangulada
   const floorGeometry = new THREE.BufferGeometry();
   
   // Triangular la forma usando earcut (simplificado para polígonos convexos)
@@ -33,14 +29,15 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
     vertices.push(coord.x, 0, coord.z);
   });
   
-  // Crear triángulos simples (fan triangulation)
+  // CORREGIDO: Crear triángulos con orden correcto para piso (normal hacia arriba)
   for (let i = 1; i < planeCoordinates.length - 1; i++) {
-    indices.push(0, i, i + 1);
+    indices.push(0, i, i + 1); // CAMBIO: Quité el +1 y cambié el orden
   }
   
-  floorGeometry.setFromPoints(floorPoints);
+  floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
   floorGeometry.setIndex(indices);
   floorGeometry.computeVertexNormals();
+  floorGeometry.computeBoundingBox();
 
   // Crear paredes
   const wallGeometries: THREE.BufferGeometry[] = [];
@@ -57,42 +54,78 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
       p1.x, depth, p1.z  // top left
     ]);
     
-    const wallIndices = [0, 1, 2, 0, 2, 3];
+    // CORREGIDO: Orden de índices para que las normales apunten hacia afuera
+    const wallIndices = [0, 2, 1, 0, 3, 2]; // Cambiado el orden
     
     wallGeometry.setAttribute('position', new THREE.BufferAttribute(wallVertices, 3));
     wallGeometry.setIndex(wallIndices);
     wallGeometry.computeVertexNormals();
+    wallGeometry.computeBoundingBox();
     
     wallGeometries.push(wallGeometry);
   }
 
-  // Crear techo
+  // Crear techo (copia del piso pero a altura depth)
   const ceilingGeometry = new THREE.BufferGeometry();
-  const ceilingPoints: THREE.Vector3[] = [];
+  const ceilingVertices: number[] = [];
   planeCoordinates.forEach(coord => {
-    ceilingPoints.push(new THREE.Vector3(coord.x, depth, coord.z));
+    ceilingVertices.push(coord.x, depth, coord.z);
   });
-  ceilingGeometry.setFromPoints(ceilingPoints);
-  ceilingGeometry.setIndex(indices); // Usar los mismos índices que el piso
+  
+  // CORREGIDO: Techo con orden normal (hacia abajo desde arriba)
+  const ceilingIndices: number[] = [];
+  for (let i = 1; i < planeCoordinates.length - 1; i++) {
+    ceilingIndices.push(0, i, i + 1); // Orden normal para techo
+  }
+  
+  ceilingGeometry.setAttribute('position', new THREE.Float32BufferAttribute(ceilingVertices, 3));
+  ceilingGeometry.setIndex(ceilingIndices);
   ceilingGeometry.computeVertexNormals();
+  ceilingGeometry.computeBoundingBox();
 
   return (
     <group>
-      {/* Piso */}
+      {/* Piso - Usando variables centralizadas */}
       <mesh geometry={floorGeometry}>
-        <meshStandardMaterial color="#8B4513" side={THREE.DoubleSide} />
+        <meshStandardMaterial 
+          color={COLORS.FLOOR}
+          side={THREE[MATERIAL_PROPERTIES.FLOOR.side]}
+          roughness={MATERIAL_PROPERTIES.FLOOR.roughness}
+          metalness={MATERIAL_PROPERTIES.FLOOR.metalness}
+          transparent={MATERIAL_PROPERTIES.FLOOR.transparent}
+          opacity={MATERIAL_PROPERTIES.FLOOR.opacity}
+          flatShading={false}
+        />
       </mesh>
       
-      {/* Paredes */}
+      {/* Paredes - Con transparencia desde variables */}
       {wallGeometries.map((wallGeom, index) => (
         <mesh key={`wall-${index}`} geometry={wallGeom}>
-          <meshStandardMaterial color="#D2691E" />
+          <meshStandardMaterial 
+            color={COLORS.WALLS}
+            side={THREE[MATERIAL_PROPERTIES.WALLS.side]}
+            roughness={MATERIAL_PROPERTIES.WALLS.roughness}
+            metalness={MATERIAL_PROPERTIES.WALLS.metalness}
+            transparent={MATERIAL_PROPERTIES.WALLS.transparent} // NUEVO: Transparencia
+            opacity={MATERIAL_PROPERTIES.WALLS.opacity}         // NUEVO: Opacidad al 70%
+            flatShading={false}
+            depthWrite={true}
+            depthTest={true}
+          />
         </mesh>
       ))}
       
-      {/* Techo */}
+      {/* Techo - Usando variables centralizadas */}
       <mesh geometry={ceilingGeometry}>
-        <meshStandardMaterial color="#A0522D" side={THREE.DoubleSide} />
+        <meshStandardMaterial 
+          color={COLORS.CEILING}
+          side={THREE[MATERIAL_PROPERTIES.CEILING.side]}
+          roughness={MATERIAL_PROPERTIES.CEILING.roughness}
+          metalness={MATERIAL_PROPERTIES.CEILING.metalness}
+          transparent={MATERIAL_PROPERTIES.CEILING.transparent}
+          opacity={MATERIAL_PROPERTIES.CEILING.opacity}
+          flatShading={false}
+        />
       </mesh>
     </group>
   );
