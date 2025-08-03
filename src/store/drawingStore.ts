@@ -116,36 +116,32 @@ export const useDrawingStore = create<DrawingState>()(
       // Nuevas acciones para coordenadas XZ
       savePlaneCoordinates: () => {
         const state = get();
-        console.log('Guardando coordenadas del plano XZ...');
+        console.log('🔍 Guardando coordenadas del plano...');
+        console.log('📍 currentPoints antes de guardar:', state.currentPoints);
         
-        // Asegurar que currentPoints son Vector3 antes de usar sus propiedades
-        const validPoints = state.currentPoints.map(ensureVector3);
-        console.log('Puntos actuales:', validPoints.map(p => ({ x: p.x, y: p.y, z: p.z })));
-        
-        // Extraer coordenadas X y Z de los puntos actuales (Y siempre es 0 en 2D)
-        const xzCoordinates = validPoints.map(point => ({
-          x: point.x,
-          z: point.z
-        }));
-        
-        // Asegurar que currentHoles son válidos antes de usar sus propiedades
-        const validHoles = state.currentHoles.map(hole => ({
-          from: ensureVector3(hole.from),
-          to: ensureVector3(hole.to)
-        }));
-        
-        // Extraer coordenadas X y Z de los agujeros
-        const holeCoordinates = validHoles.map(hole => ({
-          from: { x: hole.from.x, z: hole.from.z },
-          to: { x: hole.to.x, z: hole.to.z }
-        }));
-        
-        console.log('Coordenadas XZ guardadas:', xzCoordinates);
-        console.log('Coordenadas agujeros XZ:', holeCoordinates);
+        if (state.currentPoints.length === 0) {
+          console.warn('⚠️ No hay puntos para guardar');
+          return;
+        }
+
+        // Convertir Vector3 a coordenadas XZ planas
+        const xzCoordinates = state.currentPoints.map((point, index) => {
+          const coord = { x: point.x, z: point.z };
+          console.log(`📍 Punto ${index}:`, coord);
+          return coord;
+        });
+
+        // CRÍTICO: Remover el último punto si es igual al primero (forma cerrada)
+        const cleanCoordinates = xzCoordinates.length > 1 && 
+          Math.abs(xzCoordinates[0].x - xzCoordinates[xzCoordinates.length - 1].x) < 0.001 &&
+          Math.abs(xzCoordinates[0].z - xzCoordinates[xzCoordinates.length - 1].z) < 0.001
+          ? xzCoordinates.slice(0, -1) // Remover último punto duplicado
+          : xzCoordinates;
+
+        console.log('✅ Coordenadas XZ guardadas:', cleanCoordinates);
         
         set({
-          planeXZCoordinates: xzCoordinates,
-          planeHoleCoordinates: holeCoordinates,
+          planeXZCoordinates: cleanCoordinates,
           hasPlaneCoordinates: true
         });
       },

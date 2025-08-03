@@ -10,6 +10,12 @@ import { HolePreview } from "@/components/HolePreview";
 import { ExtrudedShape } from "@/components/ExtrudedShape";
 import { ContextMenu } from "@/components/ContextMenu";
 import { useDrawingStore } from "@/store/drawingStore";
+import { useOpeningsStore } from '@/store/openingsStore';
+
+import React from "react";
+import { OpeningTemplate } from "@/types/openings";
+import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
+import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -52,6 +58,12 @@ export default function DrawingScene() {
     itemType: null as 'line' | 'vertex' | null,
     itemIndex: null as number | null
   });
+
+  // Estados para drag & drop de puertas y ventanas
+  const [showOpeningsPalette, setShowOpeningsPalette] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [draggedTemplate, setDraggedTemplate] = useState<OpeningTemplate | null>(null);
+  const { addOpening } = useOpeningsStore();
 
   const handleClick3D = (point: THREE.Vector3) => {
     if (isDragging) return; // No procesar clicks si se está arrastrando
@@ -113,18 +125,37 @@ export default function DrawingScene() {
 
   // Función para manejar la extrusión con coordenadas XZ
   const handleExtrude = () => {
-    console.log('Iniciando extrusión...');
+    console.log('🏗️ Iniciando extrusión...');
+    console.log('📊 Estado actual currentPoints:', currentPoints);
+    console.log('📊 Estado actual isClosed:', isClosed);
+    
+    // Validar que tenemos una forma cerrada
+    if (!isClosed || currentPoints.length < 4) {
+      console.error('❌ No se puede extruir: forma no cerrada o insuficientes puntos');
+      alert('⚠️ Necesitas cerrar la forma antes de extruir');
+      return;
+    }
     
     // Guardar las coordenadas XZ del plano 2D actual
     savePlaneCoordinates();
     
-    // Guardar el estado actual para la extrusión (legacy, por compatibilidad)
+    // Verificar que se guardaron correctamente
+    const savedCoords = useDrawingStore.getState().planeXZCoordinates;
+    console.log('✅ Coordenadas guardadas para extrusión:', savedCoords);
+    
+    if (savedCoords.length < 3) {
+      console.error('❌ Error: coordenadas insuficientes para extrusión');
+      alert('❌ Error al guardar las coordenadas');
+      return;
+    }
+    
+    // Guardar el estado actual para la extrusión (legacy)
     saveCurrentStateForExtrusion();
     
     // Cambiar a vista 3D
     setExtruded(true);
     
-    console.log('Coordenadas XZ guardadas para extrusión:', planeXZCoordinates);
+    console.log('🎯 Extrusión completada. Coordenadas XZ finales:', savedCoords);
   };
 
   // Función para volver a 2D manteniendo las coordenadas guardadas
@@ -168,9 +199,86 @@ export default function DrawingScene() {
     window.location.reload();
   };
 
+  // ===== FUNCIONES PARA DRAG & DROP DE PUERTAS Y VENTANAS =====
+
+  // Manejar inicio de drag desde la paleta
+  const handleStartDrag = (template: OpeningTemplate) => {
+    console.log('🎯 Iniciando drag:', template.name);
+    setIsDragActive(true);
+    setDraggedTemplate(template);
+  };
+
+  // Manejar drop en pared
+  const handleDropOpening = (wallIndex: number, position: number, template: OpeningTemplate) => {
+    console.log('📍 Drop en pared:', wallIndex, 'posición:', position, 'template:', template.name);
+    
+    const newOpening = {
+      id: `opening-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: template.type,
+      wallIndex,
+      position,
+      width: template.defaultWidth,
+      height: template.defaultHeight,
+      bottomOffset: template.defaultBottomOffset
+    };
+    
+    addOpening(newOpening);
+    
+    // Resetear estado de drag
+    setIsDragActive(false);
+    setDraggedTemplate(null);
+    
+    console.log('✅ Abertura creada:', newOpening);
+  };
+
+  // Manejar fin de drag (sin drop válido)
+  const handleDragEnd = () => {
+    console.log('🚫 Drag cancelado');
+    setIsDragActive(false);
+    setDraggedTemplate(null);
+  };
+
+  // Manejar tecla ESC para cancelar drag
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && isDragActive) {
+      handleDragEnd();
+    }
+  };
+
+  // Agregar listener para ESC
+  React.useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDragActive]);
+
+  // Agregar función de emergencia:
+  const handleFixExtrusion = () => {
+    console.log('🔧 Intentando arreglar extrusión...');
+    
+    // Volver a 2D
+    setExtruded(false);
+    
+    // Esperar un momento y re-guardar coordenadas
+    setTimeout(() => {
+      if (currentPoints.length >= 4 && isClosed) {
+        console.log('🔄 Re-guardando coordenadas...');
+        savePlaneCoordinates();
+        
+        // Volver a extruir
+        setTimeout(() => {
+          setExtruded(true);
+        }, 100);
+      }
+    }, 100);
+  };
+
   return (
     <div 
-      className="h-screen w-full relative"
+      className={`h-screen w-full relative ${
+        isDragActive ? 'cursor-grabbing' : 'cursor-default'
+      }`}
       onContextMenu={(e) => {
         e.preventDefault();
         if (contextMenu.visible) {
@@ -185,7 +293,7 @@ export default function DrawingScene() {
       >
         <ambientLight intensity={0.8} />
         <directionalLight position={[10, 15, 10]} intensity={0.6} />
-        <OrbitControls enabled={!isDragging} />
+        <OrbitControls enabled={!isDragging && !isDragActive} />
         <gridHelper args={[50, 50, "#888", "#ccc"]} />
         <DrawingSurface onClick3D={handleClick3D} />
         
@@ -203,19 +311,16 @@ export default function DrawingScene() {
                 onVertexRightClick={handleVertexRightClick}
               />
             )}
-            
-            {/* TEMPORALMENTE DESHABILITADAS las líneas de agujeros hasta solucionar el problema */}
-            {/* {currentHoleLines.map((line, i) => (
-              <LineBuilder key={`hole-${i}`} points={line} color="red" />
-            ))} */}
           </>
         )}
         
-        {/* MODO 3D - Solo renderizar cuando está extruido Y hay coordenadas válidas */}
+        {/* MODO 3D - Renderizar con funcionalidad de drag & drop */}
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
-          <ExtrudedShape 
-            planeCoordinates={planeXZCoordinates} 
-            holeCoordinates={[]} // Temporalmente sin agujeros hasta solucionar el problema
+          <ExtrudedShapeWithDraggableOpenings 
+            planeCoordinates={planeXZCoordinates}
+            onDropOpening={handleDropOpening}
+            isDragActive={isDragActive}
+            draggedTemplate={draggedTemplate}
           />
         )}
       </Canvas>
@@ -244,6 +349,14 @@ export default function DrawingScene() {
               className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
             >
               Re-extruir
+            </button>
+            {/* BOTÓN DE EMERGENCIA */}
+            <button 
+              onClick={handleFixExtrusion}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow-lg transition-colors text-xs"
+              title="Arreglar forma distorsionada"
+            >
+              🔧 Arreglar Forma
             </button>
           </>
         )}
@@ -323,6 +436,26 @@ export default function DrawingScene() {
               <div>• Arrastra para mover la cámara</div>
               <div>• "Volver a 2D" para editar la forma</div>
               <div>• "Re-extruir" para aplicar cambios</div>
+              <div className="text-blue-600 font-medium">
+                • 🏠 Abre paleta para arrastrar puertas y ventanas
+              </div>
+              {/* AGREGAR INFO DE DEBUG */}
+              <div className="text-xs text-purple-600 border-t pt-2 mt-2">
+                <div>🔍 Debug Info:</div>
+                <div>Puntos guardados: {planeXZCoordinates.length}</div>
+                <div>Coordenadas válidas: {hasPlaneCoordinates ? '✅' : '❌'}</div>
+                {planeXZCoordinates.length > 0 && (
+                  <div>
+                    Primer punto: ({planeXZCoordinates[0]?.x.toFixed(1)}, {planeXZCoordinates[0]?.z.toFixed(1)})
+                  </div>
+                )}
+              </div>
+              {isDragActive && (
+                <div className="text-orange-600 font-bold">
+                  • 🎯 Arrastra a una pared para colocar
+                  <div className="text-xs">• ESC para cancelar</div>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -343,6 +476,11 @@ export default function DrawingScene() {
             Forma extruida activa
           </div>
         )}
+        {isDragActive && draggedTemplate && (
+          <div className="text-orange-600 font-medium">
+            🎯 Arrastrando: {draggedTemplate.name}
+          </div>
+        )}
       </div>
 
       <ContextMenu
@@ -354,6 +492,39 @@ export default function DrawingScene() {
         itemType={contextMenu.itemType}
         itemIndex={contextMenu.itemIndex}
       />
+
+      {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
+      <DraggableOpeningsPalette
+        isVisible={showOpeningsPalette}
+        onToggle={() => setShowOpeningsPalette(!showOpeningsPalette)}
+        onStartDrag={handleStartDrag}
+      />
+
+      {/* Overlay de drag activo */}
+      {isDragActive && draggedTemplate && (
+        <div className="fixed inset-0 bg-blue-500 bg-opacity-10 pointer-events-none z-30">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg">
+              📍 Suelta sobre una pared para colocar {draggedTemplate.name}
+              <div className="text-sm mt-1 opacity-80">
+                ESC para cancelar
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Listener global para detectar drag end */}
+      {isDragActive && (
+        <div 
+          className="fixed inset-0 pointer-events-none z-20"
+          onDragEnd={handleDragEnd}
+          onDrop={(e) => {
+            e.preventDefault();
+            handleDragEnd();
+          }}
+        />
+      )}
     </div>
   );
 }
