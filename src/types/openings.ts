@@ -20,3 +20,17 @@ export interface Opening {
   type: 'door' | 'window' | 'double-door' | 'sliding-door';
   template?: OpeningTemplate;
 }
+
+export interface Point2D {
+  x: number;
+  z: number;
+}
+
+// ✅ AGREGAR esta interfaz que falta:
+export interface WallSegment {
+  startX: number;
+  endX: number;
+  height: number;
+  startY?: number;  // Para segmentos superiores (dinteles)
+  endY?: number;    // Para segmentos superiores (dinteles)
+}

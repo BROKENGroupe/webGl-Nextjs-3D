@@ -6,9 +6,9 @@
 // Colores principales del sistema
 export const COLORS = {
   // Colores de la estructura 3D (tipo CAD profesional)
-  FLOOR: "#4A4A4A",        // Gris oscuro para piso
-  WALLS: "#B0B0B0",        // Gris claro para paredes  
-  CEILING: "#808080",      // Gris medio para techo
+  FLOOR: "#D2B48C",        // Beige para piso
+  WALLS: "#808080",        // Gris para paredes  
+  CEILING: "#F5F5F5",      // Blanco roto para techo
   
   // Colores de las líneas 2D
   LINE_PRIMARY: "#2563eb", // Azul para líneas principales
@@ -19,6 +19,8 @@ export const COLORS = {
   GRID: "#888888",         // Gris para grilla
   GRID_MINOR: "#cccccc",   // Gris claro para grilla menor
   BACKGROUND: "#e0e0e0",   // Fondo de la aplicación
+
+  HOVER: "#4CAF50",       // Verde Material Design (recomendado)  
 } as const;
 
 // Propiedades de materiales
@@ -31,15 +33,15 @@ export const MATERIAL_PROPERTIES = {
     opacity: 0.6,          // CORREGIDO: Era 2.0, ahora 0.6 (60% visible)
   },
   WALLS: {
-    roughness: 0.6,
-    metalness: 0.2,
+    roughness: 0.8,
+    metalness: 0.1,
     side: "FrontSide" as const,
     transparent: true,      // Mantener transparente
     opacity: 0.5,          // CAMBIADO: De 0.4 a 0.5 (50% visible)
   },
   CEILING: {
     roughness: 0.7,
-    metalness: 0.15,
+    metalness: 0.1,
     side: "DoubleSide" as const,
     transparent: true,      // CAMBIADO: Ahora transparente
     opacity: 0.7,          // CORREGIDO: Era 4.0, ahora 0.7 (70% visible)
