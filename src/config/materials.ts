@@ -6,9 +6,9 @@
 // Colores principales del sistema
 export const COLORS = {
   // Colores de la estructura 3D (tipo CAD profesional)
-  FLOOR: "#D2B48C",        // Beige para piso
-  WALLS: "#808080",        // Gris para paredes  
-  CEILING: "#F5F5F5",      // Blanco roto para techo
+  FLOOR: "#F5F5DC",    // Beige
+  WALLS: "#E0E0E0",    // Gris claro
+  CEILING: "#FFFFFF",  // Blanco para techo
   
   // Colores de las líneas 2D
   LINE_PRIMARY: "#2563eb", // Azul para líneas principales

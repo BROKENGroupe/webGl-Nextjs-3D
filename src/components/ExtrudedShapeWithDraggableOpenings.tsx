@@ -1,3 +1,6 @@
+// ✅ AGREGAR import de MaterialService SOLAMENTE
+import { MaterialService } from "../engine/MaterialService";
+
 // ✅ AGREGAR imports de engines
 import * as THREE from "three";
 import { useOpeningsStore } from "../store/openingsStore";
@@ -168,17 +171,20 @@ export function ExtrudedShapeWithDraggableOpenings({
   // ✅ RENDER EXACTAMENTE IGUAL - SOLO CAMBIAN LAS LLAMADAS A ENGINES
   return (
     <group>
-      {/* ✅ PISO USANDO ENGINE */}
+      {/* ✅ PISO - SOLO CAMBIAR MATERIAL */}
       <mesh geometry={floorGeometry}>
-        <meshStandardMaterial 
+        {/* ❌ REEMPLAZAR: <meshStandardMaterial 
           color={COLORS.FLOOR}
           side={THREE.DoubleSide}
           roughness={MATERIAL_PROPERTIES.FLOOR.roughness}
           metalness={MATERIAL_PROPERTIES.FLOOR.metalness}
-        />
+        /> */}
+        
+        {/* ✅ POR: */}
+        <primitive object={MaterialService.getFloorMaterial()} />
       </mesh>
       
-      {/* ✅ PAREDES USANDO ENGINE */}
+      {/* ✅ PAREDES - SOLO CAMBIAR MATERIAL */}
       {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
         const nextCoord = coordinatesToUse[nextIndex];
@@ -186,7 +192,6 @@ export function ExtrudedShapeWithDraggableOpenings({
         
         return (
           <group key={`wall-group-${index}`}>
-            {/* ✅ PARED PRINCIPAL USANDO ENGINE */}
             <mesh 
               geometry={createWallGeometry(index, coord, nextCoord)}
               userData={{ wallIndex: index, type: 'wall' }}
@@ -207,7 +212,7 @@ export function ExtrudedShapeWithDraggableOpenings({
                 handleWallClick(index, e);
               }}
             >
-              <meshStandardMaterial 
+              {/* ❌ REEMPLAZAR: <meshStandardMaterial 
                 color={
                   (hoveredWall === index && (isDragActive || isDraggingOpening)) ||
                   (previewPosition?.wallIndex === index)
@@ -219,14 +224,20 @@ export function ExtrudedShapeWithDraggableOpenings({
                 metalness={MATERIAL_PROPERTIES.WALLS.metalness}
                 transparent={isDragActive || isDraggingOpening}
                 opacity={(isDragActive || isDraggingOpening) ? 0.8 : 1.0}
-              />
+              /> */}
+              
+              {/* ✅ POR: */}
+              <primitive object={MaterialService.getWallMaterial({
+                isHovered: (hoveredWall === index && (isDragActive || isDraggingOpening)) ||
+                          (previewPosition?.wallIndex === index),
+                isDragActive: isDragActive || isDraggingOpening,
+                opacity: (isDragActive || isDraggingOpening) ? 0.8 : 1.0
+              })} />
             </mesh>
             
-            {/* ✅ PUNTOS DE ABERTURA - USANDO ENGINE PARA POSICIÓN */}
+            {/* ✅ PUNTOS DE ABERTURA - SOLO CAMBIAR MATERIAL */}
             {wallOpenings.map(opening => {
               const isBeingDragged = draggedOpening?.id === opening.id;
-              
-              // ✅ USAR ENGINE PARA CALCULAR POSICIÓN
               const displayPosition = InteractionEngine.calculateDisplayPosition(
                 opening,
                 isBeingDragged,
@@ -237,7 +248,6 @@ export function ExtrudedShapeWithDraggableOpenings({
               
               return (
                 <group key={`opening-${index}-${opening.id}`}>
-                  {/* ✅ RESTO DEL RENDER IGUAL */}
                   <mesh 
                     position={[displayPosition.x, displayPosition.y, displayPosition.z]}
                     userData={{ opening, type: 'opening' }}
@@ -269,19 +279,29 @@ export function ExtrudedShapeWithDraggableOpenings({
                     }}
                   >
                     <sphereGeometry args={[isBeingDragged ? 0.06 : 0.03]} />
-                    <meshBasicMaterial 
+                    
+                    {/* ❌ REEMPLAZAR: <meshBasicMaterial 
                       color={isBeingDragged ? "#FF4444" : "#FFD700"}
                       transparent={true}
                       opacity={isBeingDragged ? 0.8 : 1.0}
-                    />
+                    /> */}
+                    
+                    {/* ✅ POR: */}
+                    <primitive object={MaterialService.getOpeningMaterial(
+                      isBeingDragged ? 'dragging' : 'normal'
+                    )} />
                   </mesh>
                   
-                  {/* ✅ RESTO DE ELEMENTOS VISUALES SIN CAMBIOS */}
+                  {/* ✅ ELEMENTO PEQUEÑO - SOLO CAMBIAR MATERIAL */}
                   <mesh position={[displayPosition.x, displayPosition.y + 0.2, displayPosition.z]}>
                     <sphereGeometry args={[0.01]} />
-                    <meshBasicMaterial color="#FFFFFF" />
+                    
+                    {/* ❌ REEMPLAZAR: <meshBasicMaterial color="#FFFFFF" /> */}
+                    {/* ✅ POR: */}
+                    <primitive object={MaterialService.getPreviewMaterial('indicator')} />
                   </mesh>
                   
+                  {/* ✅ PREVIEW ELEMENTS - SOLO CAMBIAR MATERIALES */}
                   {isBeingDragged && previewPosition && (
                     <group>
                       <mesh position={[
@@ -294,12 +314,18 @@ export function ExtrudedShapeWithDraggableOpenings({
                           0.01,
                           Math.abs(displayPosition.z - (coord.z + opening.position * (nextCoord.z - coord.z)))
                         ]} />
-                        <meshBasicMaterial color="#FF4444" transparent opacity={0.5} />
+                        
+                        {/* ❌ REEMPLAZAR: <meshBasicMaterial color="#FF4444" transparent opacity={0.5} /> */}
+                        {/* ✅ POR: */}
+                        <primitive object={MaterialService.getPreviewMaterial('line')} />
                       </mesh>
                       
                       <mesh position={[displayPosition.x, displayPosition.y + 0.3, displayPosition.z]}>
                         <sphereGeometry args={[0.05]} />
-                        <meshBasicMaterial color="#00FF00" />
+                        
+                        {/* ❌ REEMPLAZAR: <meshBasicMaterial color="#00FF00" /> */}
+                        {/* ✅ POR: */}
+                        <primitive object={MaterialService.getPreviewMaterial('indicator')} />
                       </mesh>
                     </group>
                   )}
@@ -310,19 +336,22 @@ export function ExtrudedShapeWithDraggableOpenings({
         );
       })}
       
-      {/* ✅ TECHO USANDO ENGINE */}
+      {/* ✅ TECHO - SOLO CAMBIAR MATERIAL */}
       <mesh geometry={ceilingGeometry}>
-        <meshStandardMaterial 
+        {/* ❌ REEMPLAZAR: <meshStandardMaterial 
           color={COLORS.CEILING}
           side={THREE.DoubleSide}
           roughness={MATERIAL_PROPERTIES.CEILING.roughness}
           metalness={MATERIAL_PROPERTIES.CEILING.metalness}
           transparent={true}
           opacity={0.7}
-        />
+        /> */}
+        
+        {/* ✅ POR: */}
+        <primitive object={MaterialService.getCeilingMaterial()} />
       </mesh>
 
-      {/* ✅ RESTO DE ELEMENTOS DEBUG SIN CAMBIOS */}
+      {/* ✅ ELEMENTOS DEBUG - MANTENER EXACTAMENTE IGUAL */}
       {coordinatesToUse.map((coord, index) => (
         <mesh 
           key={`point-${index}`}
@@ -356,6 +385,7 @@ export function ExtrudedShapeWithDraggableOpenings({
         );
       })}
       
+      {/* ✅ DRAG INDICATOR - MANTENER EXACTAMENTE IGUAL */}
       {isDraggingOpening && draggedOpening && (
         <group>
           <mesh position={[0, depth + 1, 0]}>
