@@ -291,13 +291,16 @@ export default function DrawingScene() {
     >
       <Canvas
         camera={{ position: [10, 10, 10], fov: 50 }}
-        style={{ background: "#e0e0e0" }}
+        style={{ background: "linear-gradient(135deg, #f0f2f5 0%, #e8ebf0 100%)" }}  // ✅ GRADIENTE SUAVE
         onContextMenu={(e) => e.preventDefault()}
       >
         <ambientLight intensity={0.8} />
         <directionalLight position={[10, 15, 10]} intensity={0.6} />
         <OrbitControls enabled={!isDragging && !isDragActive} />
-        <gridHelper args={[50, 50, "#888", "#ccc"]} />
+        
+        {/* ✅ YA ESTÁ COMENTADO - SIN CUADRÍCULA */}
+        {/* <gridHelper args={[50, 50, "#888", "#ccc"]} /> */}
+        
         <DrawingSurface onClick3D={handleClick3D} />
         
         {/* MODO 2D - Solo renderizar cuando NO está extruido Y hay puntos válidos */}
