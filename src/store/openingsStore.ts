@@ -9,8 +9,8 @@ interface OpeningsState {
   addOpening: (opening: Opening) => void;
   removeOpening: (id: string) => void;
   updateOpening: (id: string, updates: Partial<Opening>) => void;
-  clearAllOpenings: () => void;
-  getOpeningsForWall: (wallIndex: number) => Opening[];
+  clearOpenings: () => void;
+  getOpeningsByWall: (wallIndex: number) => Opening[];
 }
 
 export const useOpeningsStore = create<OpeningsState>()(
@@ -28,25 +28,25 @@ export const useOpeningsStore = create<OpeningsState>()(
       removeOpening: (id) => {
         console.log('🗑️ Eliminando abertura:', id);
         set((state) => ({
-          openings: state.openings.filter(o => o.id !== id)
+          openings: state.openings.filter(opening => opening.id !== id)
         }));
       },
       
       updateOpening: (id, updates) => {
         console.log('✏️ Actualizando abertura:', id, updates);
         set((state) => ({
-          openings: state.openings.map(o => 
-            o.id === id ? { ...o, ...updates } : o
+          openings: state.openings.map(opening => 
+            opening.id === id ? { ...opening, ...updates } : opening
           )
         }));
       },
       
-      clearAllOpenings: () => {
+      clearOpenings: () => {
         console.log('🧹 Limpiando todas las aberturas');
         set({ openings: [] });
       },
       
-      getOpeningsForWall: (wallIndex) => {
+      getOpeningsByWall: (wallIndex) => {
         return get().openings.filter(opening => opening.wallIndex === wallIndex);
       },
     }),

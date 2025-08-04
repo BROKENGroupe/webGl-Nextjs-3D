@@ -1,21 +1,22 @@
 export type OpeningType = 'door' | 'window' | 'double-door' | 'sliding-door';
 
-export interface Opening {
+export interface OpeningTemplate {
   id: string;
-  type: OpeningType;
-  wallIndex: number;           // En qué pared está (0, 1, 2, ...)
-  position: number;            // Posición en la pared (0-1, porcentaje)
-  width: number;               // Ancho en metros
-  height: number;              // Alto en metros
-  bottomOffset: number;        // Distancia desde el piso (para ventanas)
+  type: 'door' | 'window' | 'double-door' | 'sliding-door';
+  name: string;
+  width: number;   // metros
+  height: number;  // metros
+  bottomOffset: number; // metros desde el suelo
+  icon?: string;   // emoji para la UI
 }
 
-export interface OpeningTemplate {
-  type: OpeningType;
-  name: string;
-  defaultWidth: number;
-  defaultHeight: number;
-  defaultBottomOffset: number;
-  icon: string;                // Emoji o icono
-  color: string;               // Color del template
+export interface Opening {
+  id: string;
+  wallIndex: number;
+  position: number; // 0-1 posición relativa en la pared
+  width: number;
+  height: number;
+  bottomOffset: number;
+  type: 'door' | 'window' | 'double-door' | 'sliding-door';
+  template?: OpeningTemplate;
 }

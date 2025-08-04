@@ -4,142 +4,123 @@ import { Opening } from "../types/openings";
 interface OpeningFrameProps {
   opening: Opening;
   wallLength: number;
+  wallHeight: number;
 }
 
-export function OpeningFrame({ opening, wallLength }: OpeningFrameProps) {
-  const startX = opening.position * wallLength - opening.width / 2;
-  const centerX = opening.position * wallLength;
-  const centerY = opening.bottomOffset + opening.height / 2;
+export function OpeningFrame({ opening, wallLength, wallHeight }: OpeningFrameProps) {
   
-  const getFrameConfig = () => {
-    switch (opening.type) {
+  // ✅ CALCULAR POSICIÓN LOCAL EN LA PARED
+  const localX = (opening.position * wallLength) - wallLength/2;
+  const localY = (opening.bottomOffset + opening.height/2) - wallHeight/2;
+  const localZ = 0; // En la superficie de la pared
+
+  // ✅ DETERMINAR ESTILO DEL MARCO
+  const getFrameStyle = (type: string) => {
+    switch (type) {
       case 'door':
-        return {
-          frameColor: "#8B4513",
-          frameThickness: 0.05,
-          showHandle: true,
-          handleColor: "#FFD700",
-          showGlass: false
-        };
       case 'double-door':
-        return {
-          frameColor: "#A0522D", 
-          frameThickness: 0.05,
-          showHandle: true,
-          handleColor: "#FFD700",
-          showGlass: false
-        };
-      case 'window':
-        return {
-          frameColor: "#FFFFFF",
-          frameThickness: 0.03,
-          showHandle: false,
-          handleColor: "#C0C0C0",
-          showGlass: true
-        };
       case 'sliding-door':
-        return {
-          frameColor: "#CD853F",
-          frameThickness: 0.04,
-          showHandle: true,
-          handleColor: "#C0C0C0",
-          showGlass: true
-        };
+        return { color: '#8B4513', thickness: 0.08 }; // Marrón para puertas
+      case 'window':
+        return { color: '#FFFFFF', thickness: 0.05 }; // Blanco para ventanas
       default:
-        return {
-          frameColor: "#808080",
-          frameThickness: 0.05,
-          showHandle: false,
-          handleColor: "#C0C0C0",
-          showGlass: false
-        };
+        return { color: '#666666', thickness: 0.06 };
     }
   };
 
-  const config = getFrameConfig();
-
-  const createFrameGeometry = () => {
-    const frameWidth = opening.width;
-    const frameHeight = opening.height;
-    const thickness = config.frameThickness;
-    
-    const outerShape = new THREE.Shape();
-    outerShape.moveTo(-frameWidth/2, -frameHeight/2);
-    outerShape.lineTo(frameWidth/2, -frameHeight/2);
-    outerShape.lineTo(frameWidth/2, frameHeight/2);
-    outerShape.lineTo(-frameWidth/2, frameHeight/2);
-    outerShape.closePath();
-    
-    const innerShape = new THREE.Shape();
-    const innerWidth = frameWidth - thickness * 2;
-    const innerHeight = frameHeight - thickness * 2;
-    innerShape.moveTo(-innerWidth/2, -innerHeight/2);
-    innerShape.lineTo(innerWidth/2, -innerHeight/2);
-    innerShape.lineTo(innerWidth/2, innerHeight/2);
-    innerShape.lineTo(-innerWidth/2, innerHeight/2);
-    innerShape.closePath();
-    
-    outerShape.holes.push(innerShape);
-    
-    return new THREE.ExtrudeGeometry(outerShape, {
-      steps: 1,
-      depth: thickness,
-      bevelEnabled: false
-    });
-  };
-
-  const createGlassGeometry = () => {
-    const glassWidth = opening.width - config.frameThickness * 2;
-    const glassHeight = opening.height - config.frameThickness * 2;
-    return new THREE.PlaneGeometry(glassWidth, glassHeight);
-  };
-
-  const createHandleGeometry = () => {
-    return new THREE.CylinderGeometry(0.02, 0.02, 0.1, 8);
-  };
+  const frameStyle = getFrameStyle(opening.type);
 
   return (
-    <group position={[centerX - wallLength/2, centerY, 0.1]}>
-      {/* Marco */}
-      <mesh geometry={createFrameGeometry()}>
-        <meshStandardMaterial 
-          color={config.frameColor}
-          roughness={0.6}
-          metalness={0.1}
-        />
+    <group position={[localX, localY, localZ]}>
+      {/* ✅ MARCO SUPERIOR */}
+      <mesh position={[0, opening.height/2 + frameStyle.thickness/2, 0]}>
+        <boxGeometry args={[
+          opening.width + frameStyle.thickness * 2, 
+          frameStyle.thickness, 
+          0.15
+        ]} />
+        <meshStandardMaterial color={frameStyle.color} />
       </mesh>
 
-      {/* Vidrio */}
-      {config.showGlass && (
-        <mesh 
-          geometry={createGlassGeometry()}
-          position={[0, 0, config.frameThickness/2]}
-        >
-          <meshStandardMaterial 
-            color="#87CEEB"
-            transparent
-            opacity={0.3}
-            roughness={0.1}
-            metalness={0.1}
-          />
+      {/* ✅ MARCO INFERIOR - Solo para ventanas o si no es puerta */}
+      {opening.type === 'window' && (
+        <mesh position={[0, -opening.height/2 - frameStyle.thickness/2, 0]}>
+          <boxGeometry args={[
+            opening.width + frameStyle.thickness * 2, 
+            frameStyle.thickness, 
+            0.15
+          ]} />
+          <meshStandardMaterial color={frameStyle.color} />
         </mesh>
       )}
 
-      {/* Manija */}
-      {config.showHandle && (
-        <mesh 
-          geometry={createHandleGeometry()}
-          position={[
-            opening.type === 'double-door' ? opening.width/4 : opening.width/2 - 0.15,
-            -opening.height/4,
-            config.frameThickness + 0.05
-          ]}
-          rotation={[0, 0, Math.PI/2]}
-        >
+      {/* ✅ MARCO IZQUIERDO */}
+      <mesh position={[-opening.width/2 - frameStyle.thickness/2, 0, 0]}>
+        <boxGeometry args={[
+          frameStyle.thickness, 
+          opening.height + (opening.type === 'window' ? frameStyle.thickness * 2 : frameStyle.thickness), 
+          0.15
+        ]} />
+        <meshStandardMaterial color={frameStyle.color} />
+      </mesh>
+
+      {/* ✅ MARCO DERECHO */}
+      <mesh position={[opening.width/2 + frameStyle.thickness/2, 0, 0]}>
+        <boxGeometry args={[
+          frameStyle.thickness, 
+          opening.height + (opening.type === 'window' ? frameStyle.thickness * 2 : frameStyle.thickness), 
+          0.15
+        ]} />
+        <meshStandardMaterial color={frameStyle.color} />
+      </mesh>
+
+      {/* ✅ CONTENIDO DE LA ABERTURA */}
+      {opening.type === 'door' && (
+        // Puerta simple
+        <mesh position={[opening.width/4, 0, 0.05]}>
+          <boxGeometry args={[opening.width/2 - 0.02, opening.height * 0.9, 0.03]} />
+          <meshStandardMaterial color="#CD853F" />
+        </mesh>
+      )}
+
+      {opening.type === 'double-door' && (
+        <>
+          {/* Puerta izquierda */}
+          <mesh position={[-opening.width/4, 0, 0.05]}>
+            <boxGeometry args={[opening.width/2 - 0.05, opening.height * 0.9, 0.03]} />
+            <meshStandardMaterial color="#CD853F" />
+          </mesh>
+          {/* Puerta derecha */}
+          <mesh position={[opening.width/4, 0, 0.05]}>
+            <boxGeometry args={[opening.width/2 - 0.05, opening.height * 0.9, 0.03]} />
+            <meshStandardMaterial color="#CD853F" />
+          </mesh>
+        </>
+      )}
+
+      {opening.type === 'sliding-door' && (
+        <>
+          {/* Panel deslizante 1 */}
+          <mesh position={[-opening.width/4, 0, 0.05]}>
+            <boxGeometry args={[opening.width/2 - 0.02, opening.height * 0.9, 0.02]} />
+            <meshStandardMaterial color="#A0A0A0" transparent opacity={0.7} />
+          </mesh>
+          {/* Panel deslizante 2 */}
+          <mesh position={[opening.width/4, 0, 0.05]}>
+            <boxGeometry args={[opening.width/2 - 0.02, opening.height * 0.9, 0.02]} />
+            <meshStandardMaterial color="#A0A0A0" transparent opacity={0.7} />
+          </mesh>
+        </>
+      )}
+
+      {opening.type === 'window' && (
+        // Cristal de ventana
+        <mesh position={[0, 0, 0.02]}>
+          <boxGeometry args={[opening.width, opening.height, 0.01]} />
           <meshStandardMaterial 
-            color={config.handleColor}
-            roughness={0.2}
-            metalness={0.8}
+            color="#87CEEB" 
+            transparent 
+            opacity={0.3}
           />
         </mesh>
       )}

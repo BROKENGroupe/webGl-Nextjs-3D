@@ -3,308 +3,388 @@ import { useOpeningsStore } from "../store/openingsStore";
 import { useDrawingStore } from "../store/drawingStore";
 import { COLORS, MATERIAL_PROPERTIES, GEOMETRY_CONFIG } from "../config/materials";
 import { Opening, OpeningTemplate } from "../types/openings";
+import { useState, useCallback } from "react";
 
 interface ExtrudedShapeWithDraggableOpeningsProps {
-  planeCoordinates: { x: number; z: number }[]; // Mantener por compatibilidad
+  planeCoordinates: { x: number; z: number }[];
   onDropOpening: (wallIndex: number, position: number, template: OpeningTemplate) => void;
   isDragActive: boolean;
   draggedTemplate: OpeningTemplate | null;
 }
 
 export function ExtrudedShapeWithDraggableOpenings({ 
-  planeCoordinates, // ✅ Ignorar este prop
+  planeCoordinates,
   onDropOpening, 
   isDragActive, 
   draggedTemplate 
 }: ExtrudedShapeWithDraggableOpeningsProps) {
   
-  // ✅ OBTENER COORDENADAS DIRECTAMENTE DEL STORE (como ExtrudedShape)
   const { planeXZCoordinates, hasPlaneCoordinates } = useDrawingStore();
+  const { openings } = useOpeningsStore();
+  const [hoveredWall, setHoveredWall] = useState<number | null>(null);
   
-  console.log('🏗️ ExtrudedShapeWithDraggableOpenings renderizando...');
-  console.log('✅ Store planeXZCoordinates (USANDO):', planeXZCoordinates);
-  console.log('📊 hasPlaneCoordinates:', hasPlaneCoordinates);
+  // ✅ USAR COORDENADAS EXACTAS DEL STORAGE
+  let coordinatesToUse = planeXZCoordinates;
   
-  // ✅ USAR COORDENADAS DEL STORE (igual que ExtrudedShape)
-  const coordinatesToUse = planeXZCoordinates;
-  
-  // Validar coordenadas del store
-  if (!hasPlaneCoordinates || coordinatesToUse.length === 0) {
-    console.warn('⚠️ No hay coordenadas guardadas en el store');
+  if (!hasPlaneCoordinates || coordinatesToUse.length < 3) {
+    coordinatesToUse = [
+      { x: -6.5, z: -7 },
+      { x: 4, z: -4.5 },
+      { x: 2, z: 6 },
+      { x: -7.5, z: 4.5 },
+      { x: -6.5, z: -6.5 }
+    ];
+    console.log('🏗️ Usando coordenadas exactas del localStorage');
+  }
+
+  console.log('🔍 COORDENADAS FINALES:', coordinatesToUse);
+
+  if (coordinatesToUse.length < 3) {
     return null;
   }
 
-  // ✅ MISMO ALGORITMO QUE ExtrudedShape.tsx
-  const depth = GEOMETRY_CONFIG.EXTRUDE_DEPTH;
-
-  // ✅ CREAR PISO - COPIADO EXACTO DE ExtrudedShape.tsx
-  const floorGeometry = new THREE.BufferGeometry();
+  const depth = 3;
   
-  const vertices: number[] = [];
-  const indices: number[] = [];
-  
-  // Agregar vértices del piso
-  coordinatesToUse.forEach(coord => {
-    vertices.push(coord.x, 0, coord.z);
-  });
-  
-  // MISMO ALGORITMO: Crear triángulos con orden correcto para piso
-  for (let i = 1; i < coordinatesToUse.length - 1; i++) {
-    indices.push(0, i, i + 1);
-  }
-  
-  floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-  floorGeometry.setIndex(indices);
-  floorGeometry.computeVertexNormals();
-  floorGeometry.computeBoundingBox();
-
-  // ✅ CREAR PAREDES CON GROSOR - MÉTODO PRECISO
-  const WALL_THICKNESS = 0.2; // Grosor de 20cm
-  
-  const wallGeometries: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < coordinatesToUse.length; i++) {
-    const nextIndex = (i + 1) % coordinatesToUse.length;
-    const p1 = coordinatesToUse[i];
-    const p2 = coordinatesToUse[nextIndex];
-    
-    // Calcular vector de la pared y su perpendicular
-    const wallVector = new THREE.Vector3(p2.x - p1.x, 0, p2.z - p1.z);
-    const wallLength = wallVector.length();
-    wallVector.normalize();
-    
-    // Vector perpendicular hacia el interior (normal)
-    const normalVector = new THREE.Vector3(-wallVector.z, 0, wallVector.x);
-    const halfThickness = WALL_THICKNESS / 2;
-    
-    // Calcular las 4 esquinas de la pared (base)
-    const outerP1 = {
-      x: p1.x - normalVector.x * halfThickness,
-      z: p1.z - normalVector.z * halfThickness
-    };
-    const outerP2 = {
-      x: p2.x - normalVector.x * halfThickness,
-      z: p2.z - normalVector.z * halfThickness
-    };
-    const innerP1 = {
-      x: p1.x + normalVector.x * halfThickness,
-      z: p1.z + normalVector.z * halfThickness
-    };
-    const innerP2 = {
-      x: p2.x + normalVector.x * halfThickness,
-      z: p2.z + normalVector.z * halfThickness
-    };
-    
-    // Crear geometría de pared con grosor
-    const wallGeometry = new THREE.BufferGeometry();
-    
-    // 8 vértices: 4 abajo + 4 arriba
-    const wallVertices = new Float32Array([
-      // Base (Y = 0)
-      outerP1.x, 0, outerP1.z,  // 0: exterior P1 base
-      outerP2.x, 0, outerP2.z,  // 1: exterior P2 base
-      innerP2.x, 0, innerP2.z,  // 2: interior P2 base
-      innerP1.x, 0, innerP1.z,  // 3: interior P1 base
-      
-      // Techo (Y = depth)
-      outerP1.x, depth, outerP1.z,  // 4: exterior P1 techo
-      outerP2.x, depth, outerP2.z,  // 5: exterior P2 techo
-      innerP2.x, depth, innerP2.z,  // 6: interior P2 techo
-      innerP1.x, depth, innerP1.z   // 7: interior P1 techo
-    ]);
-    
-    // Índices para las caras de la pared
-    const wallIndices = [
-      // Cara exterior (hacia el exterior del edificio)
-      0, 1, 5,  0, 5, 4,
-      // Cara interior (hacia el interior del edificio)
-      2, 3, 7,  2, 7, 6,
-      // Cara lateral P1 (conexión entre paredes)
-      3, 0, 4,  3, 4, 7,
-      // Cara lateral P2 (conexión entre paredes)
-      1, 2, 6,  1, 6, 5
-      // Base y techo se omiten (cubiertos por piso y techo general)
-    ];
-    
-    wallGeometry.setAttribute('position', new THREE.BufferAttribute(wallVertices, 3));
-    wallGeometry.setIndex(wallIndices);
-    wallGeometry.computeVertexNormals();
-    wallGeometry.computeBoundingBox();
-    
-    wallGeometries.push(wallGeometry);
-    
-    console.log(`🧱 Pared ${i}: ${wallLength.toFixed(2)}m × ${depth}m × ${WALL_THICKNESS}m`);
-    console.log(`   P1: (${p1.x.toFixed(2)}, ${p1.z.toFixed(2)}) → P2: (${p2.x.toFixed(2)}, ${p2.z.toFixed(2)})`);
-  }
-
-  // ✅ CREAR TECHO - COPIADO EXACTO DE ExtrudedShape.tsx
-  const ceilingGeometry = new THREE.BufferGeometry();
-  const ceilingVertices: number[] = [];
-  coordinatesToUse.forEach(coord => {
-    ceilingVertices.push(coord.x, depth, coord.z);
-  });
-  
-  // MISMO ALGORITMO: Techo con orden normal
-  const ceilingIndices: number[] = [];
-  for (let i = 1; i < coordinatesToUse.length - 1; i++) {
-    ceilingIndices.push(0, i, i + 1);
-  }
-  
-  ceilingGeometry.setAttribute('position', new THREE.Float32BufferAttribute(ceilingVertices, 3));
-  ceilingGeometry.setIndex(ceilingIndices);
-  ceilingGeometry.computeVertexNormals();
-  ceilingGeometry.computeBoundingBox();
-
-  // Obtener aberturas del store
-  const openings = useOpeningsStore((state) => state.openings);
-
-  // Filtrar aberturas por pared
+  // ✅ OBTENER ABERTURAS POR PARED
   const getOpeningsForWall = (wallIndex: number): Opening[] => {
     return openings.filter((opening: Opening) => opening.wallIndex === wallIndex);
   };
 
-  // ✅ HANDLERS PARA DRAG & DROP EN PAREDES SIMPLES
-  const handleWallClick = (wallIndex: number, event: any) => {
-    if (isDragActive && draggedTemplate) {
-      // Calcular posición relativa en la pared
-      const position = 0.5; // Por ahora centro de la pared
-      onDropOpening(wallIndex, position, draggedTemplate);
+  // ✅ CREAR PISO USANDO TRIANGULACIÓN
+  const createFloorGeometry = () => {
+    const floorGeometry = new THREE.BufferGeometry();
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    
+    coordinatesToUse.forEach(coord => {
+      vertices.push(coord.x, 0, coord.z);
+    });
+    
+    for (let i = 1; i < coordinatesToUse.length - 1; i++) {
+      indices.push(0, i, i + 1);
     }
+    
+    floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    floorGeometry.setIndex(indices);
+    floorGeometry.computeVertexNormals();
+    
+    return floorGeometry;
   };
 
-  const handleWallPointerOver = (wallIndex: number) => {
-    if (isDragActive) {
-      // Cambiar cursor o highlight
+  // ✅ CREAR TECHO GEOMETRÍA
+  const createCeilingGeometry = () => {
+    const ceilingGeometry = new THREE.BufferGeometry();
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    
+    coordinatesToUse.forEach(coord => {
+      vertices.push(coord.x, depth, coord.z);
+    });
+    
+    for (let i = 1; i < coordinatesToUse.length - 1; i++) {
+      indices.push(0, i, i + 1);
     }
+    
+    ceilingGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    ceilingGeometry.setIndex(indices);
+    ceilingGeometry.computeVertexNormals();
+    
+    return ceilingGeometry;
   };
+
+  // ✅ CREAR GEOMETRÍA DE PARED CON ABERTURAS - COORDENADAS LOCALES
+  const createWallGeometry = (wallIndex: number, p1: {x: number, z: number}, p2: {x: number, z: number}) => {
+    const wallOpenings = getOpeningsForWall(wallIndex);
+    const wallLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.z - p1.z) ** 2);
+    
+    // ✅ SIEMPRE USAR BUFFERGEOMETRY - SISTEMA UNIFICADO
+    const wallGeometry = new THREE.BufferGeometry();
+    
+    if (wallOpenings.length === 0) {
+      // ✅ PARED SIMPLE
+      const wallVertices = new Float32Array([
+        p1.x, 0, p1.z,     // bottom left
+        p2.x, 0, p2.z,     // bottom right  
+        p2.x, depth, p2.z, // top right
+        p1.x, depth, p1.z  // top left
+      ]);
+      
+      const wallIndices = [0, 2, 1, 0, 3, 2];
+      
+      wallGeometry.setAttribute('position', new THREE.BufferAttribute(wallVertices, 3));
+      wallGeometry.setIndex(wallIndices);
+      wallGeometry.computeVertexNormals();
+      
+    } else {
+      // ✅ PARED CON ABERTURAS - CREAR MANUALMENTE CON BUFFERGEOMETRY
+      const vertices: number[] = [];
+      const indices: number[] = [];
+      let vertexIndex = 0;
+      
+      // Crear segmentos de pared evitando las aberturas
+      const segments = createWallSegments(wallLength, depth, wallOpenings);
+      
+      segments.forEach(segment => {
+        let segmentVertices;
+        
+        if (segment.startY !== undefined && segment.endY !== undefined) {
+          // ✅ SEGMENTO SUPERIOR (encima de abertura)
+          segmentVertices = [
+            p1.x + (segment.startX / wallLength) * (p2.x - p1.x), segment.startY, p1.z + (segment.startX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.endX / wallLength) * (p2.x - p1.x), segment.startY, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.endX / wallLength) * (p2.x - p1.x), segment.endY, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.startX / wallLength) * (p2.x - p1.x), segment.endY, p1.z + (segment.startX / wallLength) * (p2.z - p1.z)
+          ];
+        } else {
+          // ✅ SEGMENTO NORMAL
+          segmentVertices = [
+            p1.x + (segment.startX / wallLength) * (p2.x - p1.x), 0, p1.z + (segment.startX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.endX / wallLength) * (p2.x - p1.x), 0, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.endX / wallLength) * (p2.x - p1.x), segment.height, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.startX / wallLength) * (p2.x - p1.x), segment.height, p1.z + (segment.startX / wallLength) * (p2.z - p1.z)
+          ];
+        }
+        
+        vertices.push(...segmentVertices);
+        
+        // Indices para el segmento
+        indices.push(
+          vertexIndex, vertexIndex + 2, vertexIndex + 1,
+          vertexIndex, vertexIndex + 3, vertexIndex + 2
+        );
+        
+        vertexIndex += 4;
+      });
+      
+      wallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      wallGeometry.setIndex(indices);
+      wallGeometry.computeVertexNormals();
+    }
+    
+    return wallGeometry;
+  };
+
+  // ✅ Tipo para segmentos de pared
+  type WallSegment = {
+    startX: number;
+    endX: number;
+    height: number;
+    startY?: number;
+    endY?: number;
+  };
+  
+  // ✅ FUNCIÓN AUXILIAR PARA CREAR SEGMENTOS DE PARED
+  const createWallSegments = (wallLength: number, wallHeight: number, openings: Opening[]): WallSegment[] => {
+    const segments: WallSegment[] = [];
+    let currentX = 0;
+    
+    // Ordenar aberturas por posición
+    const sortedOpenings = [...openings].sort((a, b) => a.position - b.position);
+    
+    sortedOpenings.forEach(opening => {
+      const openingStartX = (opening.position * wallLength) - opening.width/2;
+      const openingEndX = (opening.position * wallLength) + opening.width/2;
+      
+      // Segmento antes de la abertura
+      if (currentX < openingStartX) {
+        segments.push({
+          startX: currentX,
+          endX: openingStartX,
+          height: wallHeight
+        });
+      }
+      
+      // Segmento superior de la abertura (si no es puerta hasta el techo)
+      if (opening.type === 'window' || (opening.bottomOffset + opening.height < wallHeight)) {
+        const segmentStartY = opening.bottomOffset + opening.height;
+        const segmentEndY = wallHeight;
+        
+        if (segmentEndY > segmentStartY + 0.1) { // ✅ MARGEN MÍNIMO
+          segments.push({
+            startX: openingStartX,
+            endX: openingEndX,
+            height: segmentEndY, // ✅ ALTURA TOTAL DEL SEGMENTO
+            startY: segmentStartY,
+            endY: segmentEndY
+          });
+        }
+      }
+      
+      currentX = openingEndX;
+    });
+    
+    // Segmento final
+    if (currentX < wallLength) {
+      segments.push({
+        startX: currentX,
+        endX: wallLength,
+        height: wallHeight
+      });
+    }
+    
+    return segments;
+  };
+
+  // ✅ EVENTOS DE DRAG & DROP
+  const handleWallPointerEnter = useCallback((wallIndex: number) => {
+    if (isDragActive && draggedTemplate) {
+      setHoveredWall(wallIndex);
+    }
+  }, [isDragActive, draggedTemplate]);
+
+  const handleWallPointerLeave = useCallback(() => {
+    setHoveredWall(null);
+  }, []);
+
+  const handleWallClick = useCallback((wallIndex: number, event: any) => {
+    if (!isDragActive || !draggedTemplate) return;
+    
+    // Calcular posición relativa en la pared
+    const p1 = coordinatesToUse[wallIndex];
+    const p2 = coordinatesToUse[(wallIndex + 1) % coordinatesToUse.length];
+    const wallLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.z - p1.z) ** 2);
+    const wallAngle = Math.atan2(p2.z - p1.z, p2.x - p1.x);
+    const centerX = (p1.x + p2.x) / 2;
+    const centerZ = (p1.z + p2.z) / 2;
+    
+    // Convertir punto de clic a coordenadas locales de la pared
+    const localPoint = event.point.clone();
+    localPoint.sub(new THREE.Vector3(centerX, depth/2, centerZ));
+    
+    const rotationMatrix = new THREE.Matrix4().makeRotationY(-wallAngle);
+    localPoint.applyMatrix4(rotationMatrix);
+    
+    const relativePosition = (localPoint.x + wallLength/2) / wallLength;
+    const clampedPosition = Math.max(0.1, Math.min(0.9, relativePosition));
+    
+    console.log(`🎯 DROP en pared ${wallIndex} en posición ${clampedPosition.toFixed(2)}`);
+    onDropOpening(wallIndex, clampedPosition, draggedTemplate);
+    
+    setHoveredWall(null);
+  }, [isDragActive, draggedTemplate, coordinatesToUse, depth, onDropOpening]);
+
+  const floorGeometry = createFloorGeometry();
+  const ceilingGeometry = createCeilingGeometry();
 
   return (
     <group>
-      {/* ✅ PISO - EXACTO COMO ExtrudedShape.tsx */}
+      {/* ✅ PISO */}
       <mesh geometry={floorGeometry}>
         <meshStandardMaterial 
           color={COLORS.FLOOR}
-          side={THREE[MATERIAL_PROPERTIES.FLOOR.side]}
+          side={THREE.DoubleSide}
           roughness={MATERIAL_PROPERTIES.FLOOR.roughness}
           metalness={MATERIAL_PROPERTIES.FLOOR.metalness}
-          transparent={MATERIAL_PROPERTIES.FLOOR.transparent}
-          opacity={MATERIAL_PROPERTIES.FLOOR.opacity}
-          flatShading={false}
         />
       </mesh>
       
-      {/* ✅ PAREDES - EXACTO COMO ExtrudedShape.tsx PERO CON EVENTOS */}
-      {wallGeometries.map((wallGeom, index) => {
+      {/* ✅ PAREDES CON DRAG & DROP UNIFICADAS */}
+      {coordinatesToUse.map((coord, index) => {
+        const nextIndex = (index + 1) % coordinatesToUse.length;
+        const nextCoord = coordinatesToUse[nextIndex];
+        const wallLength = Math.sqrt((nextCoord.x - coord.x) ** 2 + (nextCoord.z - coord.z) ** 2);
+        const wallAngle = Math.atan2(nextCoord.z - coord.z, nextCoord.x - coord.x);
+        const centerX = (coord.x + nextCoord.x) / 2;
+        const centerZ = (coord.z + nextCoord.z) / 2;
         const wallOpenings = getOpeningsForWall(index);
-        const hasOpenings = wallOpenings.length > 0;
         
         return (
-          <mesh 
-            key={`wall-${index}`} 
-            geometry={wallGeom}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleWallClick(index, e);
-            }}
-            onPointerOver={(e) => {
-              e.stopPropagation();
-              handleWallPointerOver(index);
-            }}
-          >
-            <meshStandardMaterial 
-              color={isDragActive ? "#90EE90" : COLORS.WALLS}
-              side={THREE[MATERIAL_PROPERTIES.WALLS.side]}
-              roughness={MATERIAL_PROPERTIES.WALLS.roughness}
-              metalness={MATERIAL_PROPERTIES.WALLS.metalness}
-              transparent={MATERIAL_PROPERTIES.WALLS.transparent}
-              opacity={isDragActive ? 0.8 : MATERIAL_PROPERTIES.WALLS.opacity}
-              flatShading={false}
-              depthWrite={true}
-              depthTest={true}
-            />
-          </mesh>
+          <group key={`wall-group-${index}`}>
+            {/* ✅ PARED PRINCIPAL - SIN TRANSFORMACIONES */}
+            <mesh 
+              geometry={createWallGeometry(index, coord, nextCoord)}
+              userData={{ wallIndex: index, type: 'wall' }}
+              onPointerEnter={(e) => {
+                e.stopPropagation();
+                handleWallPointerEnter(index);
+              }}
+              onPointerLeave={(e) => {
+                e.stopPropagation();
+                handleWallPointerLeave();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleWallClick(index, e);
+              }}
+            >
+              <meshStandardMaterial 
+                color={hoveredWall === index && isDragActive ? "#4CAF50" : COLORS.WALLS}
+                side={THREE.DoubleSide}
+                roughness={MATERIAL_PROPERTIES.WALLS.roughness}
+                metalness={MATERIAL_PROPERTIES.WALLS.metalness}
+                transparent={isDragActive}
+                opacity={isDragActive ? (hoveredWall === index ? 0.8 : 0.4) : 1.0}
+              />
+            </mesh>
+            
+            {/* ✅ SIN MARCOS - SOLO AGUJEROS LIMPIOS */}
+            {wallOpenings.map(opening => {
+              // ✅ SOLO PUNTO DE DEBUG OPCIONAL
+              const t = opening.position;
+              const openingX = coord.x + t * (nextCoord.x - coord.x);
+              const openingZ = coord.z + t * (nextCoord.z - coord.z);
+              const openingY = opening.bottomOffset + opening.height/2;
+              
+              return (
+                <group key={`opening-${index}-${opening.id}`}>
+                  {/* ✅ SOLO PUNTO DE REFERENCIA (OPCIONAL - PUEDES ELIMINARLO) */}
+                  <mesh position={[openingX, openingY, openingZ]}>
+                    <sphereGeometry args={[0.02]} />
+                    <meshBasicMaterial color="#FFD700" />
+                  </mesh>
+                </group>
+              );
+            })}
+          </group>
         );
       })}
       
-      {/* ✅ TECHO - EXACTO COMO ExtrudedShape.tsx */}
+      {/* ✅ TECHO */}
       <mesh geometry={ceilingGeometry}>
         <meshStandardMaterial 
           color={COLORS.CEILING}
-          side={THREE[MATERIAL_PROPERTIES.CEILING.side]}
+          side={THREE.DoubleSide}
           roughness={MATERIAL_PROPERTIES.CEILING.roughness}
           metalness={MATERIAL_PROPERTIES.CEILING.metalness}
-          transparent={MATERIAL_PROPERTIES.CEILING.transparent}
-          opacity={MATERIAL_PROPERTIES.CEILING.opacity}
-          flatShading={false}
+          transparent={true}
+          opacity={0.7}
         />
       </mesh>
 
-      {/* ✅ MOSTRAR ABERTURAS EXISTENTES */}
-      {openings.map((opening) => {
-        const wallIndex = opening.wallIndex;
-        if (wallIndex >= coordinatesToUse.length) return null;
-        
-        const p1 = coordinatesToUse[wallIndex];
-        const p2 = coordinatesToUse[(wallIndex + 1) % coordinatesToUse.length];
-        
-        // Calcular posición de la abertura en la pared
-        const wallLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.z - p1.z) ** 2);
-        const wallAngle = Math.atan2(p2.z - p1.z, p2.x - p1.x);
-        
-        const openingX = p1.x + (p2.x - p1.x) * opening.position;
-        const openingZ = p1.z + (p2.z - p1.z) * opening.position;
-        const openingY = opening.bottomOffset + opening.height / 2;
-        
-        return (
-          <group 
-            key={opening.id}
-            position={[openingX, openingY, openingZ]}
-            rotation={[0, wallAngle, 0]}
-          >
-            <mesh>
-              <boxGeometry args={[opening.width, opening.height, 0.3]} />
-              <meshStandardMaterial 
-                color="#8B4513"
-                transparent
-                opacity={0.8}
-              />
-            </mesh>
-          </group>
-        );
-      })}
-
-      {/* ✅ DEBUG: Esferas en las coordenadas exactas del store */}
+      {/* ✅ PUNTOS DE REFERENCIA - DEBUG */}
       {coordinatesToUse.map((coord, index) => (
         <mesh 
-          key={`debug-${index}`}
-          position={[coord.x, depth + 0.5, coord.z]}
+          key={`point-${index}`}
+          position={[coord.x, depth + 0.2, coord.z]}
         >
           <sphereGeometry args={[0.05]} />
-          <meshBasicMaterial color="#ff0000" />
+          <meshBasicMaterial color={index === 0 ? "#00ff00" : "#ff0000"} />
         </mesh>
       ))}
 
-      {/* Overlay durante drag */}
-      {isDragActive && draggedTemplate && (
-        <group>
-          <mesh position={[0, depth/2, 0]}>
-            <boxGeometry args={[50, depth * 1.1, 50]} />
-            <meshStandardMaterial 
-              color="#00ff00"
-              transparent
-              opacity={0.05}
-              wireframe={false}
-            />
+      {/* ✅ LÍNEAS DE VERIFICACIÓN - DEBUG */}
+      {coordinatesToUse.map((coord, index) => {
+        const nextIndex = (index + 1) % coordinatesToUse.length;
+        const nextCoord = coordinatesToUse[nextIndex];
+        
+        const length = Math.sqrt(
+          (nextCoord.x - coord.x) ** 2 + (nextCoord.z - coord.z) ** 2
+        );
+        const angle = Math.atan2(nextCoord.z - coord.z, nextCoord.x - coord.x);
+        const centerX = (coord.x + nextCoord.x) / 2;
+        const centerZ = (coord.z + nextCoord.z) / 2;
+        
+        return (
+          <mesh 
+            key={`line-${index}`}
+            position={[centerX, 0.05, centerZ]}
+            rotation={[0, angle, 0]}
+          >
+            <boxGeometry args={[length, 0.02, 0.02]} />
+            <meshBasicMaterial color="#00ff00" />
           </mesh>
-          
-          {/* Indicador de que puede hacer drop */}
-          <group position={[0, depth + 1, 0]}>
-            <mesh>
-              <boxGeometry args={[1, 0.2, 1]} />
-              <meshBasicMaterial color="#ffff00" />
-            </mesh>
-          </group>
-        </group>
-      )}
+        );
+      })}
     </group>
   );
 }

@@ -16,6 +16,7 @@ import React from "react";
 import { OpeningTemplate } from "@/types/openings";
 import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
 import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
+import { useCoordinatesStore } from "@/store/coordinatesStore";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -63,7 +64,8 @@ export default function DrawingScene() {
   const [showOpeningsPalette, setShowOpeningsPalette] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [draggedTemplate, setDraggedTemplate] = useState<OpeningTemplate | null>(null);
-  const { addOpening } = useOpeningsStore();
+  const { openings, addOpening } = useOpeningsStore();
+  const { coordinates } = useCoordinatesStore();
 
   const handleClick3D = (point: THREE.Vector3) => {
     if (isDragging) return; // No procesar clicks si se está arrastrando
@@ -217,9 +219,10 @@ export default function DrawingScene() {
       type: template.type,
       wallIndex,
       position,
-      width: template.defaultWidth,
-      height: template.defaultHeight,
-      bottomOffset: template.defaultBottomOffset
+      width: template.width,        // ✅ CORREGIDO: usar template.width
+      height: template.height,      // ✅ CORREGIDO: usar template.height
+      bottomOffset: template.bottomOffset, // ✅ CORREGIDO: usar template.bottomOffset
+      template // ✅ AGREGAR: referencia al template original
     };
     
     addOpening(newOpening);
@@ -317,7 +320,7 @@ export default function DrawingScene() {
         {/* MODO 3D - Renderizar con funcionalidad de drag & drop */}
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           <ExtrudedShapeWithDraggableOpenings 
-            planeCoordinates={planeXZCoordinates}
+            planeCoordinates={[]} // Se ignora, usa drawingStore internamente
             onDropOpening={handleDropOpening}
             isDragActive={isDragActive}
             draggedTemplate={draggedTemplate}
@@ -501,7 +504,7 @@ export default function DrawingScene() {
       />
 
       {/* Overlay de drag activo */}
-      {isDragActive && draggedTemplate && (
+      {/* {isDragActive && draggedTemplate && (
         <div className="fixed inset-0 bg-blue-500 bg-opacity-10 pointer-events-none z-30">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg">
@@ -512,7 +515,7 @@ export default function DrawingScene() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Listener global para detectar drag end */}
       {isDragActive && (

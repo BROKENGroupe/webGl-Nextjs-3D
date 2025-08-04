@@ -227,3 +227,5 @@ export const useDrawingStore = create<DrawingState>()(
     }
   )
 );
+
+// (Removed duplicate useDrawingStore definition to avoid redeclaration error)

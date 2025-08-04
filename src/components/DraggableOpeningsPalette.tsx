@@ -3,40 +3,40 @@ import { OpeningTemplate } from '../types/openings';
 
 const OPENING_TEMPLATES: OpeningTemplate[] = [
   {
+    id: 'door-standard',
     type: 'door',
     name: 'Puerta Simple',
-    defaultWidth: 0.9,
-    defaultHeight: 2.1,
-    defaultBottomOffset: 0,
-    icon: '🚪',
-    color: '#8B4513'
+    width: 0.9,          // ✅ CORREGIDO: era defaultWidth
+    height: 2.1,         // ✅ CORREGIDO: era defaultHeight
+    bottomOffset: 0,     // ✅ CORREGIDO: era defaultBottomOffset
+    icon: '🚪'
   },
   {
+    id: 'door-double',
     type: 'double-door',
     name: 'Puerta Doble',
-    defaultWidth: 1.6,
-    defaultHeight: 2.1,
-    defaultBottomOffset: 0,
-    icon: '🚪🚪',
-    color: '#A0522D'
+    width: 1.6,          // ✅ CORREGIDO: era defaultWidth
+    height: 2.1,         // ✅ CORREGIDO: era defaultHeight
+    bottomOffset: 0,     // ✅ CORREGIDO: era defaultBottomOffset
+    icon: '🚪🚪'
   },
   {
+    id: 'window-standard',
     type: 'window',
     name: 'Ventana',
-    defaultWidth: 1.2,
-    defaultHeight: 1.0,
-    defaultBottomOffset: 1.0,
-    icon: '🪟',
-    color: '#87CEEB'
+    width: 1.2,          // ✅ CORREGIDO: era defaultWidth
+    height: 1.0,         // ✅ CORREGIDO: era defaultHeight
+    bottomOffset: 1.0,   // ✅ CORREGIDO: era defaultBottomOffset
+    icon: '🪟'
   },
   {
+    id: 'sliding-door',
     type: 'sliding-door',
     name: 'Puerta Corrediza',
-    defaultWidth: 2.4,
-    defaultHeight: 2.1,
-    defaultBottomOffset: 0,
-    icon: '🎚️',
-    color: '#CD853F'
+    width: 2.4,          // ✅ CORREGIDO: era defaultWidth
+    height: 2.1,         // ✅ CORREGIDO: era defaultHeight
+    bottomOffset: 0,     // ✅ CORREGIDO: era defaultBottomOffset
+    icon: '🎚️'
   }
 ];
 
@@ -45,6 +45,19 @@ interface DraggableOpeningsPaletteProps {
   onToggle: () => void;
   onStartDrag: (template: OpeningTemplate) => void;
 }
+
+// Reemplazar las funciones handleDragStart y el mapeo:
+
+// ✅ Función helper para colores
+const getBorderColor = (type: string): string => {
+  const colors = {
+    'door': '#8B4513',
+    'double-door': '#A0522D', 
+    'window': '#87CEEB',
+    'sliding-door': '#CD853F'
+  };
+  return colors[type as keyof typeof colors] || '#6B7280';
+};
 
 export function DraggableOpeningsPalette({ 
   isVisible, 
@@ -58,11 +71,11 @@ export function DraggableOpeningsPalette({
     setDraggedItem(template);
     onStartDrag(template);
     
-    // Crear imagen de drag personalizada
+    // ✅ CORREGIDO: Usar getBorderColor en lugar de template.color
     const dragImage = document.createElement('div');
     dragImage.innerHTML = `
       <div style="
-        background: ${template.color}; 
+        background: ${getBorderColor(template.type)}; 
         color: white; 
         padding: 8px 12px; 
         border-radius: 8px; 
@@ -78,14 +91,12 @@ export function DraggableOpeningsPalette({
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 50, 20);
     
-    // Limpiar después del drag
     setTimeout(() => {
       if (document.body.contains(dragImage)) {
         document.body.removeChild(dragImage);
       }
     }, 0);
     
-    // Configurar datos del drag
     e.dataTransfer.setData('application/json', JSON.stringify(template));
     e.dataTransfer.effectAllowed = 'copy';
   };
@@ -124,20 +135,20 @@ export function DraggableOpeningsPalette({
         
         {OPENING_TEMPLATES.map((template) => (
           <div
-            key={template.type}
+            key={template.id} // ✅ CORREGIDO: usar template.id en lugar de template.type
             draggable
             onDragStart={(e) => handleDragStart(e, template)}
             onDragEnd={handleDragEnd}
             className={`
               flex items-center space-x-3 p-3 rounded-lg cursor-move transition-all
-              ${draggedItem?.type === template.type 
+              ${draggedItem?.id === template.id  // ✅ CORREGIDO: comparar por id
                 ? 'bg-blue-100 border-2 border-blue-500 scale-105' 
                 : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent hover:border-gray-300'
               }
               hover:shadow-md active:scale-95
             `}
             style={{ 
-              borderLeftColor: template.color,
+              borderLeftColor: getBorderColor(template.type), // ✅ CORREGIDO: usar función helper
               borderLeftWidth: '4px'
             }}
           >
@@ -145,7 +156,7 @@ export function DraggableOpeningsPalette({
             <div className="flex-1">
               <div className="font-medium text-gray-800">{template.name}</div>
               <div className="text-sm text-gray-500">
-                {template.defaultWidth}m × {template.defaultHeight}m
+                {template.width}m × {template.height}m {/* ✅ CORREGIDO: usar width/height */}
               </div>
             </div>
             <div className="text-gray-400 text-sm">
@@ -160,17 +171,6 @@ export function DraggableOpeningsPalette({
           </p>
         </div>
       </div>
-
-      {/* Overlay para drag feedback */}
-      {draggedItem && (
-        <div className="fixed inset-0 bg-blue-500 bg-opacity-10 pointer-events-none z-30">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg">
-              📍 Suelta sobre una pared para colocar {draggedItem.name}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
