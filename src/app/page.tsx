@@ -392,7 +392,7 @@ export default function DrawingScene() {
       </div>
 
       {/* Panel de instrucciones dinámico */}
-      <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg text-sm max-w-xs">
+      {/* <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg text-sm max-w-xs">
         {!isClosed && !isExtruded && (
           <>
             <h3 className="font-semibold text-gray-800 mb-2">Dibujando Forma</h3>
@@ -431,44 +431,12 @@ export default function DrawingScene() {
               </div>
             </div>
           </>
-        )}
+        )}       
         
-        {isExtruded && (
-          <>
-            <h3 className="font-semibold text-gray-800 mb-2">Vista 3D - Forma Extruida</h3>
-            <div className="space-y-1 text-gray-600">
-              <div>• Usa el mouse para rotar la vista</div>
-              <div>• Scroll para hacer zoom</div>
-              <div>• Arrastra para mover la cámara</div>
-              <div>• "Volver a 2D" para editar la forma</div>
-              <div>• "Re-extruir" para aplicar cambios</div>
-              <div className="text-blue-600 font-medium">
-                • 🏠 Abre paleta para arrastrar puertas y ventanas
-              </div>
-              {/* AGREGAR INFO DE DEBUG */}
-              <div className="text-xs text-purple-600 border-t pt-2 mt-2">
-                <div>🔍 Debug Info:</div>
-                <div>Puntos guardados: {planeXZCoordinates.length}</div>
-                <div>Coordenadas válidas: {hasPlaneCoordinates ? '✅' : '❌'}</div>
-                {planeXZCoordinates.length > 0 && (
-                  <div>
-                    Primer punto: ({planeXZCoordinates[0]?.x.toFixed(1)}, {planeXZCoordinates[0]?.z.toFixed(1)})
-                  </div>
-                )}
-              </div>
-              {isDragActive && (
-                <div className="text-orange-600 font-bold">
-                  • 🎯 Arrastra a una pared para colocar
-                  <div className="text-xs">• ESC para cancelar</div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+      </div> */}
 
       {/* Indicador de estado */}
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg text-xs">
+      {/* <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg text-xs">
         <div className="font-semibold text-gray-800">
           {!isClosed ? "Dibujando" : !isExtruded ? "Editando 2D" : "Vista 3D"}
         </div>
@@ -487,7 +455,7 @@ export default function DrawingScene() {
             🎯 Arrastrando: {draggedTemplate.name}
           </div>
         )}
-      </div>
+      </div> */}
 
       <ContextMenu
         x={contextMenu.x}
@@ -500,11 +468,11 @@ export default function DrawingScene() {
       />
 
       {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
-      <DraggableOpeningsPalette
+      {/* <DraggableOpeningsPalette
         isVisible={showOpeningsPalette}
         onToggle={() => setShowOpeningsPalette(!showOpeningsPalette)}
         onStartDrag={handleStartDrag}
-      />
+      /> */}
 
       {/* Overlay de drag activo */}
       {/* {isDragActive && draggedTemplate && (
