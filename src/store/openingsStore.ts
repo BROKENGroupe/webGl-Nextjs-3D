@@ -11,6 +11,7 @@ interface OpeningsState {
   updateOpening: (id: string, updates: Partial<Opening>) => void;
   clearOpenings: () => void;
   getOpeningsByWall: (wallIndex: number) => Opening[];
+  updateOpeningPosition: (openingId: string, newWallIndex: number, newPosition: number) => void;
 }
 
 export const useOpeningsStore = create<OpeningsState>()(
@@ -48,6 +49,16 @@ export const useOpeningsStore = create<OpeningsState>()(
       
       getOpeningsByWall: (wallIndex) => {
         return get().openings.filter(opening => opening.wallIndex === wallIndex);
+      },
+      
+      updateOpeningPosition: (openingId, newWallIndex, newPosition) => {
+        set((state) => ({
+          openings: state.openings.map(opening => 
+            opening.id === openingId 
+              ? { ...opening, wallIndex: newWallIndex, position: newPosition }
+              : opening
+          )
+        }));
       },
     }),
     {
