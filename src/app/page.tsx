@@ -468,11 +468,11 @@ export default function DrawingScene() {
       />
 
       {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
-      {/* <DraggableOpeningsPalette
+      <DraggableOpeningsPalette
         isVisible={showOpeningsPalette}
         onToggle={() => setShowOpeningsPalette(!showOpeningsPalette)}
         onStartDrag={handleStartDrag}
-      /> */}
+      />
 
       {/* Overlay de drag activo */}
       {/* {isDragActive && draggedTemplate && (
