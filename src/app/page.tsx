@@ -219,10 +219,11 @@ export default function DrawingScene() {
       type: template.type,
       wallIndex,
       position,
-      width: template.width,        // ✅ CORREGIDO: usar template.width
-      height: template.height,      // ✅ CORREGIDO: usar template.height
-      bottomOffset: template.bottomOffset, // ✅ CORREGIDO: usar template.bottomOffset
-      template // ✅ AGREGAR: referencia al template original
+      width: template.width,
+      height: template.height,
+      bottomOffset: template.bottomOffset,
+      template, // ✅ AGREGAR: referencia al template original
+      currentCondition: "closed_sealed" as const // ✅ CORREGIDO: tipo literal correcto
     };
     
     addOpening(newOpening);
