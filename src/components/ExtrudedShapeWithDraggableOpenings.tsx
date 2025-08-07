@@ -377,7 +377,7 @@ export function ExtrudedShapeWithDraggableOpenings({
       </mesh>
 
       {/* ✅ ELEMENTOS DEBUG - MANTENER EXACTAMENTE IGUAL */}
-      {coordinatesToUse.map((coord, index) => (
+      {/* {coordinatesToUse.map((coord, index) => (
         <mesh 
           key={`point-${index}`}
           position={[coord.x, depth + 0.2, coord.z]}
@@ -385,9 +385,9 @@ export function ExtrudedShapeWithDraggableOpenings({
           <sphereGeometry args={[0.05]} />
           <meshBasicMaterial color={index === 0 ? "#00ff00" : "#ff0000"} />
         </mesh>
-      ))}
+      ))} */}
 
-      {coordinatesToUse.map((coord, index) => {
+      {/* {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
         const nextCoord = coordinatesToUse[nextIndex];
         
@@ -408,7 +408,7 @@ export function ExtrudedShapeWithDraggableOpenings({
             <meshBasicMaterial color="#00ff00" />
           </mesh>
         );
-      })}
+      })} */}
       
       {isDraggingOpening && draggedOpening && (
         <group>
@@ -444,6 +444,27 @@ export function ExtrudedShapeWithDraggableOpenings({
           </button>
         </Html>
       )}
+
+      {/* ❌ COMENTAR: Leyenda de colores
+      <group position={[
+        Math.min(...wallCoordinates.map(c => c.x)) - 2.5,
+        0.1, 
+        Math.max(...wallCoordinates.map(c => c.z)) + 1.5
+      ]}>
+        {[0, 0.2, 0.4, 0.6, 0.8, 1.0].map((intensity, index) => {
+          const colors = [0x008040, 0x00ff80, 0x40ff40, 0xffff00, 0xff8000, 0xff0000];
+          return (
+            <mesh 
+              key={index}
+              position={[0, index * 0.2, 0]}
+            >
+              <boxGeometry args={[0.15, 0.2, 0.15]} />
+              <meshBasicMaterial color={colors[index]} />
+            </mesh>
+          );
+        })}
+      </group>
+      */}
     </group>
   );
 }
