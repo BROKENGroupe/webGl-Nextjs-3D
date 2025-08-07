@@ -1,6 +1,7 @@
 import { Opening } from '@/types/openings';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useWallsStore } from './wallsStore';
 
 interface OpeningsState {
   openings: Opening[];
@@ -24,6 +25,12 @@ export const useOpeningsStore = create<OpeningsState>()(
         set((state) => ({
           openings: [...state.openings, opening]
         }));
+        
+        // ✅ TRIGGER RECÁLCULO ACÚSTICO
+        const { recalculateAllWallsWithOpenings } = useWallsStore.getState();
+        setTimeout(() => {
+          recalculateAllWallsWithOpenings(get().openings);
+        }, 100);
       },
       
       removeOpening: (id) => {
@@ -31,6 +38,12 @@ export const useOpeningsStore = create<OpeningsState>()(
         set((state) => ({
           openings: state.openings.filter(opening => opening.id !== id)
         }));
+        
+        // ✅ TRIGGER RECÁLCULO ACÚSTICO
+        const { recalculateAllWallsWithOpenings } = useWallsStore.getState();
+        setTimeout(() => {
+          recalculateAllWallsWithOpenings(get().openings);
+        }, 100);
       },
       
       updateOpening: (id, updates) => {
@@ -40,11 +53,23 @@ export const useOpeningsStore = create<OpeningsState>()(
             opening.id === id ? { ...opening, ...updates } : opening
           )
         }));
+        
+        // ✅ TRIGGER RECÁLCULO ACÚSTICO
+        const { recalculateAllWallsWithOpenings } = useWallsStore.getState();
+        setTimeout(() => {
+          recalculateAllWallsWithOpenings(get().openings);
+        }, 100);
       },
       
       clearOpenings: () => {
         console.log('🧹 Limpiando todas las aberturas');
         set({ openings: [] });
+        
+        // ✅ TRIGGER RECÁLCULO ACÚSTICO
+        const { recalculateAllWallsWithOpenings } = useWallsStore.getState();
+        setTimeout(() => {
+          recalculateAllWallsWithOpenings(get().openings);
+        }, 100);
       },
       
       getOpeningsByWall: (wallIndex) => {

@@ -17,6 +17,7 @@ import { OpeningTemplate } from "@/types/openings";
 import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
 import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
 import { useCoordinatesStore } from "@/store/coordinatesStore";
+import { WallsManager } from "@/components/WallsManager"; // ✅ IMPORTAR
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -223,7 +224,8 @@ export default function DrawingScene() {
       height: template.height,
       bottomOffset: template.bottomOffset,
       template, // ✅ AGREGAR: referencia al template original
-      currentCondition: "closed_sealed" as const // ✅ CORREGIDO: tipo literal correcto
+      currentCondition: "closed_sealed" as const, // ✅ CORREGIDO: tipo literal correcto
+      relativePosition: 0 // <-- Añadido: valor por defecto, ajusta según lógica necesaria
     };
     
     addOpening(newOpening);

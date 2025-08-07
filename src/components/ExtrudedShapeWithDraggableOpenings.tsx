@@ -1,4 +1,5 @@
-// ✅ AGREGAR import de MaterialService SOLAMENTE
+// ✅ AGREGAR import del store de paredes
+import { useWallsStore } from "../store/wallsStore";
 import { MaterialService } from "../engine/MaterialService";
 
 // ✅ AGREGAR imports de engines
@@ -7,7 +8,7 @@ import { useOpeningsStore } from "../store/openingsStore";
 import { useDrawingStore } from "../store/drawingStore";
 import { COLORS, MATERIAL_PROPERTIES, GEOMETRY_CONFIG } from "../config/materials";
 import { Opening, OpeningTemplate } from "../types/openings";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react"; // ✅ AGREGAR useEffect
 
 // ✅ NUEVOS IMPORTS - ENGINES
 import { GeometryEngine } from "../engine/GeometryEngine";
@@ -27,7 +28,8 @@ export function ExtrudedShapeWithDraggableOpenings({
   draggedTemplate 
 }: ExtrudedShapeWithDraggableOpeningsProps) {
   
-  // ✅ TODOS LOS ESTADOS SIN CAMBIOS
+  // Stores
+  const { generateWallsFromCoordinates, recalculateAllWallsWithOpenings } = useWallsStore();
   const { planeXZCoordinates, hasPlaneCoordinates } = useDrawingStore();
   const { openings, updateOpeningPosition } = useOpeningsStore();
   const [hoveredWall, setHoveredWall] = useState<number | null>(null);
@@ -56,6 +58,22 @@ export function ExtrudedShapeWithDraggableOpenings({
   }
 
   console.log('🔍 COORDENADAS FINALES:', coordinatesToUse);
+
+  // ✅ AGREGAR USEEFFECT PARA GENERAR PAREDES CUANDO SE MONTA EL COMPONENTE
+  useEffect(() => {
+    if (coordinatesToUse.length >= 3) {
+      console.log('🎯 COMPONENTE ExtrudedShape MONTADO - Generando paredes...');
+      generateWallsFromCoordinates(coordinatesToUse);
+    }
+  }, [coordinatesToUse, generateWallsFromCoordinates]);
+
+  // ✅ NUEVO USEEFFECT PARA RECALCULAR CUANDO CAMBIAN LAS ABERTURAS
+  useEffect(() => {
+    if (openings.length > 0 && coordinatesToUse.length >= 3) {
+      console.log('🔄 ABERTURAS DETECTADAS - Recalculando análisis acústico...');
+      recalculateAllWallsWithOpenings(openings);
+    }
+  }, [openings, recalculateAllWallsWithOpenings, coordinatesToUse]);
 
   if (coordinatesToUse.length < 3) {
     return null;

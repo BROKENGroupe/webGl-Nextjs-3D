@@ -563,8 +563,8 @@ export class InteractionEngine {
     // ===== VERIFICAR SOLAPAMIENTO CON ABERTURAS EXISTENTES =====
     for (const existing of wallOpenings) {
       // Calcular límites de abertura existente
-      const existingStart = existing.position - existing.width / 2;
-      const existingEnd = existing.position + existing.width / 2;
+      const existingStart = existing?.position - existing.width / 2;
+      const existingEnd = existing?.position + existing.width / 2;
       
       // Calcular límites de nueva abertura
       const newStart = position - newOpening.width / 2;
