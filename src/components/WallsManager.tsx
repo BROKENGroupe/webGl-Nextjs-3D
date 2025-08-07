@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useWallsStore } from '@/store/wallsStore';
+import { useOpeningsStore } from '@/store/openingsStore';
+import { useDrawingStore } from '@/store/drawingStore';
 import { WALL_TEMPLATES, WallCondition } from '@/types/walls';
+import { AcousticAnalysisEngine } from '@/engine/AcousticAnalysisEngine';
 
 interface WallsManagerProps {
   isVisible: boolean;
@@ -8,7 +11,9 @@ interface WallsManagerProps {
 }
 
 export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle }) => {
-  const { walls, updateWall, deleteWall } = useWallsStore();
+  const { walls, updateWall, deleteWall, recalculateAllWallsWithOpenings } = useWallsStore();
+  const { openings } = useOpeningsStore();
+  const { planeXZCoordinates } = useDrawingStore();
   const [selectedWallId, setSelectedWallId] = useState<string | null>(null);
   
   // ✅ FUNCIÓN PARA ANÁLISIS ACÚSTICO DETALLADO
@@ -211,6 +216,33 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
     // También lo guardamos en localStorage para futuras referencias
     localStorage.setItem('acoustic-report', JSON.stringify(report));
     console.log('💾 Informe guardado en localStorage como "acoustic-report"');
+  };
+
+  // ✅ AGREGAR función para generar mapa de calor
+  const generateAcousticHeatmap = () => {
+    console.clear();
+    console.log('🔥 GENERANDO MAPA DE CALOR ACÚSTICO DESDE WALLSMANAGER');
+    console.log('======================================================\n');
+    
+    if (walls.length === 0) {
+      console.log('⚠️ No hay paredes para analizar');
+      alert('⚠️ Primero necesitas extruir una forma 3D para generar paredes');
+      return;
+    }
+    
+    const heatmapData = AcousticAnalysisEngine.generateDetailedAcousticHeatmap(
+      walls,
+      openings,
+      planeXZCoordinates,
+      70
+    );
+    
+    // Si necesitas mostrar una leyenda, deberías definirla aquí manualmente o eliminar esta sección.
+    // Por ahora, solo guardamos y notificamos.
+    localStorage.setItem('acoustic-heatmap-data', JSON.stringify(heatmapData));
+    console.log('💾 Datos del mapa de calor guardados en localStorage');
+    
+    alert(`🔥 Mapa de calor generado!\n\n📊 Estadísticas:\n• Total puntos: ${heatmapData.stats.totalPoints}\n• Puntos críticos: ${heatmapData.stats.criticalPoints}\n• Puntos buenos: ${heatmapData.stats.goodPoints}\n\n👀 Revisa la consola para análisis detallado`);
   };
 
   if (!isVisible) {
@@ -525,6 +557,30 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
             >
               📋 Generar Informe
             </button>
+          </div>
+        </div>
+
+        <div className="border-t pt-4">
+          <h3 className="text-lg font-semibold mb-2">🔥 Análisis Acústico</h3>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => recalculateAllWallsWithOpenings(openings)}
+              className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+            >
+              🔊 Recalcular
+            </button>
+            
+            <button
+              onClick={generateAcousticHeatmap}
+              className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+            >
+              🔥 Mapa Calor
+            </button>
+          </div>
+          
+          <div className="mt-2 text-xs text-gray-600">
+            💡 El mapa de calor se activará automáticamente en la escena 3D
           </div>
         </div>
       </div>

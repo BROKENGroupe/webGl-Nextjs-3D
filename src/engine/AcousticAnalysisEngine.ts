@@ -502,4 +502,217 @@ export class AcousticAnalysisEngine {
     console.log(`🔥 Heatmap generado con ${heatmapData.size} puntos de datos`);
     return heatmapData;
   }
+
+  /**
+   * 🔥 GENERAR MAPA DE CALOR ACÚSTICO DETALLADO
+   */
+  static generateDetailedAcousticHeatmap(
+    walls: Wall[],
+    openings: Opening[],
+    wallCoordinates: { x: number; z: number }[],
+    externalSoundLevel: number = 70
+  ) {
+    console.log('🔥 GENERANDO MAPA DE CALOR ACÚSTICO...');
+    
+    const points: Array<{
+      id: string;
+      type: 'wall' | 'opening';
+      coordinates: { x: number; z: number };
+      intensity: number;
+      transmissionLoss: number;
+      description: string;
+    }> = [];
+
+    // ✅ PROCESAR PAREDES
+    walls.forEach((wall, wallIndex) => {
+      if (wallIndex >= wallCoordinates.length) return;
+      
+      const wallStart = wallCoordinates[wallIndex];
+      const wallEnd = wallCoordinates[(wallIndex + 1) % wallCoordinates.length];
+      
+      // Calcular STC promedio de la pared
+      let wallSTC = 35; // Default
+      if (wall.template?.acousticProperties?.transmissionLoss) {
+        const tl = wall.template.acousticProperties.transmissionLoss;
+        wallSTC = (tl.low + tl.mid + tl.high) / 3;
+      }
+      
+      // Factor de condición simplificado
+      const conditionFactor = wall.currentCondition === 'excellent' ? 1.0 :
+                             wall.currentCondition === 'good' ? 0.95 :
+                             wall.currentCondition === 'fair' ? 0.85 :
+                             wall.currentCondition === 'poor' ? 0.7 : 0.5;
+      
+      const effectiveSTC = wallSTC * conditionFactor;
+      
+      // Intensidad: 0 = bueno (>45dB), 1 = malo (<20dB)
+      const intensity = Math.max(0, Math.min(1, (45 - effectiveSTC) / 25));
+
+      // 3 puntos por pared
+      for (let i = 0; i <= 2; i++) {
+        const t = i / 2;
+        const coordinates = {
+          x: wallStart.x + (wallEnd.x - wallStart.x) * t,
+          z: wallStart.z + (wallEnd.z - wallStart.z) * t
+        };
+
+        points.push({
+          id: `wall-${wallIndex}-${i}`,
+          type: 'wall',
+          coordinates,
+          intensity,
+          transmissionLoss: effectiveSTC,
+          description: `Pared ${wallIndex + 1}: ${effectiveSTC.toFixed(1)}dB`
+        });
+      }
+    });
+
+    // ✅ PROCESAR ABERTURAS
+    openings.forEach(opening => {
+      const wallIndex = opening.wallIndex;
+      
+      if (wallIndex < 0 || wallIndex >= wallCoordinates.length) return;
+      
+      const wallStart = wallCoordinates[wallIndex];
+      const wallEnd = wallCoordinates[(wallIndex + 1) % wallCoordinates.length];
+      
+      const t = opening.position || 0.5;
+      const coordinates = {
+        x: wallStart.x + (wallEnd.x - wallStart.x) * t,
+        z: wallStart.z + (wallEnd.z - wallStart.z) * t
+      };
+
+      // STC de la abertura
+      let openingSTC = 25; // Default
+      if (opening.template?.acousticProperties?.soundTransmissionClass) {
+        const stc = opening.template.acousticProperties.soundTransmissionClass;
+        if (typeof stc === 'object') {
+          openingSTC = (stc.low + stc.mid + stc.high) / 3;
+        } else {
+          openingSTC = stc;
+        }
+      }
+
+      // Factor de condición para aberturas
+      const conditionFactor = opening.currentCondition === 'closed_sealed' ? 1.0 :
+                             opening.currentCondition === 'closed_unsealed' ? 0.7 :
+                             opening.currentCondition === 'partially_open' ? 0.3 :
+                             opening.currentCondition === 'fully_open' ? 0.1 : 0.8;
+      
+      const effectiveSTC = openingSTC * conditionFactor;
+      
+      // Aberturas tienen intensidad mínima de 0.4
+      const intensity = Math.max(0.4, Math.min(1, (40 - effectiveSTC) / 20));
+
+      points.push({
+        id: opening.id,
+        type: 'opening',
+        coordinates,
+        intensity,
+        transmissionLoss: effectiveSTC,
+        description: `${opening.template?.type || 'Abertura'}: ${effectiveSTC.toFixed(1)}dB`
+      });
+    });
+
+    console.log(`🔥 Puntos generados: ${points.length}`);
+    
+    return {
+      points,
+      stats: {
+        totalPoints: points.length,
+        criticalPoints: points.filter(p => p.intensity > 0.7).length,
+        goodPoints: points.filter(p => p.intensity < 0.3).length
+      }
+    };
+  }
+
+  /**
+   * 🎨 CALCULAR COLOR DEL MAPA DE CALOR
+   */
+  static calculateHeatmapColor(intensity: number): string {
+    // intensity: 0 (bueno/verde) -> 1 (malo/rojo)
+    
+    if (intensity <= 0.25) {
+      // Verde a amarillo
+      const factor = intensity / 0.25;
+      const r = Math.round(255 * factor);
+      const g = 255;
+      const b = 0;
+      return `rgb(${r}, ${g}, ${b})`;
+    } else if (intensity <= 0.5) {
+      // Amarillo a naranja
+      const factor = (intensity - 0.25) / 0.25;
+      const r = 255;
+      const g = Math.round(255 * (1 - factor * 0.5));
+      const b = 0;
+      return `rgb(${r}, ${g}, ${b})`;
+    } else if (intensity <= 0.75) {
+      // Naranja a rojo
+      const factor = (intensity - 0.5) / 0.25;
+      const r = 255;
+      const g = Math.round(127 * (1 - factor));
+      const b = 0;
+      return `rgb(${r}, ${g}, ${b})`;
+    } else {
+      // Rojo a rojo oscuro
+      const factor = (intensity - 0.75) / 0.25;
+      const r = Math.round(255 * (1 - factor * 0.3));
+      const g = 0;
+      const b = 0;
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+  }
+
+  /**
+   * 🎨 OBTENER COLOR THREE.JS PARA MAPA DE CALOR
+   */
+  static getThreeJSHeatmapColor(intensity: number): number {
+    // Convertir intensidad a color hexadecimal para Three.js
+    if (intensity <= 0.25) {
+      return 0x00ff00 + Math.round(intensity * 4 * 255) * 0x010000; // Verde a amarillo
+    } else if (intensity <= 0.5) {
+      return 0xffff00 - Math.round((intensity - 0.25) * 4 * 127) * 0x000100; // Amarillo a naranja
+    } else if (intensity <= 0.75) {
+      return 0xff8000 - Math.round((intensity - 0.5) * 4 * 127) * 0x000100; // Naranja a rojo
+    } else {
+      return 0xff0000 - Math.round((intensity - 0.75) * 4 * 76) * 0x010000; // Rojo a rojo oscuro
+    }
+  }
+
+  /**
+   * 🔍 ANÁLISIS DE PARED PARA MAPA DE CALOR
+   * Renamed to avoid duplicate implementation.
+   */
+  static analyzeWallForHeatmap(wall: Wall, externalSoundLevel: number = 70, openingsArea: number = 0) {
+    const wallTL = wall.template.acousticProperties.transmissionLoss;
+    const averageTL = (wallTL.low + wallTL.mid + wallTL.high) / 3;
+    
+    // Factor de condición
+    const conditionFactors = {
+      'excellent': 1.0,
+      'good': 0.95,
+      'fair': 0.85,
+      'poor': 0.7,
+      'damaged': 0.5
+    };
+    
+    const conditionFactor = conditionFactors[wall.currentCondition] || 1.0;
+    const effectiveTransmissionLoss = averageTL * conditionFactor;
+    
+    // Rating basado en STC efectivo
+    let rating: string;
+    if (effectiveTransmissionLoss >= 55) rating = 'A';
+    else if (effectiveTransmissionLoss >= 48) rating = 'B';
+    else if (effectiveTransmissionLoss >= 40) rating = 'C';
+    else if (effectiveTransmissionLoss >= 30) rating = 'D';
+    else rating = 'E';
+    
+    return {
+      effectiveTransmissionLoss,
+      rating,
+      internalSoundLevel: externalSoundLevel - effectiveTransmissionLoss,
+      noiseReduction: effectiveTransmissionLoss,
+      conditionFactor
+    };
+  }
 }

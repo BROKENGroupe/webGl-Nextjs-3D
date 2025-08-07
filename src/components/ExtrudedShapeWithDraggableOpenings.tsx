@@ -13,6 +13,8 @@ import { useState, useCallback, useMemo, useEffect } from "react"; // ✅ AGREGA
 // ✅ NUEVOS IMPORTS - ENGINES
 import { GeometryEngine } from "../engine/GeometryEngine";
 import { InteractionEngine } from "../engine/InteractionEngine";
+import { AcousticHeatmapShader } from './AcousticHeatmapShader';
+import { Html } from '@react-three/drei';
 
 interface ExtrudedShapeWithDraggableOpeningsProps {
   planeCoordinates: { x: number; z: number }[];
@@ -28,10 +30,12 @@ export function ExtrudedShapeWithDraggableOpenings({
   draggedTemplate 
 }: ExtrudedShapeWithDraggableOpeningsProps) {
   
-  // Stores
+  // Stores - EXISTENTES
   const { generateWallsFromCoordinates, recalculateAllWallsWithOpenings } = useWallsStore();
   const { planeXZCoordinates, hasPlaneCoordinates } = useDrawingStore();
   const { openings, updateOpeningPosition } = useOpeningsStore();
+  
+  // Estados existentes...
   const [hoveredWall, setHoveredWall] = useState<number | null>(null);
   const [draggedOpening, setDraggedOpening] = useState<Opening | null>(null);
   const [isDraggingOpening, setIsDraggingOpening] = useState(false);
@@ -42,6 +46,9 @@ export function ExtrudedShapeWithDraggableOpenings({
     worldY: number;
     worldZ: number;
   } | null>(null);
+
+  // ✅ NUEVO ESTADO PARA MAPA DE CALOR
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   // ✅ COORDENADAS SIN CAMBIOS
   let coordinatesToUse = planeXZCoordinates;
@@ -403,7 +410,6 @@ export function ExtrudedShapeWithDraggableOpenings({
         );
       })}
       
-      {/* ✅ DRAG INDICATOR - MANTENER EXACTAMENTE IGUAL */}
       {isDraggingOpening && draggedOpening && (
         <group>
           <mesh position={[0, depth + 1, 0]}>
@@ -411,6 +417,32 @@ export function ExtrudedShapeWithDraggableOpenings({
             <meshBasicMaterial color="#FF4444" />
           </mesh>
         </group>
+      )}
+
+      {/* ✅ NUEVO: MAPA DE CALOR ACÚSTICO */}
+      <AcousticHeatmapShader
+        wallCoordinates={coordinatesToUse}
+        isVisible={showHeatmap}
+        externalSoundLevel={70}
+      />
+
+      {/* ✅ NUEVO: CONTROL PARA TOGGLE HEATMAP */}
+      {coordinatesToUse.length >= 3 && (
+        <Html position={[0, 4, 0]} center>
+          <button
+            onClick={() => {
+              console.log('🔥 Toggle heatmap:', !showHeatmap);
+              setShowHeatmap(!showHeatmap);
+            }}
+            className={`px-4 py-2 rounded-lg text-white font-semibold transition-all duration-300 shadow-lg ${
+              showHeatmap 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {showHeatmap ? '🔥 Ocultar Mapa Calor' : '🔥 Mostrar Mapa Calor'}
+          </button>
+        </Html>
       )}
     </group>
   );
