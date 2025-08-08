@@ -6,8 +6,6 @@ import * as THREE from "three";
 import { useState } from "react";
 import { DrawingSurface } from "@/components/DrawingSurface";
 import { LineBuilder } from "@/components/LineBuilder";
-import { HolePreview } from "@/components/HolePreview";
-import { ExtrudedShape } from "@/components/ExtrudedShape";
 import { ContextMenu } from "@/components/ContextMenu";
 import { useDrawingStore } from "@/store/drawingStore";
 import { useOpeningsStore } from '@/store/openingsStore';

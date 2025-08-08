@@ -303,7 +303,7 @@ export const useWallsStore = create<WallsStore>((set, get) => ({
       
       const wallHeight = 3.0;
       const area = wallLength * wallHeight;
-      const template = WALL_TEMPLATES['brick-standard'];
+      const template = WALL_TEMPLATES['drywall-standard'];
       
       const newWall: Wall = {
         id: `wall-${Date.now()}-${index}`,
