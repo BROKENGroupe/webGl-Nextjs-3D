@@ -1,82 +1,111 @@
 /**
- * Configuración de materiales y colores para la aplicación 3D
- * Centraliza todos los valores para fácil mantenimiento y consistencia
+ * @fileoverview Configuración global de materiales y colores del sistema
+ * 
+ * Centraliza todas las definiciones de colores, materiales y propiedades visuales
+ * para mantener consistencia en toda la aplicación y facilitar el mantenimiento.
+ * 
+ * @module MaterialsConfig
+ * @version 2.0.0
+ * @author insonor Team
+ * @since 2025
  */
 
-// Colores principales del sistema
+/**
+ * @namespace COLORS
+ * @description Paleta de colores global del sistema
+ */
 export const COLORS = {
-  // Colores de la estructura 3D (tipo CAD profesional)
-  FLOOR: "#F5F5DC",    // Beige
-  WALLS: "#E0E0E0",    // Gris claro
-  CEILING: "#FFFFFF",  // Blanco para techo
+  // Colores principales de paredes
+  WALLS: "#E0E0E0",
   
-  // Colores de las líneas 2D
-  LINE_PRIMARY: "#2563eb", // Azul para líneas principales
-  LINE_HOLES: "#dc2626",   // Rojo para líneas de agujeros
-  VERTEX: "#3b82f6",       // Azul para vértices
-  
-  // Colores de interfaz
-  GRID: "#888888",         // Gris para grilla
-  GRID_MINOR: "#cccccc",   // Gris claro para grilla menor
-  BACKGROUND: "#e0e0e0",   // Fondo de la aplicación
-
-  HOVER: "#4CAF50",       // Verde Material Design (recomendado)  
-} as const;
-
-// Propiedades de materiales
-export const MATERIAL_PROPERTIES = {
-  FLOOR: {
-    roughness: 0.8,
-    metalness: 0.1,
-    side: "DoubleSide" as const,
-    transparent: true,      // CAMBIADO: Ahora transparente
-    opacity: 0.6,          // CORREGIDO: Era 2.0, ahora 0.6 (60% visible)
+  // Colores de marcos por tipo de abertura
+  FRAMES: {
+    DOORS: "#8B4513",      // Marrón sillín - marcos de puertas
+    WINDOWS: "#FFFFFF",    // Blanco - marcos de ventanas
+    DEFAULT: "#666666"     // Gris neutro - elementos desconocidos
   },
+  
+  // Colores de contenido de aberturas
+  OPENINGS: {
+    WOOD_DOOR: "#CD853F",     // Dorado Perú - hojas de puertas de madera
+    SLIDING_PANEL: "#A0A0A0", // Gris - paneles de puertas correderas
+    GLASS: "#87CEEB"          // Azul cielo - cristales de ventanas
+  },
+  
+  // Colores de estado y feedback visual
+  INTERACTIONS: {
+    VALID_DROP: "#4CAF50",    // Verde - posición válida para drop
+    INVALID_DROP: "#FF5722", // Rojo - posición inválida para drop
+    HOVER: "#2196F3"         // Azul - estado hover
+  },
+  
+  // Colores de debug y herramientas
+  DEBUG: {
+    GRID: "#00ff00",         // Verde brillante - elementos de debug
+    CENTER_LINE: "#ff0000",  // Rojo - líneas centrales
+    HELPER: "#ffff00"        // Amarillo - elementos auxiliares
+  }
+};
+
+/**
+ * @namespace MATERIAL_PROPERTIES
+ * @description Propiedades físicas de materiales para renderizado realista
+ */
+export const MATERIAL_PROPERTIES = {
   WALLS: {
     roughness: 0.8,
     metalness: 0.1,
-    side: "FrontSide" as const,
-    transparent: true,      // Mantener transparente
-    opacity: 0.5,          // CAMBIADO: De 0.4 a 0.5 (50% visible)
+    opacity: 1.0
   },
-  CEILING: {
-    roughness: 0.7,
-    metalness: 0.1,
-    side: "DoubleSide" as const,
-    transparent: true,      // CAMBIADO: Ahora transparente
-    opacity: 0.7,          // CORREGIDO: Era 4.0, ahora 0.7 (70% visible)
+  
+  FRAMES: {
+    WOOD: {
+      roughness: 0.7,
+      metalness: 0.0,
+      opacity: 1.0
+    },
+    METAL: {
+      roughness: 0.3,
+      metalness: 0.8,
+      opacity: 1.0
+    },
+    PVC: {
+      roughness: 0.4,
+      metalness: 0.0,
+      opacity: 1.0
+    }
   },
-} as const;
+  
+  GLASS: {
+    roughness: 0.0,
+    metalness: 0.0,
+    opacity: 0.3,
+    transparent: true
+  },
+  
+  WOOD: {
+    roughness: 0.6,
+    metalness: 0.0,
+    opacity: 1.0
+  }
+};
 
-// Dimensiones y configuraciones 3D
-export const GEOMETRY_CONFIG = {
-  EXTRUDE_DEPTH: 5,        // Altura de extrusión por defecto
-  WALL_THICKNESS: 0.1,     // Grosor de paredes (para futuras mejoras)
-  BEVEL_ENABLED: false,    // Sin biseles para geometría limpia
-  CURVE_SEGMENTS: 8,       // Segmentos de curva para ExtrudeGeometry
-} as const;
-
-// Configuraciones de líneas 2D
-export const LINE_CONFIG = {
-  PRIMARY_WIDTH: 0.1,      // Ancho de líneas principales
-  HOLE_WIDTH: 0.08,        // Ancho de líneas de agujeros
-  VERTEX_SIZE: 0.3,        // Tamaño de vértices
-  HOVER_SCALE: 1.2,        // Escala al hacer hover
-} as const;
-
-// Configuraciones de cámara y luces
-export const SCENE_CONFIG = {
-  CAMERA_POSITION: [10, 10, 10] as const,
-  CAMERA_FOV: 50,
-  AMBIENT_LIGHT: 0.8,
-  DIRECTIONAL_LIGHT: 0.6,
-  DIRECTIONAL_POSITION: [10, 15, 10] as const,
-} as const;
-
-// Grid configuración
-export const GRID_CONFIG = {
-  SIZE: 50,
-  DIVISIONS: 50,
-  COLOR_MAJOR: COLORS.GRID,
-  COLOR_MINOR: COLORS.GRID_MINOR,
-} as const;
+/**
+ * @namespace FRAME_DIMENSIONS
+ * @description Dimensiones estándar para marcos de aberturas
+ */
+export const FRAME_DIMENSIONS = {
+  THICKNESS: {
+    DOORS: 0.08,      // Grosor robusto para marcos de puertas
+    WINDOWS: 0.05,    // Grosor fino para marcos de ventanas
+    DEFAULT: 0.06     // Grosor intermedio para elementos desconocidos
+  },
+  
+  DEPTH: 0.15,        // Profundidad estándar de saliente desde pared
+  
+  CONTENT_THICKNESS: {
+    DOOR_LEAF: 0.03,  // Grosor de hojas de puertas
+    GLASS_PANE: 0.01, // Grosor de cristales
+    SLIDING_PANEL: 0.02 // Grosor de paneles correderos
+  }
+};
