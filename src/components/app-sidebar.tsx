@@ -38,7 +38,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-// ✅ SOLUCIÓN: Datos movidos al Client Component
 const data = {
   user: {
     name: "Arquitecto 3D",
@@ -52,7 +51,7 @@ const data = {
       plan: "Professional",
     },
     {
-      name: "Architecture Studio",
+      name: "Architecture Studio", 
       logo: Home,
       plan: "Premium",
     },
@@ -92,7 +91,7 @@ const data = {
           url: "/templates",
         },
         {
-          title: "Elementos Arquitectónicos",
+          title: "Elementos Arquitectónicos", 
           url: "/elements",
         },
         {
@@ -111,7 +110,7 @@ const data = {
       icon: Eye,
       items: [
         {
-          title: "Vista 3D Interactiva",
+          title: "Vista 3D Interactiva", // ✅ Este es el texto que mencionas
           url: "/viewer",
         },
         {
@@ -146,7 +145,7 @@ const data = {
           url: "/settings/shortcuts",
         },
         {
-          title: "Exportar/Importar",
+          title: "Exportar/Importar", 
           url: "/settings/export",
         },
       ],
@@ -160,7 +159,7 @@ const data = {
     },
     {
       title: "Documentación API",
-      url: "#",
+      url: "#", 
       icon: BookOpen,
     },
     {
@@ -177,7 +176,7 @@ const data = {
     },
     {
       name: "Edificio Corporativo",
-      url: "/projects/corporate-building",
+      url: "/projects/corporate-building", 
       icon: Frame,
     },
     {
@@ -190,7 +189,11 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar 
+      variant="sidebar" // ✅ CAMBIAR: de "inset" a "sidebar" para comportamiento correcto
+      collapsible="icon"  // ✅ AGREGAR: permite colapsar mostrando solo iconos
+      {...props}
+    >
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
