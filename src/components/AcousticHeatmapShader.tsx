@@ -1,4 +1,35 @@
 /**
+ * @exports AcousticHeatmapShader
+ * @description Exportación por defecto del componente de mapa de calor acústico
+ * 
+ * @summary
+ * El componente AcousticHeatmapShader proporciona una visualización avanzada
+ * de datos acústicos en tiempo real utilizando shaders WebGL personalizados.
+ * Es altamente optimizado para rendimiento y ofrece una interfaz intuitiva
+ * para el análisis de propagación del sonido en espacios arquitectónicos.
+ * 
+ * @version 2.0.0
+ * @stable
+ */
+
+/**
+ * @namespace ComponentMetadata
+ * @description Metadatos técnicos del componente
+ * 
+ * @property {string} componentType - "Visualization"
+ * @property {string[]} technologies - ["React", "Three.js", "WebGL", "GLSL"]
+ * @property {string[]} patterns - ["Hook Pattern", "Memoization", "Conditional Rendering"]
+ * @property {Object} performance - Métricas de rendimiento
+ * @property {number} performance.maxPoints - 32
+ * @property {string} performance.targetFPS - "60 FPS"
+ * @property {string} performance.memoryFootprint - "Low"
+ * @property {Object} browser - Compatibilidad de navegadores
+ * @property {boolean} browser.webgl2 - true
+ * @property {boolean} browser.webgl1 - true (con limitaciones)
+ * @property {string[]} browser.tested - ["Chrome 90+", "Firefox 88+", "Safari 14+", "Edge 90+"]
+ */
+
+/**
  * @fileoverview Componente de visualización de mapas de calor acústicos con shaders WebGL
  * 
  * Este componente renderiza una representación visual continua de la distribución 
@@ -9,8 +40,8 @@
  * 
  * @module AcousticHeatmapShader
  * @version 2.0.0
- * @author WebGL-NextJS-3D Team
- * @since 2024
+ * @author insonor Team
+ * @since 2025
  * @requires React
  * @requires @react-three/fiber
  * @requires three
@@ -547,33 +578,3 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
   );
 };
 
-/**
- * @exports AcousticHeatmapShader
- * @description Exportación por defecto del componente de mapa de calor acústico
- * 
- * @summary
- * El componente AcousticHeatmapShader proporciona una visualización avanzada
- * de datos acústicos en tiempo real utilizando shaders WebGL personalizados.
- * Es altamente optimizado para rendimiento y ofrece una interfaz intuitiva
- * para el análisis de propagación del sonido en espacios arquitectónicos.
- * 
- * @version 2.0.0
- * @stable
- */
-
-/**
- * @namespace ComponentMetadata
- * @description Metadatos técnicos del componente
- * 
- * @property {string} componentType - "Visualization"
- * @property {string[]} technologies - ["React", "Three.js", "WebGL", "GLSL"]
- * @property {string[]} patterns - ["Hook Pattern", "Memoization", "Conditional Rendering"]
- * @property {Object} performance - Métricas de rendimiento
- * @property {number} performance.maxPoints - 32
- * @property {string} performance.targetFPS - "60 FPS"
- * @property {string} performance.memoryFootprint - "Low"
- * @property {Object} browser - Compatibilidad de navegadores
- * @property {boolean} browser.webgl2 - true
- * @property {boolean} browser.webgl1 - true (con limitaciones)
- * @property {string[]} browser.tested - ["Chrome 90+", "Firefox 88+", "Safari 14+", "Edge 90+"]
- */
