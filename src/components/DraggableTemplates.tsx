@@ -9,44 +9,44 @@ interface DraggableTemplatesProps {
 export function DraggableTemplates({ onDragStart, onDragEnd }: DraggableTemplatesProps) {
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
-  const templates: OpeningTemplate[] = [
-    {
-      id: 'door-standard',
-      type: 'door',
-      name: 'Puerta Estándar',
-      width: 0.9,
-      height: 2.1,
-      bottomOffset: 0,
-      icon: '🚪'
-    },
-    {
-      id: 'door-double',
-      type: 'double-door', 
-      name: 'Puerta Doble',
-      width: 1.6,
-      height: 2.1,
-      bottomOffset: 0,
-      icon: '🚪🚪'
-    },
-    {
-      id: 'window-standard',
-      type: 'window',
-      name: 'Ventana Estándar',
-      width: 1.2,
-      height: 1.2,
-      bottomOffset: 1.0,
-      icon: '🪟'
-    },
-    {
-      id: 'window-large',
-      type: 'window',
-      name: 'Ventana Grande',
-      width: 2.0,
-      height: 1.5,
-      bottomOffset: 0.8,
-      icon: '🪟+'
-    }
-  ];
+  // const templates: OpeningTemplate[] = [
+  //   {
+  //     id: 'door-standard',
+  //     type: 'door',
+  //     name: 'Puerta Estándar',
+  //     width: 0.9,
+  //     height: 2.1,
+  //     bottomOffset: 0,
+  //     icon: '🚪'
+  //   },
+  //   {
+  //     id: 'door-double',
+  //     type: 'double-door', 
+  //     name: 'Puerta Doble',
+  //     width: 1.6,
+  //     height: 2.1,
+  //     bottomOffset: 0,
+  //     icon: '🚪🚪'
+  //   },
+  //   {
+  //     id: 'window-standard',
+  //     type: 'window',
+  //     name: 'Ventana Estándar',
+  //     width: 1.2,
+  //     height: 1.2,
+  //     bottomOffset: 1.0,
+  //     icon: '🪟'
+  //   },
+  //   {
+  //     id: 'window-large',
+  //     type: 'window',
+  //     name: 'Ventana Grande',
+  //     width: 2.0,
+  //     height: 1.5,
+  //     bottomOffset: 0.8,
+  //     icon: '🪟+'
+  //   }
+  // ];
 
   const handleDragStart = (e: React.DragEvent, template: OpeningTemplate) => {
     console.log('🎯 Iniciando drag:', template.name);
@@ -80,7 +80,7 @@ export function DraggableTemplates({ onDragStart, onDragEnd }: DraggableTemplate
         🏗️ Aberturas
       </h3>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {/* <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {templates.map((template) => (
           <div
             key={template.id}
@@ -122,7 +122,7 @@ export function DraggableTemplates({ onDragStart, onDragEnd }: DraggableTemplate
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }
