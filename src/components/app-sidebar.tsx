@@ -174,16 +174,16 @@ const data = {
       url: "/projects/modern-house",
       icon: Home,
     },
-    {
-      name: "Edificio Corporativo",
-      url: "/projects/corporate-building", 
-      icon: Frame,
-    },
-    {
-      name: "Complejo Residencial",
-      url: "/projects/residential-complex",
-      icon: Grid3X3,
-    },
+    // {
+    //   name: "Edificio Corporativo",
+    //   url: "/projects/corporate-building", 
+    //   icon: Frame,
+    // },
+    // {
+    //   name: "Complejo Residencial",
+    //   url: "/projects/residential-complex",
+    //   icon: Grid3X3,
+    // },
   ],
 }
 
