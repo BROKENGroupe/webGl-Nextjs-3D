@@ -415,7 +415,7 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
       fragmentShader: heatmapFragmentShader, // Shader importado para renderizado de píxeles
       uniforms: {
         // Tiempo para animaciones dinámicas
-        time: { value: 0.0 },
+        time: { value: 0.2 },
         
         // Datos de puntos acústicos
         pointCount: { value: Math.min(heatmapData.points.length, maxPoints) },

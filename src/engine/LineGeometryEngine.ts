@@ -10,9 +10,9 @@ import * as THREE from 'three';
  * el renderizado y manipulación de líneas 3D. Proporciona métodos optimizados
  * para transformaciones, orientaciones y posicionamiento de elementos lineales.
  * 
- * @author Sistema de Diseño 3D
+ * @author insonor Team
  * @version 1.0.0
- * @since 2024
+ * @since 2025
  */
 
 export class LineGeometryEngine {
