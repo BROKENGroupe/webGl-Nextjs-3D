@@ -17,7 +17,7 @@
 export const COLORS = {
   // Colores principales de paredes
   WALLS: "#E0E0E0",
-  
+  HOVER: "D2B48C",
   // Colores de superficies arquitectónicas
   FLOOR: "#D2B48C",         // ✅ Color beige para pisos
   CEILING: "#F5F5F5",       // ✅ Color blanco humo para techos
