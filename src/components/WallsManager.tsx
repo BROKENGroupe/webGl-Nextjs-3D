@@ -23,6 +23,7 @@ import { useOpeningsStore } from '@/store/openingsStore';
 import { useDrawingStore } from '@/store/drawingStore';
 import { WALL_TEMPLATES, WallCondition } from '@/types/walls';
 import { AcousticAnalysisEngine } from '@/engine/AcousticAnalysisEngine';
+import { AcousticAnalysisModal } from './modals/AcousticAnalysisModal';
 
 /**
  * @interface WallsManagerProps
@@ -182,52 +183,73 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
   const [selectedWallId, setSelectedWallId] = useState<string | null>(null);
 
   /**
+   * @state showAnalysisModal
+   * @description Controla la visibilidad del modal de análisis acústico profesional
+   * @type {boolean}
+   */
+  const [showAnalysisModal, setShowAnalysisModal] = useState<boolean>(false);
+
+  /**
    * @section Funciones de análisis acústico
    * @description Sistema completo de análisis y evaluación acústica
    */
 
   /**
+   * @function calculateRw
+   * @description Calcula el índice de reducción sonora ponderado (Rw) según ISO 717-1
+   * 
+   * ✅ MOVIDO ANTES DE showDetailedAcousticAnalysis para que esté disponible
+   */
+  const calculateRw = (transmissionLoss: any, density: number, thickness: number) => {
+    const { low, mid, high } = transmissionLoss;
+    
+    // Cálculo simplificado del Rw basado en ISO 717-1
+    // Fórmula empírica que considera densidad y espesor
+    const massPerArea = density * thickness; // kg/m²
+    
+    // Ley de masas: Rw ≈ 20 × log10(massPerArea) - 42
+    let rwBase = 20 * Math.log10(massPerArea) - 42;
+    
+    // Corrección por frecuencias (promedio ponderado)
+    const frequencyCorrection = (mid * 0.5 + low * 0.3 + high * 0.2) - rwBase;
+    const rwCalculated = rwBase + frequencyCorrection * 0.3;
+    
+    // Clasificación según valor Rw
+    let classification = '';
+    let spectrum = '';
+    
+    if (rwCalculated >= 60) {
+      classification = 'Excelente';
+      spectrum = 'C50-5000';
+    } else if (rwCalculated >= 50) {
+      classification = 'Muy Bueno';
+      spectrum = 'C50-3150';
+    } else if (rwCalculated >= 45) {
+      classification = 'Bueno';
+      spectrum = 'C50-2500';
+    } else if (rwCalculated >= 40) {
+      classification = 'Regular';
+      spectrum = 'C50-2000';
+    } else if (rwCalculated >= 35) {
+      classification = 'Básico';
+      spectrum = 'C50-1600';
+    } else {
+      classification = 'Insuficiente';
+      spectrum = 'C50-1250';
+    }
+    
+    return {
+      value: Math.max(0, rwCalculated), // No puede ser negativo
+      classification,
+      spectrum
+    };
+  };
+
+  /**
    * @function showDetailedAcousticAnalysis
    * @description Genera análisis acústico completo y detallado en consola
    * 
-   * Realiza un análisis exhaustivo de todas las paredes del proyecto,
-   * incluyendo propiedades acústicas, térmicas, económicas y de estado.
-   * Proporciona estadísticas comparativas y recomendaciones técnicas.
-   * 
-   * ## Análisis por pared:
-   * - **Identificación**: ID, nombre, área, espesor
-   * - **Propiedades acústicas**: Pérdida de transmisión por frecuencias
-   * - **Absorción acústica**: Coeficientes por banda de frecuencia
-   * - **Propiedades físicas**: Densidad, porosidad
-   * - **Análisis térmico**: Conductividad y resistencia térmica
-   * - **Análisis económico**: Costos de material e instalación
-   * - **Evaluación de estado**: Factor de degradación y efectividad
-   * 
-   * ## Análisis comparativo:
-   * - **Estadísticas generales**: Totales y promedios del proyecto
-   * - **Distribución de ratings**: Clasificación por niveles de rendimiento
-   * - **Identificación de extremos**: Mejores y peores elementos
-   * - **Recomendaciones**: Sugerencias basadas en análisis
-   * 
-   * @returns {void}
-   * @sideEffect Genera output detallado en console.log
-   * 
-   * @example
-   * ```typescript
-   * // El análisis genera output como:
-   * // 🧱 PARED 1 - Pared de Ladrillo:
-   * //    🆔 ID: wall-abc123
-   * //    📐 Área: 15.50m²
-   * //    📊 Espesor: 20.0cm
-   * //    🏗️ Estado: good
-   * //    ⭐ Rating Acústico: B
-   * //    🔊 PROPIEDADES ACÚSTICAS:
-   * //       📈 Pérdida de Transmisión:
-   * //          • Frecuencias Bajas: 35dB
-   * //          • Frecuencias Medias: 42dB
-   * //          • Frecuencias Altas: 38dB
-   * //          • Promedio Ponderado: 38.3dB
-   * ```
+   * ✅ AHORA calculateRw está disponible aquí
    */
   const showDetailedAcousticAnalysis = () => {
     console.clear();
@@ -252,12 +274,32 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
       const tl = wall.template.acousticProperties.transmissionLoss;
       const abs = wall.template.acousticProperties.absorptionCoefficient;
       
+      // ✅ CÁLCULO DEL Rw (Ahora funciona correctamente)
+      const avgTransmissionLoss = (tl.low + tl.mid + tl.high) / 3;
+      
+      console.log(`\n   🔧 DEBUG: Calculando Rw para pared ${index + 1}:`);
+      console.log(`      • Densidad: ${wall.template.acousticProperties.density} kg/m³`);
+      console.log(`      • Espesor: ${wall.template.thickness} m`);
+      console.log(`      • TL Low: ${tl.low}dB, Mid: ${tl.mid}dB, High: ${tl.high}dB`);
+      
+      const rw = calculateRw(tl, wall.template.acousticProperties.density, wall.template.thickness);
+      
+      console.log(`      • Masa por área: ${(wall.template.acousticProperties.density * wall.template.thickness).toFixed(1)} kg/m²`);
+      console.log(`      • Rw calculado: ${rw.value.toFixed(1)}dB\n`);
+      
       console.log(`   🔊 PROPIEDADES ACÚSTICAS:`);
       console.log(`      📈 Pérdida de Transmisión:`);
       console.log(`         • Frecuencias Bajas (125-250Hz): ${tl.low}dB`);
       console.log(`         • Frecuencias Medias (500-1000Hz): ${tl.mid}dB`);
       console.log(`         • Frecuencias Altas (2000-4000Hz): ${tl.high}dB`);
-      console.log(`         • Promedio Ponderado: ${((tl.low + tl.mid + tl.high) / 3).toFixed(1)}dB`);
+      console.log(`         • Promedio Ponderado: ${avgTransmissionLoss.toFixed(1)}dB`);
+      
+      // ✅ NUEVO: Mostrar Rw calculado con énfasis
+      console.log(`\n      🎯 === ÍNDICE Rw (ISO 717-1) ===`);
+      console.log(`         • Valor Rw: ${rw.value.toFixed(1)}dB`);
+      console.log(`         • Clasificación: ${rw.classification}`);
+      console.log(`         • Espectro de referencia: ${rw.spectrum}`);
+      console.log(`      ================================\n`);
       
       console.log(`      📉 Absorción Acústica:`);
       console.log(`         • Bajas: α = ${abs.low} (${(abs.low * 100).toFixed(1)}%)`);
@@ -295,16 +337,34 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
       };
       
       const condition = conditionFactors[wall.currentCondition];
-      const effectiveTL = ((tl.low + tl.mid + tl.high) / 3) * condition.factor;
+      const effectiveTL = avgTransmissionLoss * condition.factor;
+      const effectiveRw = rw.value * condition.factor;
       
       console.log(`      • Factor de estado: ${condition.factor} (${condition.desc})`);
       console.log(`      • Pérdida efectiva: ${effectiveTL.toFixed(1)}dB`);
+      console.log(`      • Rw efectivo: ${effectiveRw.toFixed(1)}dB`);
       
       if (condition.factor < 0.8) {
         console.log(`      ⚠️  RECOMENDACIÓN: Considerar mantenimiento o reemplazo`);
       }
       
-      console.log(''); // Separador
+      // ✅ NUEVO: Evaluación específica del Rw
+      console.log(`\n   🎯 EVALUACIÓN ESPECÍFICA Rw:`);
+      if (rw.value < 40) {
+        console.log(`      ❌ ADVERTENCIA: Rw bajo (${rw.value.toFixed(1)}dB) - Aislamiento insuficiente`);
+        console.log(`      💡 RECOMENDACIÓN: Considerar mejora del material o aumento de espesor`);
+      } else if (rw.value >= 55) {
+        console.log(`      ✅ EXCELENTE: Rw alto (${rw.value.toFixed(1)}dB) - Aislamiento superior`);
+        console.log(`      🏆 Esta pared cumple con estándares de alta calidad acústica`);
+      } else if (rw.value >= 45) {
+        console.log(`      ✅ BUENO: Rw adecuado (${rw.value.toFixed(1)}dB) - Aislamiento apropiado`);
+        console.log(`      👍 Cumple con requisitos estándar de construcción`);
+      } else {
+        console.log(`      ⚠️  REGULAR: Rw básico (${rw.value.toFixed(1)}dB) - Aislamiento mínimo`);
+        console.log(`      💡 Considerar mejoras si se requiere mayor aislamiento`);
+      }
+      
+      console.log('\n' + '='.repeat(60) + '\n'); // Separador visual
     });
     
     // Análisis comparativo del conjunto
@@ -322,33 +382,31 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
         return sum + (tl.low + tl.mid + tl.high) / 3;
       }, 0) / walls.length;
       
-      const avgDensity = walls.reduce((sum, wall) => 
-        sum + wall.template.acousticProperties.density, 0
-      ) / walls.length;
+      // ✅ NUEVO: Cálculo del Rw promedio con detalles
+      console.log(`\n🔬 CALCULANDO RW PROMEDIO DEL EDIFICIO:`);
+      const rwValues = walls.map((wall, index) => {
+        const tl = wall.template.acousticProperties.transmissionLoss;
+        const rw = calculateRw(tl, wall.template.acousticProperties.density, wall.template.thickness);
+        console.log(`   • Pared ${index + 1}: Rw = ${rw.value.toFixed(1)}dB (${rw.classification})`);
+        return rw.value;
+      });
       
-      const avgCostPerM2 = walls.reduce((sum, wall) => 
-        sum + (wall.template.cost.material + wall.template.cost.installation), 0
-      ) / walls.length;
+      const avgRw = rwValues.reduce((sum, value) => sum + value, 0) / rwValues.length;
+      const minRw = Math.min(...rwValues);
+      const maxRw = Math.max(...rwValues);
       
-      console.log(`📈 Estadísticas generales:`);
+      console.log(`\n📈 ESTADÍSTICAS GENERALES:`);
       console.log(`   • Área total: ${totalArea.toFixed(2)}m²`);
       console.log(`   • Costo total: €${totalCost.toFixed(2)}`);
       console.log(`   • Pérdida de transmisión promedio: ${avgTL.toFixed(1)}dB`);
-      console.log(`   • Densidad promedio: ${avgDensity.toFixed(0)} kg/m³`);
-      console.log(`   • Costo promedio: €${avgCostPerM2.toFixed(2)}/m²`);
       
-      // Distribución por ratings
-      const ratingDistribution = walls.reduce((acc, wall) => {
-        const rating = wall.acousticRating || 'E';
-        acc[rating] = (acc[rating] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      console.log(`\n🏆 Distribución de ratings acústicos:`);
-      Object.entries(ratingDistribution).forEach(([rating, count]) => {
-        const percentage = (count / walls.length * 100).toFixed(1);
-        console.log(`   • Rating ${rating}: ${count} pared(es) (${percentage}%)`);
-      });
+      // ✅ ESTADÍSTICAS Rw DESTACADAS
+      console.log(`\n🎯 === ESTADÍSTICAS Rw DEL EDIFICIO ===`);
+      console.log(`   • Rw promedio: ${avgRw.toFixed(1)}dB`);
+      console.log(`   • Rw mínimo: ${minRw.toFixed(1)}dB`);
+      console.log(`   • Rw máximo: ${maxRw.toFixed(1)}dB`);
+      console.log(`   • Rango: ${(maxRw - minRw).toFixed(1)}dB`);
+      console.log(`=====================================`);
       
       // Identificar extremos de rendimiento
       const bestAcoustic = walls.reduce((best, wall) => {
@@ -402,38 +460,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
 
   /**
    * @function generateAcousticReport
-   * @description Genera informe técnico completo en formato JSON
-   * 
-   * Crea un informe estructurado con todos los datos de análisis acústico,
-   * incluyendo metadatos, estadísticas y detalles por pared. El informe
-   * se guarda en localStorage para futuras referencias.
-   * 
-   * @returns {void}
-   * @sideEffect Guarda informe en localStorage como 'acoustic-report'
-   * 
-   * @example
-   * ```json
-   * {
-   *   "timestamp": "2024-01-15T10:30:00.000Z",
-   *   "totalWalls": 4,
-   *   "totalArea": 85.5,
-   *   "totalCost": 4275.00,
-   *   "walls": [
-   *     {
-   *       "index": 1,
-   *       "id": "wall-abc123",
-   *       "template": "Pared de Ladrillo",
-   *       "area": 15.5,
-   *       "condition": "good",
-   *       "acousticRating": "B",
-   *       "transmissionLoss": { "low": 35, "mid": 42, "high": 38 },
-   *       "absorption": { "low": 0.05, "mid": 0.08, "high": 0.12 },
-   *       "density": 1800,
-   *       "cost": 775.00
-   *     }
-   *   ]
-   * }
-   * ```
+   * @description Genera informe técnico completo en formato JSON (ACTUALIZADO CON Rw)
    */
   const generateAcousticReport = () => {
     const report = {
@@ -443,21 +470,49 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
       totalCost: walls.reduce((sum, w) => 
         sum + (w.template.cost.material + w.template.cost.installation) * w.area, 0
       ),
-      walls: walls.map((wall, index) => ({
-        index: index + 1,
-        id: wall.id,
-        template: wall.template.name,
-        area: wall.area,
-        condition: wall.currentCondition,
-        acousticRating: wall.acousticRating,
-        transmissionLoss: wall.template.acousticProperties.transmissionLoss,
-        absorption: wall.template.acousticProperties.absorptionCoefficient,
-        density: wall.template.acousticProperties.density,
-        cost: (wall.template.cost.material + wall.template.cost.installation) * wall.area
-      }))
+      // ✅ NUEVO: Estadísticas de Rw
+      acousticSummary: {
+        averageRw: walls.length > 0 ? walls.reduce((sum, wall) => {
+          const tl = wall.template.acousticProperties.transmissionLoss;
+          const rw = calculateRw(tl, wall.template.acousticProperties.density, wall.template.thickness);
+          return sum + rw.value;
+        }, 0) / walls.length : 0,
+        minRw: walls.length > 0 ? Math.min(...walls.map(wall => {
+          const tl = wall.template.acousticProperties.transmissionLoss;
+          return calculateRw(tl, wall.template.acousticProperties.density, wall.template.thickness).value;
+        })) : 0,
+        maxRw: walls.length > 0 ? Math.max(...walls.map(wall => {
+          const tl = wall.template.acousticProperties.transmissionLoss;
+          return calculateRw(tl, wall.template.acousticProperties.density, wall.template.thickness).value;
+        })) : 0
+      },
+      walls: walls.map((wall, index) => {
+        const tl = wall.template.acousticProperties.transmissionLoss;
+        const rw = calculateRw(tl, wall.template.acousticProperties.density, wall.template.thickness);
+        
+        return {
+          index: index + 1,
+          id: wall.id,
+          template: wall.template.name,
+          area: wall.area,
+          condition: wall.currentCondition,
+          acousticRating: wall.acousticRating,
+          transmissionLoss: wall.template.acousticProperties.transmissionLoss,
+          absorption: wall.template.acousticProperties.absorptionCoefficient,
+          density: wall.template.acousticProperties.density,
+          thickness: wall.template.thickness,
+          // ✅ NUEVO: Datos del Rw
+          rw: {
+            value: rw.value,
+            classification: rw.classification,
+            spectrum: rw.spectrum
+          },
+          cost: (wall.template.cost.material + wall.template.cost.installation) * wall.area
+        };
+      })
     };
     
-    console.log('📋 INFORME ACÚSTICO GENERADO:');
+    console.log('📋 INFORME ACÚSTICO GENERADO (CON Rw):');
     console.log(JSON.stringify(report, null, 2));
     
     // Persistencia en localStorage
@@ -467,28 +522,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
 
   /**
    * @function generateAcousticHeatmap
-   * @description Genera y visualiza mapa de calor acústico de la habitación
-   * 
-   * Utiliza el AcousticAnalysisEngine para crear un mapa de calor detallado
-   * que muestra la distribución de niveles de ruido en la habitación,
-   * considerando todas las paredes y aberturas.
-   * 
-   * @returns {void}
-   * @sideEffect Guarda datos del mapa en localStorage y muestra alerta informativa
-   * 
-   * @example
-   * ```typescript
-   * // Genera datos como:
-   * // {
-   * //   grid: [...], // Matriz de valores de ruido
-   * //   stats: {
-   * //     totalPoints: 2500,
-   * //     criticalPoints: 125,
-   * //     goodPoints: 1890
-   * //   },
-   * //   legend: [...] // Escala de colores
-   * // }
-   * ```
+   * @description Actualizado para abrir modal después de generar heatmap
    */
   const generateAcousticHeatmap = () => {
     console.clear();
@@ -511,7 +545,8 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
     localStorage.setItem('acoustic-heatmap-data', JSON.stringify(heatmapData));
     console.log('💾 Datos del mapa de calor guardados en localStorage');
     
-    alert(`🔥 Mapa de calor generado!\n\n📊 Estadísticas:\n• Total puntos: ${heatmapData.stats.totalPoints}\n• Puntos críticos: ${heatmapData.stats.criticalPoints}\n• Puntos buenos: ${heatmapData.stats.goodPoints}\n\n👀 Revisa la consola para análisis detallado`);
+    // ✅ NUEVO: Abrir modal profesional en lugar de alert
+    setShowAnalysisModal(true);
   };
 
   /**
@@ -845,21 +880,21 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
             )}
           </div>
           
-          {/* BOTONES DE ANÁLISIS PRINCIPAL */}
+          {/* BOTONES DE ANÁLISIS PRINCIPAL - ACTUALIZADO */}
           <div className="flex space-x-2 mt-2">
             <button
-              onClick={showDetailedAcousticAnalysis}
+              onClick={() => setShowAnalysisModal(true)}
               className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
-              title="Análisis completo en consola"
+              title="Abrir análisis profesional"
             >
-              🔊 Análisis Acústico
+              📊 Análisis Profesional
             </button>
             <button
-              onClick={generateAcousticReport}
-              className="flex-1 px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm"
-              title="Informe JSON técnico"
+              onClick={generateAcousticHeatmap}
+              className="flex-1 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+              title="Generar mapa de calor + análisis"
             >
-              📋 Generar Informe
+              🔥 Heatmap + Análisis
             </button>
           </div>
         </div>
@@ -880,9 +915,9 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
             <button
               onClick={generateAcousticHeatmap}
               className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
-              title="Generar mapa de calor"
+              title="Generar análisis completo"
             >
-              🔥 Mapa Calor
+              🔥 Análisis Completo
             </button>
           </div>
           
@@ -891,6 +926,14 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
           </div>
         </div>
       </div>
+
+      {/* ✅ NUEVO: Modal de análisis acústico */}
+      <AcousticAnalysisModal
+        isOpen={showAnalysisModal}
+        onClose={() => setShowAnalysisModal(false)}
+        walls={walls}
+        calculateRw={calculateRw}
+      />
     </>
   );
 };

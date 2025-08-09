@@ -19,7 +19,7 @@ interface WallsStore {
 export const useWallsStore = create<WallsStore>((set, get) => ({
   walls: [],
   
-  addWall: (wallIndex, area, template = WALL_TEMPLATES['drywall-standard']) => {
+  addWall: (wallIndex, area, template = WALL_TEMPLATES['concrete-standard']) => {
     const newWall: Wall = {
       id: `wall-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       wallIndex,
@@ -303,8 +303,8 @@ export const useWallsStore = create<WallsStore>((set, get) => ({
       
       const wallHeight = 3.0;
       const area = wallLength * wallHeight;
-      const template = WALL_TEMPLATES['drywall-standard'];
-      
+      const template = WALL_TEMPLATES['concrete-standard'];
+
       const newWall: Wall = {
         id: `wall-${Date.now()}-${index}`,
         wallIndex: index,

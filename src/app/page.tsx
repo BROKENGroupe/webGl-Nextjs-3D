@@ -9,13 +9,15 @@ import { LineBuilder } from "@/components/LineBuilder";
 import { ContextMenu } from "@/components/ContextMenu";
 import { useDrawingStore } from "@/store/drawingStore";
 import { useOpeningsStore } from '@/store/openingsStore';
+import { useWallsStore } from '@/store/wallsStore'; // ✅ NUEVO: Importar WallsStore
 
 import React from "react";
 import { OpeningTemplate } from "@/types/openings";
 import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
 import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
 import { useCoordinatesStore } from "@/store/coordinatesStore";
-import { WallsManager } from "@/components/WallsManager"; // ✅ IMPORTAR
+import { WallsManager } from "@/components/WallsManager";
+import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -48,6 +50,13 @@ export default function DrawingScene() {
     updatePlaneCoordinatesFromCurrent,
   } = useDrawingStore();
 
+  // ✅ NUEVO: States para el modal de análisis acústico
+  const [showAcousticModal, setShowAcousticModal] = useState(false);
+  const [showWallsManager, setShowWallsManager] = useState(false);
+  
+  // ✅ NUEVO: Acceso al store de paredes
+  const { walls } = useWallsStore();
+
   const [tempHoleLine, setTempHoleLine] = useState<THREE.Vector3[]>([]);
   
   // Estados para el menú contextual
@@ -65,6 +74,51 @@ export default function DrawingScene() {
   const [draggedTemplate, setDraggedTemplate] = useState<OpeningTemplate | null>(null);
   const { openings, addOpening } = useOpeningsStore();
   const { coordinates } = useCoordinatesStore();
+
+  // ✅ NUEVO: Función para calcular Rw (necesaria para el modal)
+  const calculateRw = (transmissionLoss: any, density: number, thickness: number) => {
+    const { low, mid, high } = transmissionLoss;
+    
+    // Cálculo simplificado del Rw basado en ISO 717-1
+    const massPerArea = density * thickness; // kg/m²
+    
+    // Ley de masas: Rw ≈ 20 × log10(massPerArea) - 42
+    let rwBase = 20 * Math.log10(massPerArea) - 42;
+    
+    // Corrección por frecuencias (promedio ponderado)
+    const frequencyCorrection = (mid * 0.5 + low * 0.3 + high * 0.2) - rwBase;
+    const rwCalculated = rwBase + frequencyCorrection * 0.3;
+    
+    // Clasificación según valor Rw
+    let classification = '';
+    let spectrum = '';
+    
+    if (rwCalculated >= 60) {
+      classification = 'Excelente';
+      spectrum = 'C50-5000';
+    } else if (rwCalculated >= 50) {
+      classification = 'Muy Bueno';
+      spectrum = 'C50-3150';
+    } else if (rwCalculated >= 45) {
+      classification = 'Bueno';
+      spectrum = 'C50-2500';
+    } else if (rwCalculated >= 40) {
+      classification = 'Regular';
+      spectrum = 'C50-2000';
+    } else if (rwCalculated >= 35) {
+      classification = 'Básico';
+      spectrum = 'C50-1600';
+    } else {
+      classification = 'Insuficiente';
+      spectrum = 'C50-1250';
+    }
+    
+    return {
+      value: Math.max(0, rwCalculated),
+      classification,
+      spectrum
+    };
+  };
 
   const handleClick3D = (point: THREE.Vector3) => {
     if (isDragging) return; // No procesar clicks si se está arrastrando
@@ -365,6 +419,25 @@ export default function DrawingScene() {
             >
               🔧 Arreglar Forma
             </button>
+
+            {/* ✅ NUEVO: Botón para abrir análisis acústico directo */}
+            <button 
+              onClick={() => setShowAcousticModal(true)}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded shadow-lg transition-all transform hover:scale-105"
+              title="Análisis acústico profesional"
+              disabled={walls.length === 0}
+            >
+              📊 Análisis Acústico
+            </button>
+
+            {/* ✅ NUEVO: Botón para abrir gestor de paredes */}
+            <button 
+              onClick={() => setShowWallsManager(true)}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
+              title="Gestionar paredes del proyecto"
+            >
+              🧱 Gestionar Paredes
+            </button>
           </>
         )}
         
@@ -392,72 +465,6 @@ export default function DrawingScene() {
         </button>
       </div>
 
-      {/* Panel de instrucciones dinámico */}
-      {/* <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg text-sm max-w-xs">
-        {!isClosed && !isExtruded && (
-          <>
-            <h3 className="font-semibold text-gray-800 mb-2">Dibujando Forma</h3>
-            <div className="space-y-1 text-gray-600">
-              <div>• Haz clic para agregar puntos</div>
-              <div>• Arrastra para crear líneas</div>
-              <div>• Cierra la forma haciendo clic cerca del primer punto</div>
-            </div>
-          </>
-        )}
-        
-        {isClosed && !isExtruded && (
-          <>
-            <h3 className="font-semibold text-gray-800 mb-2">
-              Controles de Edición 2D
-              {hasPlaneCoordinates && (
-                <span className="text-xs text-purple-600 ml-1">(Coordenadas guardadas)</span>
-              )}
-            </h3>
-            <div className="space-y-1 text-gray-600">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                <span>Arrastrar vértice: Movimiento con snap</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                <span>Shift + Arrastrar: Movimiento libre</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span>Click derecho: Menú contextual</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span>Botón verde: Extruir a 3D</span>
-              </div>
-            </div>
-          </>
-        )}       
-        
-      </div> */}
-
-      {/* Indicador de estado */}
-      {/* <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg text-xs">
-        <div className="font-semibold text-gray-800">
-          {!isClosed ? "Dibujando" : !isExtruded ? "Editando 2D" : "Vista 3D"}
-        </div>
-        {hasPlaneCoordinates && (
-          <div className="text-purple-600">
-            Plano guardado: {planeXZCoordinates.length} puntos
-          </div>
-        )}
-        {isExtruded && (
-          <div className="text-green-600">
-            Forma extruida activa
-          </div>
-        )}
-        {isDragActive && draggedTemplate && (
-          <div className="text-orange-600 font-medium">
-            🎯 Arrastrando: {draggedTemplate.name}
-          </div>
-        )}
-      </div> */}
-
       <ContextMenu
         x={contextMenu.x}
         y={contextMenu.y}
@@ -473,6 +480,20 @@ export default function DrawingScene() {
         isVisible={showOpeningsPalette}
         onToggle={() => setShowOpeningsPalette(!showOpeningsPalette)}
         onStartDrag={handleStartDrag}
+      />
+
+      {/* ✅ NUEVO: WallsManager con estado controlado desde page.tsx */}
+      <WallsManager
+        isVisible={showWallsManager}
+        onToggle={() => setShowWallsManager(!showWallsManager)}
+      />
+
+      {/* ✅ NUEVO: Modal de Análisis Acústico */}
+      <AcousticAnalysisModal
+        isOpen={showAcousticModal}
+        onClose={() => setShowAcousticModal(false)}
+        walls={walls}
+        calculateRw={calculateRw}
       />
 
       {/* Overlay de drag activo */}
@@ -499,6 +520,21 @@ export default function DrawingScene() {
             handleDragEnd();
           }}
         />
+      )}
+
+      {/* ✅ NUEVO: Indicador de estado de análisis acústico */}
+      {isExtruded && walls.length > 0 && (
+        <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg text-sm">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-gray-700 font-medium">
+              {walls.length} pared{walls.length !== 1 ? 'es' : ''} lista{walls.length !== 1 ? 's' : ''} para análisis
+            </span>
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            Haz clic en "📊 Análisis Acústico" para ver resultados detallados
+          </div>
+        </div>
       )}
     </div>
   );
