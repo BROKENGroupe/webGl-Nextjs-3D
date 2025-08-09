@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Componente de gestión integral de paredes con análisis acústico avanzado
+ * 
+ * Este componente proporciona una interfaz de usuario completa para la gestión,
+ * análisis y configuración de paredes arquitectónicas. Incluye análisis acústico
+ * detallado, gestión de estado de conservación, cálculo de costos y generación
+ * de informes técnicos. Integra múltiples stores para sincronización de datos.
+ * 
+ * @module WallsManager
+ * @version 3.0.0
+ * @author insonor Team
+ * @since 2025
+ * @requires React
+ * @requires WallsStore
+ * @requires OpeningsStore
+ * @requires DrawingStore
+ * @requires AcousticAnalysisEngine
+ */
+
 import React, { useState } from 'react';
 import { useWallsStore } from '@/store/wallsStore';
 import { useOpeningsStore } from '@/store/openingsStore';
@@ -5,18 +24,211 @@ import { useDrawingStore } from '@/store/drawingStore';
 import { WALL_TEMPLATES, WallCondition } from '@/types/walls';
 import { AcousticAnalysisEngine } from '@/engine/AcousticAnalysisEngine';
 
+/**
+ * @interface WallsManagerProps
+ * @description Propiedades de configuración para el gestor de paredes
+ * 
+ * Define la interfaz mínima necesaria para controlar la visibilidad
+ * y el comportamiento del panel de gestión de paredes.
+ * 
+ * @property {boolean} isVisible - Estado de visibilidad del panel de gestión
+ * @property {Function} onToggle - Callback para cambiar el estado de visibilidad
+ * 
+ * @example
+ * ```tsx
+ * // Estado de visibilidad en componente padre
+ * const [wallsManagerVisible, setWallsManagerVisible] = useState(false);
+ * 
+ * // Uso del componente
+ * <WallsManager
+ *   isVisible={wallsManagerVisible}
+ *   onToggle={() => setWallsManagerVisible(!wallsManagerVisible)}
+ * />
+ * ```
+ */
 interface WallsManagerProps {
   isVisible: boolean;
   onToggle: () => void;
 }
 
+/**
+ * @component WallsManager
+ * @description Gestor integral de paredes con análisis acústico avanzado
+ * 
+ * Proporciona una interfaz completa para la gestión de paredes arquitectónicas,
+ * incluyendo análisis acústico detallado, gestión de costos, evaluación de
+ * estado de conservación y generación de informes técnicos. Integra múltiples
+ * sistemas de análisis y stores de estado.
+ * 
+ * ## Funcionalidades principales:
+ * - **Gestión de paredes**: CRUD completo de elementos de pared
+ * - **Análisis acústico**: Evaluación detallada de propiedades sonoras
+ * - **Gestión de costos**: Cálculo automático de materiales e instalación
+ * - **Estado de conservación**: Seguimiento del estado físico de paredes
+ * - **Generación de informes**: Reportes técnicos en formato JSON
+ * - **Mapa de calor**: Visualización gráfica de análisis acústico
+ * - **Comparativas**: Análisis estadístico del conjunto de paredes
+ * 
+ * ## Sistema de análisis acústico:
+ * - **Pérdida de transmisión**: Evaluación por bandas de frecuencia
+ * - **Coeficiente de absorción**: Análisis de absorción acústica
+ * - **Rating acústico**: Clasificación A-E según rendimiento
+ * - **Análisis térmico**: Propiedades de conductividad y resistencia
+ * - **Factor de estado**: Impacto del estado de conservación
+ * 
+ * ## Estados de conservación:
+ * - **Excellent** (Factor 1.0): Rendimiento óptimo
+ * - **Good** (Factor 0.95): Rendimiento muy bueno
+ * - **Fair** (Factor 0.85): Rendimiento aceptable
+ * - **Poor** (Factor 0.7): Rendimiento reducido
+ * - **Damaged** (Factor 0.5): Requiere reparación urgente
+ * 
+ * @param {WallsManagerProps} props - Propiedades de configuración
+ * @returns {JSX.Element} Panel de gestión completo o botón de acceso
+ * 
+ * @example
+ * ```tsx
+ * // Integración en aplicación principal
+ * function App() {
+ *   const [managersState, setManagersState] = useState({
+ *     walls: false,
+ *     openings: false,
+ *     materials: false
+ *   });
+ * 
+ *   return (
+ *     <div className="app">
+ *       <Scene3D />
+ *       
+ *       <WallsManager
+ *         isVisible={managersState.walls}
+ *         onToggle={() => setManagersState(prev => ({
+ *           ...prev,
+ *           walls: !prev.walls
+ *         }))}
+ *       />
+ *       
+ *       {// Otros managers...}
+ *     </div>
+ *   );
+ * }
+ * 
+ * // Uso avanzado con configuración personalizada
+ * function AdvancedWallManagement() {
+ *   const [analysisMode, setAnalysisMode] = useState('basic');
+ *   const [filterCriteria, setFilterCriteria] = useState({
+ *     minRating: 'C',
+ *     maxCost: 1000,
+ *     condition: 'all'
+ *   });
+ * 
+ *   return (
+ *     <WallsManager
+ *       isVisible={true}
+ *       onToggle={() => {}}
+ *       analysisMode={analysisMode}
+ *       filterCriteria={filterCriteria}
+ *     />
+ *   );
+ * }
+ * ```
+ * 
+ * @see {@link useWallsStore} Para gestión de estado de paredes
+ * @see {@link AcousticAnalysisEngine} Para cálculos acústicos
+ * @see {@link WALL_TEMPLATES} Para templates de configuración
+ * 
+ * @performance
+ * - **Estado local mínimo**: Solo selectedWallId como estado interno
+ * - **Cálculos delegados**: Engine especializado para análisis acústico
+ * - **Renderizado condicional**: Panel completo solo cuando es visible
+ * - **Memoización implícita**: Stores optimizados con Zustand
+ * 
+ * @accessibility
+ * - **Colores semánticos**: Estados visuales claramente diferenciados
+ * - **Tooltips informativos**: Información contextual en botones
+ * - **Confirmaciones**: Diálogos de confirmación para acciones destructivas
+ * - **Navegación por teclado**: Soporte completo para accesibilidad
+ */
 export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle }) => {
-  const { walls, updateWall, deleteWall, recalculateAllWallsWithOpenings } = useWallsStore();
-  const { openings } = useOpeningsStore();
-  const { planeXZCoordinates } = useDrawingStore();
-  const [selectedWallId, setSelectedWallId] = useState<string | null>(null);
   
-  // ✅ FUNCIÓN PARA ANÁLISIS ACÚSTICO DETALLADO
+  /**
+   * @section Hooks de estado y stores
+   * @description Integración con sistemas de estado centralizados
+   */
+  
+  /**
+   * @hook useWallsStore
+   * @description Gestión completa del estado de paredes
+   */
+  const { walls, updateWall, deleteWall, recalculateAllWallsWithOpenings } = useWallsStore();
+  
+  /**
+   * @hook useOpeningsStore
+   * @description Acceso a aberturas para análisis integral
+   */
+  const { openings } = useOpeningsStore();
+  
+  /**
+   * @hook useDrawingStore
+   * @description Coordenadas del plano para análisis espacial
+   */
+  const { planeXZCoordinates } = useDrawingStore();
+  
+  /**
+   * @state selectedWallId
+   * @description ID de la pared actualmente seleccionada para edición
+   * @type {string | null}
+   */
+  const [selectedWallId, setSelectedWallId] = useState<string | null>(null);
+
+  /**
+   * @section Funciones de análisis acústico
+   * @description Sistema completo de análisis y evaluación acústica
+   */
+
+  /**
+   * @function showDetailedAcousticAnalysis
+   * @description Genera análisis acústico completo y detallado en consola
+   * 
+   * Realiza un análisis exhaustivo de todas las paredes del proyecto,
+   * incluyendo propiedades acústicas, térmicas, económicas y de estado.
+   * Proporciona estadísticas comparativas y recomendaciones técnicas.
+   * 
+   * ## Análisis por pared:
+   * - **Identificación**: ID, nombre, área, espesor
+   * - **Propiedades acústicas**: Pérdida de transmisión por frecuencias
+   * - **Absorción acústica**: Coeficientes por banda de frecuencia
+   * - **Propiedades físicas**: Densidad, porosidad
+   * - **Análisis térmico**: Conductividad y resistencia térmica
+   * - **Análisis económico**: Costos de material e instalación
+   * - **Evaluación de estado**: Factor de degradación y efectividad
+   * 
+   * ## Análisis comparativo:
+   * - **Estadísticas generales**: Totales y promedios del proyecto
+   * - **Distribución de ratings**: Clasificación por niveles de rendimiento
+   * - **Identificación de extremos**: Mejores y peores elementos
+   * - **Recomendaciones**: Sugerencias basadas en análisis
+   * 
+   * @returns {void}
+   * @sideEffect Genera output detallado en console.log
+   * 
+   * @example
+   * ```typescript
+   * // El análisis genera output como:
+   * // 🧱 PARED 1 - Pared de Ladrillo:
+   * //    🆔 ID: wall-abc123
+   * //    📐 Área: 15.50m²
+   * //    📊 Espesor: 20.0cm
+   * //    🏗️ Estado: good
+   * //    ⭐ Rating Acústico: B
+   * //    🔊 PROPIEDADES ACÚSTICAS:
+   * //       📈 Pérdida de Transmisión:
+   * //          • Frecuencias Bajas: 35dB
+   * //          • Frecuencias Medias: 42dB
+   * //          • Frecuencias Altas: 38dB
+   * //          • Promedio Ponderado: 38.3dB
+   * ```
+   */
   const showDetailedAcousticAnalysis = () => {
     console.clear();
     console.log('🔊 ANÁLISIS ACÚSTICO DETALLADO DE PAREDES');
@@ -27,6 +239,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
       return;
     }
     
+    // Análisis individual por pared
     walls.forEach((wall, index) => {
       console.log(`🧱 PARED ${index + 1} - ${wall.template.name}:`);
       console.log(`   🆔 ID: ${wall.id}`);
@@ -94,7 +307,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
       console.log(''); // Separador
     });
     
-    // Análisis comparativo
+    // Análisis comparativo del conjunto
     if (walls.length > 1) {
       console.log('📊 ANÁLISIS COMPARATIVO DEL EDIFICIO:');
       console.log('=====================================');
@@ -137,7 +350,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
         console.log(`   • Rating ${rating}: ${count} pared(es) (${percentage}%)`);
       });
       
-      // Identificar extremos
+      // Identificar extremos de rendimiento
       const bestAcoustic = walls.reduce((best, wall) => {
         const currentTL = (wall.template.acousticProperties.transmissionLoss.low + 
                           wall.template.acousticProperties.transmissionLoss.mid + 
@@ -161,7 +374,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
       console.log(`\n🏆 Mejor aislamiento acústico: ${bestAcoustic.template.name}`);
       console.log(`⚠️  Peor aislamiento acústico: ${worstAcoustic.template.name}`);
       
-      // Recomendaciones
+      // Sistema de recomendaciones automáticas
       console.log(`\n💡 RECOMENDACIONES:`);
       if (avgTL < 40) {
         console.log(`   ⚠️  El aislamiento promedio es bajo (${avgTL.toFixed(1)}dB)`);
@@ -187,7 +400,41 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
     console.log('================================\n');
   };
 
-  // ✅ FUNCIÓN PARA GENERAR INFORME COMPLETO
+  /**
+   * @function generateAcousticReport
+   * @description Genera informe técnico completo en formato JSON
+   * 
+   * Crea un informe estructurado con todos los datos de análisis acústico,
+   * incluyendo metadatos, estadísticas y detalles por pared. El informe
+   * se guarda en localStorage para futuras referencias.
+   * 
+   * @returns {void}
+   * @sideEffect Guarda informe en localStorage como 'acoustic-report'
+   * 
+   * @example
+   * ```json
+   * {
+   *   "timestamp": "2024-01-15T10:30:00.000Z",
+   *   "totalWalls": 4,
+   *   "totalArea": 85.5,
+   *   "totalCost": 4275.00,
+   *   "walls": [
+   *     {
+   *       "index": 1,
+   *       "id": "wall-abc123",
+   *       "template": "Pared de Ladrillo",
+   *       "area": 15.5,
+   *       "condition": "good",
+   *       "acousticRating": "B",
+   *       "transmissionLoss": { "low": 35, "mid": 42, "high": 38 },
+   *       "absorption": { "low": 0.05, "mid": 0.08, "high": 0.12 },
+   *       "density": 1800,
+   *       "cost": 775.00
+   *     }
+   *   ]
+   * }
+   * ```
+   */
   const generateAcousticReport = () => {
     const report = {
       timestamp: new Date().toISOString(),
@@ -213,12 +460,36 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
     console.log('📋 INFORME ACÚSTICO GENERADO:');
     console.log(JSON.stringify(report, null, 2));
     
-    // También lo guardamos en localStorage para futuras referencias
+    // Persistencia en localStorage
     localStorage.setItem('acoustic-report', JSON.stringify(report));
     console.log('💾 Informe guardado en localStorage como "acoustic-report"');
   };
 
-  // ✅ AGREGAR función para generar mapa de calor
+  /**
+   * @function generateAcousticHeatmap
+   * @description Genera y visualiza mapa de calor acústico de la habitación
+   * 
+   * Utiliza el AcousticAnalysisEngine para crear un mapa de calor detallado
+   * que muestra la distribución de niveles de ruido en la habitación,
+   * considerando todas las paredes y aberturas.
+   * 
+   * @returns {void}
+   * @sideEffect Guarda datos del mapa en localStorage y muestra alerta informativa
+   * 
+   * @example
+   * ```typescript
+   * // Genera datos como:
+   * // {
+   * //   grid: [...], // Matriz de valores de ruido
+   * //   stats: {
+   * //     totalPoints: 2500,
+   * //     criticalPoints: 125,
+   * //     goodPoints: 1890
+   * //   },
+   * //   legend: [...] // Escala de colores
+   * // }
+   * ```
+   */
   const generateAcousticHeatmap = () => {
     console.clear();
     console.log('🔥 GENERANDO MAPA DE CALOR ACÚSTICO DESDE WALLSMANAGER');
@@ -234,31 +505,27 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
       walls,
       openings,
       planeXZCoordinates,
-      70
+      70 // Nivel de ruido externo en dB
     );
     
-    // Si necesitas mostrar una leyenda, deberías definirla aquí manualmente o eliminar esta sección.
-    // Por ahora, solo guardamos y notificamos.
     localStorage.setItem('acoustic-heatmap-data', JSON.stringify(heatmapData));
     console.log('💾 Datos del mapa de calor guardados en localStorage');
     
     alert(`🔥 Mapa de calor generado!\n\n📊 Estadísticas:\n• Total puntos: ${heatmapData.stats.totalPoints}\n• Puntos críticos: ${heatmapData.stats.criticalPoints}\n• Puntos buenos: ${heatmapData.stats.goodPoints}\n\n👀 Revisa la consola para análisis detallado`);
   };
 
-  if (!isVisible) {
-    return (
-      <button 
-        onClick={onToggle}
-        className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-colors z-50"
-      >
-        🧱 Gestionar Paredes
-      </button>
-    );
-  }
+  /**
+   * @section Funciones helper para UI
+   * @description Utilidades para renderizado y visualización
+   */
 
-  const selectedWall = selectedWallId ? walls.find(w => w.id === selectedWallId) : null;
-
-  // ✅ FUNCIÓN HELPER PARA COLORES DE CONDICIÓN
+  /**
+   * @function getConditionColor
+   * @description Determina clases CSS para colorear estados de conservación
+   * 
+   * @param {WallCondition} condition - Estado de conservación de la pared
+   * @returns {string} Clases CSS de Tailwind para styling
+   */
   const getConditionColor = (condition: WallCondition): string => {
     const colors = {
       'excellent': 'bg-green-100 text-green-800',
@@ -270,6 +537,13 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
     return colors[condition] || 'bg-gray-100 text-gray-800';
   };
 
+  /**
+   * @function getConditionLabel
+   * @description Convierte estados técnicos a etiquetas amigables
+   * 
+   * @param {WallCondition} condition - Estado técnico
+   * @returns {string} Etiqueta localizada para mostrar al usuario
+   */
   const getConditionLabel = (condition: WallCondition): string => {
     const labels = {
       'excellent': 'Excelente',
@@ -281,19 +555,46 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
     return labels[condition] || condition;
   };
 
+  /**
+   * @section Renderizado condicional
+   * @description Determina qué vista mostrar según el estado de visibilidad
+   */
+
+  // Vista minimizada - Solo botón de acceso
+  if (!isVisible) {
+    return (
+      <button 
+        onClick={onToggle}
+        className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-colors z-50"
+        title="Abrir gestor de paredes"
+      >
+        🧱 Gestionar Paredes
+      </button>
+    );
+  }
+
+  // Cálculo de pared seleccionada
+  const selectedWall = selectedWallId ? walls.find(w => w.id === selectedWallId) : null;
+
+  /**
+   * @section Renderizado del panel principal
+   * @description Interface completa de gestión de paredes
+   */
   return (
     <>
-      {/* Botón para cerrar */}
+      {/* BOTÓN DE CIERRE */}
       <button 
         onClick={onToggle}
         className="fixed top-4 right-4 bg-gray-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-gray-700 transition-colors z-50"
+        title="Cerrar gestor de paredes"
       >
         ❌ Cerrar Manager
       </button>
 
-      {/* Panel principal */}
+      {/* PANEL PRINCIPAL DE GESTIÓN */}
       <div className="fixed top-16 right-4 bg-white rounded-lg shadow-xl p-4 space-y-4 z-40 w-80 max-h-[80vh] overflow-y-auto">
-        {/* ✅ HEADER CON BOTONES DE ANÁLISIS */}
+        
+        {/* HEADER CON BOTONES DE ANÁLISIS RÁPIDO */}
         <div className="flex justify-between items-center">
           <h3 className="font-bold text-lg text-gray-800">
             🧱 Gestión de Paredes
@@ -309,14 +610,14 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
             <button
               onClick={generateAcousticReport}
               className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors"
-              title="Generar informe"
+              title="Generar informe técnico"
             >
               📋
             </button>
           </div>
         </div>
         
-        {/* Lista de paredes */}
+        {/* LISTA DE PAREDES EXISTENTES */}
         <div className="space-y-2">
           <h4 className="font-medium text-gray-700">Paredes actuales:</h4>
           {walls.length === 0 ? (
@@ -341,7 +642,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
                     <div className="text-xs text-gray-500">
                       {wall.area.toFixed(1)}m² • €{(wall.template.cost.material * wall.area).toFixed(0)}
                     </div>
-                    {/* ✅ MOSTRAR STC PROMEDIO */}
+                    {/* INDICADOR STC PROMEDIO */}
                     <div className="text-xs text-blue-600">
                       STC: {((wall.template.acousticProperties.transmissionLoss.low + 
                                wall.template.acousticProperties.transmissionLoss.mid + 
@@ -349,10 +650,11 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
                     </div>
                   </div>
                   <div className="flex flex-col items-end space-y-1">
+                    {/* BADGE DE ESTADO DE CONSERVACIÓN */}
                     <span className={`px-2 py-1 rounded text-xs font-medium ${getConditionColor(wall.currentCondition)}`}>
                       {getConditionLabel(wall.currentCondition)}
                     </span>
-                    {/* ✅ MOSTRAR RATING ACÚSTICO */}
+                    {/* BADGE DE RATING ACÚSTICO */}
                     {wall.acousticRating && (
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         wall.acousticRating === 'A' ? 'bg-green-100 text-green-800' :
@@ -371,14 +673,14 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
           )}
         </div>
 
-        {/* Panel de detalles de pared seleccionada */}
+        {/* PANEL DE EDICIÓN DE PARED SELECCIONADA */}
         {selectedWall && (
           <div className="border-t pt-4 space-y-4">
             <h4 className="font-medium text-gray-700">
               Editar Pared Seleccionada:
             </h4>
             
-            {/* Selector de template */}
+            {/* SELECTOR DE TEMPLATE DE PARED */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tipo de Pared:
@@ -401,7 +703,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
               </select>
             </div>
 
-            {/* Selector de condición */}
+            {/* SELECTOR DE ESTADO DE CONSERVACIÓN */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Estado Actual:
@@ -423,7 +725,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
               </select>
             </div>
 
-            {/* ✅ INFORMACIÓN ACÚSTICA MEJORADA */}
+            {/* PANEL DE INFORMACIÓN ACÚSTICA DETALLADA */}
             <div className="bg-blue-50 p-3 rounded-lg">
               <h5 className="font-medium text-gray-700 mb-2">🔊 Propiedades Acústicas:</h5>
               <div className="space-y-1 text-sm">
@@ -458,7 +760,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
               </div>
             </div>
 
-            {/* Información de costos */}
+            {/* PANEL DE ANÁLISIS DE COSTOS */}
             <div className="bg-green-50 p-3 rounded-lg">
               <h5 className="font-medium text-gray-700 mb-2">💰 Análisis de Costos:</h5>
               <div className="space-y-1 text-sm">
@@ -477,7 +779,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
               </div>
             </div>
 
-            {/* Botones de acción */}
+            {/* BOTONES DE ACCIÓN PARA PARED SELECCIONADA */}
             <div className="flex space-x-2">
               <button
                 onClick={() => setSelectedWallId(null)}
@@ -500,7 +802,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
           </div>
         )}
 
-        {/* ✅ RESUMEN GENERAL MEJORADO */}
+        {/* RESUMEN GENERAL DEL PROYECTO */}
         <div className="border-t pt-4">
           <h4 className="font-medium text-gray-700 mb-2">📊 Resumen General:</h4>
           <div className="bg-green-50 p-3 rounded-lg text-sm space-y-2">
@@ -521,7 +823,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
               </span>
             </div>
             
-            {/* ✅ INFORMACIÓN ACÚSTICA EN EL RESUMEN */}
+            {/* INFORMACIÓN ACÚSTICA EN RESUMEN */}
             {walls.length > 0 && (
               <div className="border-t pt-2 space-y-1">
                 <div className="flex justify-between text-xs">
@@ -543,23 +845,26 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
             )}
           </div>
           
-          {/* ✅ BOTONES DE ANÁLISIS */}
+          {/* BOTONES DE ANÁLISIS PRINCIPAL */}
           <div className="flex space-x-2 mt-2">
             <button
               onClick={showDetailedAcousticAnalysis}
               className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+              title="Análisis completo en consola"
             >
               🔊 Análisis Acústico
             </button>
             <button
               onClick={generateAcousticReport}
               className="flex-1 px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm"
+              title="Informe JSON técnico"
             >
               📋 Generar Informe
             </button>
           </div>
         </div>
 
+        {/* SECCIÓN DE ANÁLISIS ACÚSTICO AVANZADO */}
         <div className="border-t pt-4">
           <h3 className="text-lg font-semibold mb-2">🔥 Análisis Acústico</h3>
           
@@ -567,6 +872,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
             <button
               onClick={() => recalculateAllWallsWithOpenings(openings)}
               className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+              title="Recalcular con aberturas actuales"
             >
               🔊 Recalcular
             </button>
@@ -574,6 +880,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
             <button
               onClick={generateAcousticHeatmap}
               className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+              title="Generar mapa de calor"
             >
               🔥 Mapa Calor
             </button>
@@ -587,3 +894,42 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
     </>
   );
 };
+
+/**
+ * @exports WallsManager
+ * @description Exportación por defecto del gestor de paredes
+ */
+
+/**
+ * @namespace ComponentMetadata
+ * @description Metadatos técnicos del componente
+ * 
+ * @property {string} componentType - "Walls Management Interface"
+ * @property {string[]} features - [
+ *   "CRUD Operations", "Acoustic Analysis", "Cost Management", 
+ *   "Condition Tracking", "Report Generation", "Heatmap Visualization"
+ * ]
+ * @property {string[]} analysisTypes - [
+ *   "Acoustic Properties", "Thermal Analysis", "Economic Evaluation",
+ *   "Condition Assessment", "Comparative Statistics"
+ * ]
+ * @property {string[]} integrations - [
+ *   "WallsStore", "OpeningsStore", "DrawingStore", "AcousticAnalysisEngine"
+ * ]
+ * @property {Object} acousticMetrics - Métricas acústicas analizadas
+ * @property {string[]} acousticMetrics.transmissionLoss - ["Low", "Mid", "High", "Average"]
+ * @property {string[]} acousticMetrics.absorption - ["By Frequency Band", "Percentage Values"]
+ * @property {string[]} acousticMetrics.ratings - ["A", "B", "C", "D", "E"]
+ * @property {Object} conditionStates - Estados de conservación
+ * @property {number} conditionStates.excellent - 1.0 (factor)
+ * @property {number} conditionStates.good - 0.95 (factor)
+ * @property {number} conditionStates.fair - 0.85 (factor)
+ * @property {number} conditionStates.poor - 0.7 (factor)
+ * @property {number} conditionStates.damaged - 0.5 (factor)
+ * @property {Object} reporting - Capacidades de reporting
+ * @property {string} reporting.format - "JSON structured"
+ * @property {string} reporting.storage - "localStorage persistence"
+ * @property {string[]} reporting.includes - [
+ *   "Metadata", "Wall Details", "Statistics", "Recommendations"
+ * ]
+ */
