@@ -14,10 +14,10 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
     return null;
   }
 
-  // Crear múltiples meshes para construir la forma 3D manualmente
-  const depth = GEOMETRY_CONFIG.EXTRUDE_DEPTH;
+  // ✅ CORREGIDO: Usar la altura correcta para extrusión de formas
+  const depth = GEOMETRY_CONFIG.EXTRUDE_DEPTH; // 2.5 metros de altura
 
-  // Crear piso usando los puntos directamente
+  // Crear múltiples meshes para construir la forma 3D manualmente
   const floorGeometry = new THREE.BufferGeometry();
   
   // Triangular la forma usando earcut (simplificado para polígonos convexos)
@@ -85,11 +85,11 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
 
   return (
     <group>
-      {/* Piso - Usando variables centralizadas */}
+      {/* Piso - Usando variables centralizadas CORREGIDAS */}
       <mesh geometry={floorGeometry}>
         <meshStandardMaterial 
           color={COLORS.FLOOR}
-          side={THREE[MATERIAL_PROPERTIES.FLOOR.side]}
+          side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
           roughness={MATERIAL_PROPERTIES.FLOOR.roughness}
           metalness={MATERIAL_PROPERTIES.FLOOR.metalness}
           transparent={MATERIAL_PROPERTIES.FLOOR.transparent}
@@ -98,16 +98,16 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
         />
       </mesh>
       
-      {/* Paredes - Con transparencia desde variables */}
+      {/* Paredes - Con transparencia desde variables CORREGIDAS */}
       {wallGeometries.map((wallGeom, index) => (
         <mesh key={`wall-${index}`} geometry={wallGeom}>
           <meshStandardMaterial 
             color={COLORS.WALLS}
-            side={THREE[MATERIAL_PROPERTIES.WALLS.side]}
+            side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
             roughness={MATERIAL_PROPERTIES.WALLS.roughness}
             metalness={MATERIAL_PROPERTIES.WALLS.metalness}
-            transparent={MATERIAL_PROPERTIES.WALLS.transparent} // NUEVO: Transparencia
-            opacity={MATERIAL_PROPERTIES.WALLS.opacity}         // NUEVO: Opacidad al 70%
+            transparent={MATERIAL_PROPERTIES.WALLS.transparent}
+            opacity={MATERIAL_PROPERTIES.WALLS.opacity}
             flatShading={false}
             depthWrite={true}
             depthTest={true}
@@ -115,11 +115,11 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
         </mesh>
       ))}
       
-      {/* Techo - Usando variables centralizadas */}
+      {/* Techo - Usando variables centralizadas CORREGIDAS */}
       <mesh geometry={ceilingGeometry}>
         <meshStandardMaterial 
           color={COLORS.CEILING}
-          side={THREE[MATERIAL_PROPERTIES.CEILING.side]}
+          side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
           roughness={MATERIAL_PROPERTIES.CEILING.roughness}
           metalness={MATERIAL_PROPERTIES.CEILING.metalness}
           transparent={MATERIAL_PROPERTIES.CEILING.transparent}

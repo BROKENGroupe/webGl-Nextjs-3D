@@ -1,21 +1,78 @@
-// ✅ AGREGAR import del store de paredes
+/**
+ * @fileoverview Componente principal de habitación 3D con funcionalidades avanzadas
+ * 
+ * Este componente integra múltiples sistemas para crear una experiencia completa
+ * de modelado arquitectónico 3D, incluyendo geometría dinámica, drag-and-drop de
+ * aberturas, análisis acústico en tiempo real y visualización de mapas de calor.
+ * Utiliza engines especializados para delegar responsabilidades específicas.
+ * 
+ * @module ExtrudedShapeWithDraggableOpenings
+ * @version 3.0.0
+ * @author insonor Team
+ * @since 2025
+ * @requires React
+ * @requires Three.js
+ * @requires @react-three/fiber
+ * @requires @react-three/drei
+ * @requires GeometryEngine
+ * @requires InteractionEngine
+ * @requires MaterialService
+ * @requires AcousticHeatmapShader
+ */
+
+// ✅ IMPORTS DE SISTEMAS PRINCIPALES
 import { useWallsStore } from "../store/wallsStore";
 import { MaterialService } from "../engine/MaterialService";
-
-// ✅ AGREGAR imports de engines
 import * as THREE from "three";
 import { useOpeningsStore } from "../store/openingsStore";
 import { useDrawingStore } from "../store/drawingStore";
 import { COLORS, MATERIAL_PROPERTIES, GEOMETRY_CONFIG } from "../config/materials";
 import { Opening, OpeningTemplate } from "../types/openings";
-import { useState, useCallback, useMemo, useEffect } from "react"; // ✅ AGREGAR useEffect
+import { useState, useCallback, useMemo, useEffect } from "react";
 
-// ✅ NUEVOS IMPORTS - ENGINES
+// ✅ IMPORTS DE ENGINES ESPECIALIZADOS
 import { GeometryEngine } from "../engine/GeometryEngine";
 import { InteractionEngine } from "../engine/InteractionEngine";
 import { AcousticHeatmapShader } from './AcousticHeatmapShader';
 import { Html } from '@react-three/drei';
 
+/**
+ * @interface ExtrudedShapeWithDraggableOpeningsProps
+ * @description Propiedades de configuración para el componente principal de habitación
+ * 
+ * Define los parámetros de entrada necesarios para renderizar una habitación 3D
+ * completa con todas sus funcionalidades interactivas y de análisis.
+ * 
+ * @property {Array<{x: number, z: number}>} planeCoordinates - Coordenadas 2D del perímetro de la habitación
+ * @property {Function} onDropOpening - Callback para manejo de drop de elementos arquitectónicos
+ * @property {boolean} isDragActive - Estado global de operación de arrastre desde paleta
+ * @property {OpeningTemplate | null} draggedTemplate - Template siendo arrastrado desde paleta
+ * 
+ * @example
+ * ```tsx
+ * // Definición de habitación rectangular
+ * const roomCoordinates = [
+ *   { x: 0, z: 0 },     // Esquina inferior izquierda
+ *   { x: 5, z: 0 },     // Esquina inferior derecha
+ *   { x: 5, z: 4 },     // Esquina superior derecha
+ *   { x: 0, z: 4 }      // Esquina superior izquierda
+ * ];
+ * 
+ * // Callback para manejo de drops
+ * const handleDropOpening = (wallIndex: number, position: number, template: OpeningTemplate) => {
+ *   console.log(`Nueva abertura: ${template.name} en pared ${wallIndex}`);
+ *   addOpeningToRoom(wallIndex, position, template);
+ * };
+ * 
+ * // Uso del componente
+ * <ExtrudedShapeWithDraggableOpenings
+ *   planeCoordinates={roomCoordinates}
+ *   onDropOpening={handleDropOpening}
+ *   isDragActive={isDraggingFromPalette}
+ *   draggedTemplate={currentDraggedTemplate}
+ * />
+ * ```
+ */
 interface ExtrudedShapeWithDraggableOpeningsProps {
   planeCoordinates: { x: number; z: number }[];
   onDropOpening: (wallIndex: number, position: number, template: OpeningTemplate) => void;
@@ -23,6 +80,102 @@ interface ExtrudedShapeWithDraggableOpeningsProps {
   draggedTemplate: OpeningTemplate | null;
 }
 
+/**
+ * @component ExtrudedShapeWithDraggableOpenings
+ * @description Componente principal que integra todos los sistemas de la habitación 3D
+ * 
+ * Renderiza una habitación 3D completa con capacidades avanzadas de interacción,
+ * análisis acústico y visualización. Integra múltiples engines especializados
+ * para mantener separación de responsabilidades y facilitar el mantenimiento.
+ * 
+ * ## Sistemas integrados:
+ * - **Geometría dinámica**: Paredes, piso y techo con aberturas
+ * - **Drag-and-drop**: Colocación de aberturas desde paleta
+ * - **Reposicionamiento**: Movimiento de aberturas existentes
+ * - **Análisis acústico**: Cálculo en tiempo real de propiedades
+ * - **Mapa de calor**: Visualización de niveles de ruido
+ * - **Materiales avanzados**: Sistema unificado de MaterialService
+ * 
+ * ## Arquitectura de engines:
+ * - **GeometryEngine**: Creación y manipulación de geometrías 3D
+ * - **InteractionEngine**: Gestión de eventos y cálculos de posicionamiento
+ * - **MaterialService**: Provisión unificada de materiales Three.js
+ * 
+ * ## Estados de interacción:
+ * 1. **Normal**: Visualización estándar de la habitación
+ * 2. **Drag desde paleta**: Colocación de nuevas aberturas
+ * 3. **Drag de abertura**: Reposicionamiento de aberturas existentes
+ * 4. **Mapa de calor**: Visualización de análisis acústico
+ * 5. **Preview**: Feedback visual en tiempo real
+ * 
+ * @param {ExtrudedShapeWithDraggableOpeningsProps} props - Propiedades de configuración
+ * @returns {JSX.Element} Grupo completo de Three.js con todos los elementos de la habitación
+ * 
+ * @example
+ * ```tsx
+ * // Uso básico en aplicación principal
+ * function RoomViewer() {
+ *   const [dragState, setDragState] = useState({
+ *     active: false,
+ *     template: null
+ *   });
+ * 
+ *   const roomCoords = [
+ *     { x: -3, z: -3 }, { x: 3, z: -3 },
+ *     { x: 3, z: 3 }, { x: -3, z: 3 }
+ *   ];
+ * 
+ *   return (
+ *     <Canvas>
+ *       <ExtrudedShapeWithDraggableOpenings
+ *         planeCoordinates={roomCoords}
+ *         onDropOpening={(wall, pos, template) => {
+ *           addOpening(wall, pos, template);
+ *           setDragState({ active: false, template: null });
+ *         }}
+ *         isDragActive={dragState.active}
+ *         draggedTemplate={dragState.template}
+ *       />
+ *     </Canvas>
+ *   );
+ * }
+ * 
+ * // Integración con sistema de paletas
+ * function ElementPalette() {
+ *   const startDrag = (template: OpeningTemplate) => {
+ *     setDragState({ active: true, template });
+ *   };
+ * 
+ *   return (
+ *     <div>
+ *       <button onClick={() => startDrag(doorTemplate)}>
+ *         Arrastrar Puerta
+ *       </button>
+ *       <button onClick={() => startDrag(windowTemplate)}>
+ *         Arrastrar Ventana
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ * @see {@link GeometryEngine} Para creación de geometrías 3D
+ * @see {@link InteractionEngine} Para gestión de eventos y posicionamiento
+ * @see {@link MaterialService} Para provisión de materiales unificados
+ * @see {@link AcousticHeatmapShader} Para visualización de mapas de calor
+ * 
+ * @performance
+ * - **Geometrías memoizadas**: Recálculo solo cuando cambian las coordenadas
+ * - **Event handlers optimizados**: Callbacks memoizados con dependencias específicas
+ * - **Engine delegation**: Separación de responsabilidades para mejor rendimiento
+ * - **Renderizado condicional**: Elementos visuales solo cuando son necesarios
+ * 
+ * @accessibility
+ * - **Feedback visual claro**: Estados distinguibles por colores y opacidades
+ * - **Interacciones intuitivas**: Cursors y previews apropiados
+ * - **Controles accesibles**: Botones con estados claros
+ * - **Logging detallado**: Para debugging y monitoreo
+ */
 export function ExtrudedShapeWithDraggableOpenings({ 
   planeCoordinates,
   onDropOpening, 
@@ -30,15 +183,60 @@ export function ExtrudedShapeWithDraggableOpenings({
   draggedTemplate 
 }: ExtrudedShapeWithDraggableOpeningsProps) {
   
-  // Stores - EXISTENTES
+  /**
+   * @section Stores y estado global
+   * @description Integración con sistemas de estado centralizados
+   */
+  
+  /**
+   * @hook useWallsStore
+   * @description Gestión de estado de paredes y análisis estructural
+   */
   const { generateWallsFromCoordinates, recalculateAllWallsWithOpenings } = useWallsStore();
+  
+  /**
+   * @hook useDrawingStore
+   * @description Estado de coordenadas del plano de trabajo
+   */
   const { planeXZCoordinates, hasPlaneCoordinates } = useDrawingStore();
+  
+  /**
+   * @hook useOpeningsStore
+   * @description Gestión de aberturas y sus posiciones
+   */
   const { openings, updateOpeningPosition } = useOpeningsStore();
   
-  // Estados existentes...
+  /**
+   * @section Estados locales del componente
+   * @description Gestión de interacciones y estado visual
+   */
+  
+  /**
+   * @state hoveredWall
+   * @description Índice de la pared actualmente bajo el cursor
+   * @type {number | null}
+   */
   const [hoveredWall, setHoveredWall] = useState<number | null>(null);
+  
+  /**
+   * @state draggedOpening
+   * @description Abertura siendo arrastrada para reposicionamiento
+   * @type {Opening | null}
+   */
   const [draggedOpening, setDraggedOpening] = useState<Opening | null>(null);
+  
+  /**
+   * @state isDraggingOpening
+   * @description Estado de operación de arrastre de abertura existente
+   * @type {boolean}
+   */
   const [isDraggingOpening, setIsDraggingOpening] = useState(false);
+  
+  /**
+   * @state previewPosition
+   * @description Posición de preview durante operaciones de arrastre
+   * @type {Object | null}
+   */
   const [previewPosition, setPreviewPosition] = useState<{
     wallIndex: number;
     position: number;
@@ -47,10 +245,25 @@ export function ExtrudedShapeWithDraggableOpenings({
     worldZ: number;
   } | null>(null);
 
-  // ✅ NUEVO ESTADO PARA MAPA DE CALOR
+  /**
+   * @state showHeatmap
+   * @description Control de visibilidad del mapa de calor acústico
+   * @type {boolean}
+   */
   const [showHeatmap, setShowHeatmap] = useState(false);
 
-  // ✅ COORDENADAS SIN CAMBIOS
+  /**
+   * @section Determinación de coordenadas
+   * @description Selección entre coordenadas del store o fallback
+   */
+  
+  /**
+   * @calculation coordinatesToUse
+   * @description Coordenadas finales para renderización
+   * 
+   * Sistema de fallback que utiliza coordenadas del store si están disponibles,
+   * o coordenadas predefinidas como backup para desarrollo y testing.
+   */
   let coordinatesToUse = planeXZCoordinates;
   
   if (!hasPlaneCoordinates || coordinatesToUse.length < 3) {
@@ -66,7 +279,18 @@ export function ExtrudedShapeWithDraggableOpenings({
 
   console.log('🔍 COORDENADAS FINALES:', coordinatesToUse);
 
-  // ✅ AGREGAR USEEFFECT PARA GENERAR PAREDES CUANDO SE MONTA EL COMPONENTE
+  /**
+   * @section Efectos de inicialización
+   * @description Configuración automática al montar el componente
+   */
+
+  /**
+   * @effect generateWallsOnMount
+   * @description Genera paredes automáticamente cuando se monta el componente
+   * 
+   * Se ejecuta una vez al montar si hay coordenadas válidas disponibles.
+   * Inicializa el sistema de análisis estructural y acústico.
+   */
   useEffect(() => {
     if (coordinatesToUse.length >= 3) {
       console.log('🎯 COMPONENTE ExtrudedShape MONTADO - Generando paredes...');
@@ -74,7 +298,13 @@ export function ExtrudedShapeWithDraggableOpenings({
     }
   }, [coordinatesToUse, generateWallsFromCoordinates]);
 
-  // ✅ NUEVO USEEFFECT PARA RECALCULAR CUANDO CAMBIAN LAS ABERTURAS
+  /**
+   * @effect recalculateOnOpeningsChange
+   * @description Recalcula análisis cuando cambian las aberturas
+   * 
+   * Se ejecuta cada vez que se agregan, eliminan o mueven aberturas.
+   * Mantiene sincronizado el análisis acústico con la configuración actual.
+   */
   useEffect(() => {
     if (openings.length > 0 && coordinatesToUse.length >= 3) {
       console.log('🔄 ABERTURAS DETECTADAS - Recalculando análisis acústico...');
@@ -82,46 +312,124 @@ export function ExtrudedShapeWithDraggableOpenings({
     }
   }, [openings, recalculateAllWallsWithOpenings, coordinatesToUse]);
 
+  // Validación temprana - retornar null si no hay coordenadas suficientes
   if (coordinatesToUse.length < 3) {
     return null;
   }
 
+  /**
+   * @constant depth
+   * @description Altura estándar de la habitación en metros
+   * @type {number}
+   */
   const depth = 3;
   
-  // ✅ DELEGAR A ENGINE - getOpeningsForWall
+  /**
+   * @section Funciones delegadas a engines
+   * @description Operaciones especializadas manejadas por engines externos
+   */
+  
+  /**
+   * @function getOpeningsForWall
+   * @description Obtiene aberturas asociadas a una pared específica
+   * 
+   * Delega al GeometryEngine la lógica de filtrado de aberturas por pared.
+   * 
+   * @param {number} wallIndex - Índice de la pared
+   * @returns {Opening[]} Array de aberturas en la pared especificada
+   */
   const getOpeningsForWall = (wallIndex: number): Opening[] => {
     return GeometryEngine.getOpeningsForWall(openings, wallIndex);
   };
 
-  // ✅ GEOMETRÍAS MEMOIZADAS USANDO ENGINES
+  /**
+   * @section Geometrías memoizadas
+   * @description Geometrías principales optimizadas con memoización
+   */
+
+  /**
+   * @memo floorGeometry
+   * @description Geometría del piso memoizada
+   * 
+   * Se recalcula solo cuando cambian las coordenadas de la habitación.
+   * Utiliza GeometryEngine para creación optimizada.
+   */
   const floorGeometry = useMemo(() => 
     GeometryEngine.createFloorGeometry(coordinatesToUse), 
     [coordinatesToUse]
   );
 
+  /**
+   * @memo ceilingGeometry
+   * @description Geometría del techo memoizada
+   * 
+   * Se recalcula cuando cambian coordenadas o altura de la habitación.
+   * Posicionada en la parte superior del volumen 3D.
+   */
   const ceilingGeometry = useMemo(() => 
     GeometryEngine.createCeilingGeometry(coordinatesToUse, depth), 
     [coordinatesToUse, depth]
   );
 
-  // ✅ DELEGAR A ENGINE - createWallGeometry
+  /**
+   * @function createWallGeometry
+   * @description Crea geometría de pared con aberturas dinámicamente
+   * 
+   * Función memoizada que delega al GeometryEngine la creación de
+   * geometrías de pared con holes para aberturas. Se recalcula solo
+   * cuando cambian las aberturas asociadas a la pared específica.
+   * 
+   * @param {number} wallIndex - Índice de la pared
+   * @param {Object} p1 - Punto inicial de la pared
+   * @param {Object} p2 - Punto final de la pared
+   * @returns {THREE.BufferGeometry} Geometría de pared con aberturas
+   */
   const createWallGeometry = useCallback((wallIndex: number, p1: {x: number, z: number}, p2: {x: number, z: number}) => {
     const wallOpenings = getOpeningsForWall(wallIndex);
     return GeometryEngine.createWallGeometry(wallIndex, p1, p2, depth, wallOpenings);
   }, [depth, openings]);
 
-  // ✅ EVENTOS SIN CAMBIOS
+  /**
+   * @section Event handlers para interacciones
+   * @description Manejadores de eventos optimizados y memoizados
+   */
+
+  /**
+   * @function handleWallPointerEnter
+   * @description Maneja entrada del cursor en pared durante operaciones de drag
+   * 
+   * Solo activo durante operaciones de arrastre (desde paleta o reposicionamiento).
+   * Establece el estado visual de hover para feedback al usuario.
+   * 
+   * @param {number} wallIndex - Índice de la pared donde entra el cursor
+   */
   const handleWallPointerEnter = useCallback((wallIndex: number) => {
     if ((isDragActive && draggedTemplate) || (isDraggingOpening && draggedOpening)) {
       setHoveredWall(wallIndex);
     }
   }, [isDragActive, draggedTemplate, isDraggingOpening, draggedOpening]);
 
+  /**
+   * @function handleWallPointerLeave
+   * @description Maneja salida del cursor de pared
+   * 
+   * Limpia el estado de hover cuando el cursor sale de cualquier pared.
+   * Restablece el estado visual normal.
+   */
   const handleWallPointerLeave = useCallback(() => {
     setHoveredWall(null);
   }, []);
 
-  // ✅ DELEGAR A ENGINE - calculatePositionFromMouse
+  /**
+   * @function calculatePositionFromMouse
+   * @description Calcula posición 3D desde coordenadas del cursor
+   * 
+   * Delega al InteractionEngine los cálculos complejos de transformación
+   * de coordenadas de pantalla a posición en el mundo 3D.
+   * 
+   * @param {any} event - Evento de Three.js con información del cursor
+   * @returns {Object | null} Posición calculada o null si no es válida
+   */
   const calculatePositionFromMouse = useCallback((event: any) => {
     return InteractionEngine.calculatePositionFromMouse(
       event,
@@ -131,14 +439,23 @@ export function ExtrudedShapeWithDraggableOpenings({
     );
   }, [isDraggingOpening, draggedOpening, coordinatesToUse]);
 
-  // ✅ MANEJADORES SIN CAMBIOS - SOLO USAN ENGINE
+  /**
+   * @function handleOpeningPointerDown
+   * @description Inicia operación de arrastre de abertura existente
+   * 
+   * Solo activo cuando no hay operación de drag desde paleta en curso.
+   * Establece el estado de arrastre y calcula posición inicial.
+   * 
+   * @param {Opening} opening - Abertura siendo seleccionada para arrastre
+   * @param {any} event - Evento de pointer de Three.js
+   */
   const handleOpeningPointerDown = useCallback((opening: Opening, event: any) => {
     if (!isDragActive) {
       event.stopPropagation();
       setDraggedOpening(opening);
       setIsDraggingOpening(true);
       
-      // ✅ USAR ENGINE
+      // Calcular posición inicial usando engine
       const initialPos = calculatePositionFromMouse(event);
       if (initialPos) {
         setPreviewPosition(initialPos);
@@ -148,21 +465,39 @@ export function ExtrudedShapeWithDraggableOpenings({
     }
   }, [isDragActive, calculatePositionFromMouse]);
 
+  /**
+   * @function handleOpeningPointerUp
+   * @description Finaliza operación de arrastre de abertura
+   * 
+   * Confirma la nueva posición si hay un preview válido y actualiza
+   * el store. Limpia todos los estados relacionados con el arrastre.
+   */
   const handleOpeningPointerUp = useCallback(() => {
     if (isDraggingOpening && draggedOpening && previewPosition) {
       console.log(`🎯 FINALIZANDO ARRASTRE de abertura ${draggedOpening.id}`);
       
+      // Actualizar posición en el store
       updateOpeningPosition(draggedOpening.id, previewPosition.wallIndex, previewPosition.position);
       
+      // Limpiar estados
       setDraggedOpening(null);
       setIsDraggingOpening(false);
       setPreviewPosition(null);
     }
   }, [isDraggingOpening, draggedOpening, previewPosition, updateOpeningPosition]);
 
+  /**
+   * @function handleMouseMove
+   * @description Actualiza preview durante movimiento del cursor
+   * 
+   * Solo activo durante arrastre de abertura existente. Calcula nueva
+   * posición en tiempo real para feedback visual continuo.
+   * 
+   * @param {any} event - Evento de movimiento de Three.js
+   */
   const handleMouseMove = useCallback((event: any) => {
     if (isDraggingOpening && draggedOpening) {
-      // ✅ USAR ENGINE
+      // Calcular nueva posición usando engine
       const newPosition = calculatePositionFromMouse(event);
       if (newPosition) {
         setPreviewPosition(newPosition);
@@ -170,15 +505,28 @@ export function ExtrudedShapeWithDraggableOpenings({
     }
   }, [isDraggingOpening, draggedOpening, calculatePositionFromMouse]);
 
+  /**
+   * @function handleWallClick
+   * @description Maneja clics en paredes para diferentes operaciones
+   * 
+   * Comportamiento dual según el estado actual:
+   * - Durante arrastre de abertura: Confirma nueva posición
+   * - Durante drag desde paleta: Coloca nuevo elemento
+   * 
+   * @param {number} wallIndex - Índice de la pared clickeada
+   * @param {any} event - Evento de clic de Three.js
+   */
   const handleWallClick = useCallback((wallIndex: number, event: any) => {
+    // Caso 1: Finalizando arrastre de abertura existente
     if (isDraggingOpening && draggedOpening) {
       handleOpeningPointerUp();
       event.stopPropagation();
       return;
     }
     
+    // Caso 2: Drop de template desde paleta
     if (isDragActive && draggedTemplate) {
-      // ✅ USAR ENGINE
+      // Calcular posición usando engine
       const clampedPosition = InteractionEngine.calculateTemplateDropPosition(
         event,
         wallIndex,
@@ -193,23 +541,24 @@ export function ExtrudedShapeWithDraggableOpenings({
     }
   }, [isDragActive, draggedTemplate, isDraggingOpening, draggedOpening, handleOpeningPointerUp, onDropOpening, coordinatesToUse, depth]);
 
-  // ✅ RENDER EXACTAMENTE IGUAL - SOLO CAMBIAN LAS LLAMADAS A ENGINES
+  /**
+   * @section Renderizado del componente
+   * @description Estructura JSX completa con todos los elementos de la habitación
+   */
   return (
     <group>
-      {/* ✅ PISO - SOLO CAMBIAR MATERIAL */}
+      {/* 
+        PISO
+        Utiliza MaterialService para material unificado con propiedades apropiadas
+      */}
       <mesh geometry={floorGeometry}>
-        {/* ❌ REEMPLAZAR: <meshStandardMaterial 
-          color={COLORS.FLOOR}
-          side={THREE.DoubleSide}
-          roughness={MATERIAL_PROPERTIES.FLOOR.roughness}
-          metalness={MATERIAL_PROPERTIES.FLOOR.metalness}
-        /> */}
-        
-        {/* ✅ POR: */}
         <primitive object={MaterialService.getFloorMaterial()} />
       </mesh>
       
-      {/* ✅ PAREDES - SOLO CAMBIAR MATERIAL */}
+      {/* 
+        SISTEMA DE PAREDES CON ABERTURAS
+        Renderiza cada pared con sus aberturas asociadas y eventos interactivos
+      */}
       {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
         const nextCoord = coordinatesToUse[nextIndex];
@@ -217,6 +566,7 @@ export function ExtrudedShapeWithDraggableOpenings({
         
         return (
           <group key={`wall-group-${index}`}>
+            {/* MESH DE PARED con eventos interactivos */}
             <mesh 
               geometry={createWallGeometry(index, coord, nextCoord)}
               userData={{ wallIndex: index, type: 'wall' }}
@@ -237,21 +587,7 @@ export function ExtrudedShapeWithDraggableOpenings({
                 handleWallClick(index, e);
               }}
             >
-              {/* ❌ REEMPLAZAR: <meshStandardMaterial 
-                color={
-                  (hoveredWall === index && (isDragActive || isDraggingOpening)) ||
-                  (previewPosition?.wallIndex === index)
-                    ? "#4CAF50" 
-                    : COLORS.WALLS
-                }
-                side={THREE.DoubleSide}
-                roughness={MATERIAL_PROPERTIES.WALLS.roughness}
-                metalness={MATERIAL_PROPERTIES.WALLS.metalness}
-                transparent={isDragActive || isDraggingOpening}
-                opacity={(isDragActive || isDraggingOpening) ? 0.8 : 1.0}
-              /> */}
-              
-              {/* ✅ POR: */}
+              {/* Material dinámico según estado de interacción */}
               <primitive object={MaterialService.getWallMaterial({
                 isHovered: (hoveredWall === index && (isDragActive || isDraggingOpening)) ||
                           (previewPosition?.wallIndex === index),
@@ -260,7 +596,10 @@ export function ExtrudedShapeWithDraggableOpenings({
               })} />
             </mesh>
             
-            {/* ✅ PUNTOS DE ABERTURA - SOLO CAMBIAR MATERIAL */}
+            {/* 
+              ABERTURAS EN LA PARED
+              Cada abertura se renderiza como elemento interactivo independiente
+            */}
             {wallOpenings.map(opening => {
               const isBeingDragged = draggedOpening?.id === opening.id;
               const displayPosition = InteractionEngine.calculateDisplayPosition(
@@ -273,6 +612,7 @@ export function ExtrudedShapeWithDraggableOpenings({
               
               return (
                 <group key={`opening-${index}-${opening.id}`}>
+                  {/* ESFERA PRINCIPAL de la abertura */}
                   <mesh 
                     position={[displayPosition.x, displayPosition.y, displayPosition.z]}
                     userData={{ opening, type: 'opening' }}
@@ -304,31 +644,24 @@ export function ExtrudedShapeWithDraggableOpenings({
                     }}
                   >
                     <sphereGeometry args={[isBeingDragged ? 0.06 : 0.03]} />
-                    
-                    {/* ❌ REEMPLAZAR: <meshBasicMaterial 
-                      color={isBeingDragged ? "#FF4444" : "#FFD700"}
-                      transparent={true}
-                      opacity={isBeingDragged ? 0.8 : 1.0}
-                    /> */}
-                    
-                    {/* ✅ POR: */}
                     <primitive object={MaterialService.getOpeningMaterial(
                       isBeingDragged ? 'dragging' : 'normal'
                     )} />
                   </mesh>
                   
-                  {/* ✅ ELEMENTO PEQUEÑO - SOLO CAMBIAR MATERIAL */}
+                  {/* INDICADOR PEQUEÑO encima de la abertura */}
                   <mesh position={[displayPosition.x, displayPosition.y + 0.2, displayPosition.z]}>
                     <sphereGeometry args={[0.01]} />
-                    
-                    {/* ❌ REEMPLAZAR: <meshBasicMaterial color="#FFFFFF" /> */}
-                    {/* ✅ POR: */}
                     <primitive object={MaterialService.getPreviewMaterial('indicator')} />
                   </mesh>
                   
-                  {/* ✅ PREVIEW ELEMENTS - SOLO CAMBIAR MATERIALES */}
+                  {/* 
+                    ELEMENTOS DE PREVIEW durante arrastre
+                    Solo visible cuando la abertura está siendo arrastrada
+                  */}
                   {isBeingDragged && previewPosition && (
                     <group>
+                      {/* LÍNEA DE CONEXIÓN entre posición original y nueva */}
                       <mesh position={[
                         (coord.x + opening.position * (nextCoord.x - coord.x) + displayPosition.x) / 2,
                         displayPosition.y,
@@ -339,17 +672,12 @@ export function ExtrudedShapeWithDraggableOpenings({
                           0.01,
                           Math.abs(displayPosition.z - (coord.z + opening.position * (nextCoord.z - coord.z)))
                         ]} />
-                        
-                        {/* ❌ REEMPLAZAR: <meshBasicMaterial color="#FF4444" transparent opacity={0.5} /> */}
-                        {/* ✅ POR: */}
                         <primitive object={MaterialService.getPreviewMaterial('line')} />
                       </mesh>
                       
+                      {/* INDICADOR DE NUEVA POSICIÓN */}
                       <mesh position={[displayPosition.x, displayPosition.y + 0.3, displayPosition.z]}>
                         <sphereGeometry args={[0.05]} />
-                        
-                        {/* ❌ REEMPLAZAR: <meshBasicMaterial color="#00FF00" /> */}
-                        {/* ✅ POR: */}
                         <primitive object={MaterialService.getPreviewMaterial('indicator')} />
                       </mesh>
                     </group>
@@ -361,55 +689,18 @@ export function ExtrudedShapeWithDraggableOpenings({
         );
       })}
       
-      {/* ✅ TECHO - SOLO CAMBIAR MATERIAL */}
+      {/* 
+        TECHO
+        Utiliza MaterialService para material con transparencia apropiada
+      */}
       <mesh geometry={ceilingGeometry}>
-        {/* ❌ REEMPLAZAR: <meshStandardMaterial 
-          color={COLORS.CEILING}
-          side={THREE.DoubleSide}
-          roughness={MATERIAL_PROPERTIES.CEILING.roughness}
-          metalness={MATERIAL_PROPERTIES.CEILING.metalness}
-          transparent={true}
-          opacity={0.7}
-        /> */}
-        
-        {/* ✅ POR: */}
         <primitive object={MaterialService.getCeilingMaterial()} />
       </mesh>
 
-      {/* ✅ ELEMENTOS DEBUG - MANTENER EXACTAMENTE IGUAL */}
-      {/* {coordinatesToUse.map((coord, index) => (
-        <mesh 
-          key={`point-${index}`}
-          position={[coord.x, depth + 0.2, coord.z]}
-        >
-          <sphereGeometry args={[0.05]} />
-          <meshBasicMaterial color={index === 0 ? "#00ff00" : "#ff0000"} />
-        </mesh>
-      ))} */}
-
-      {/* {coordinatesToUse.map((coord, index) => {
-        const nextIndex = (index + 1) % coordinatesToUse.length;
-        const nextCoord = coordinatesToUse[nextIndex];
-        
-        const length = Math.sqrt(
-          (nextCoord.x - coord.x) ** 2 + (nextCoord.z - coord.z) ** 2
-        );
-        const angle = Math.atan2(nextCoord.z - coord.z, nextCoord.x - coord.x);
-        const centerX = (coord.x + nextCoord.x) / 2;
-        const centerZ = (coord.z + nextCoord.z) / 2;
-        
-        return (
-          <mesh 
-            key={`line-${index}`}
-            position={[centerX, 0.05, centerZ]}
-            rotation={[0, angle, 0]}
-          >
-            <boxGeometry args={[length, 0.02, 0.02]} />
-            <meshBasicMaterial color="#00ff00" />
-          </mesh>
-        );
-      })} */}
-      
+      {/* 
+        INDICADOR GLOBAL DE ARRASTRE
+        Elemento visual en la parte superior durante operaciones de arrastre
+      */}
       {isDraggingOpening && draggedOpening && (
         <group>
           <mesh position={[0, depth + 1, 0]}>
@@ -419,14 +710,20 @@ export function ExtrudedShapeWithDraggableOpenings({
         </group>
       )}
 
-      {/* ✅ NUEVO: MAPA DE CALOR ACÚSTICO */}
+      {/* 
+        SISTEMA DE MAPA DE CALOR ACÚSTICO
+        Análisis en tiempo real de propiedades acústicas de la habitación
+      */}
       <AcousticHeatmapShader
         wallCoordinates={coordinatesToUse}
         isVisible={showHeatmap}
         externalSoundLevel={70}
       />
 
-      {/* ✅ NUEVO: CONTROL PARA TOGGLE HEATMAP */}
+      {/* 
+        CONTROL DE TOGGLE PARA MAPA DE CALOR
+        Botón interactivo para mostrar/ocultar análisis acústico
+      */}
       {coordinatesToUse.length >= 3 && (
         <Html position={[0, 4, 0]} center>
           <button
@@ -444,27 +741,40 @@ export function ExtrudedShapeWithDraggableOpenings({
           </button>
         </Html>
       )}
-
-      {/* ❌ COMENTAR: Leyenda de colores
-      <group position={[
-        Math.min(...wallCoordinates.map(c => c.x)) - 2.5,
-        0.1, 
-        Math.max(...wallCoordinates.map(c => c.z)) + 1.5
-      ]}>
-        {[0, 0.2, 0.4, 0.6, 0.8, 1.0].map((intensity, index) => {
-          const colors = [0x008040, 0x00ff80, 0x40ff40, 0xffff00, 0xff8000, 0xff0000];
-          return (
-            <mesh 
-              key={index}
-              position={[0, index * 0.2, 0]}
-            >
-              <boxGeometry args={[0.15, 0.2, 0.15]} />
-              <meshBasicMaterial color={colors[index]} />
-            </mesh>
-          );
-        })}
-      </group>
-      */}
     </group>
   );
 }
+
+/**
+ * @exports ExtrudedShapeWithDraggableOpenings
+ * @description Exportación por defecto del componente principal de habitación 3D
+ */
+
+/**
+ * @namespace ComponentMetadata
+ * @description Metadatos técnicos del componente
+ * 
+ * @property {string} componentType - "Advanced 3D Room System"
+ * @property {string[]} features - [
+ *   "Dynamic Geometry", "Drag and Drop", "Opening Repositioning", 
+ *   "Acoustic Analysis", "Heat Map Visualization", "Material Service Integration"
+ * ]
+ * @property {string[]} engines - ["GeometryEngine", "InteractionEngine", "MaterialService"]
+ * @property {string[]} patterns - [
+ *   "Engine Delegation", "State Management", "Event Handling", 
+ *   "Performance Optimization", "Separation of Concerns"
+ * ]
+ * @property {Object} performance - Optimizaciones de rendimiento
+ * @property {string} performance.geometry - "Memoized with dependency tracking"
+ * @property {string} performance.events - "Memoized callbacks with specific dependencies"
+ * @property {string} performance.materials - "Unified MaterialService instances"
+ * @property {string} performance.rendering - "Conditional preview elements"
+ * @property {Object} interactions - Tipos de interacciones soportadas
+ * @property {string[]} interactions.dragTypes - ["Palette to Wall", "Opening Repositioning"]
+ * @property {string[]} interactions.visualFeedback - ["Color Coding", "Opacity Changes", "Preview Elements"]
+ * @property {string[]} interactions.cursorStates - ["Default", "Grab", "Grabbing", "Drop"]
+ * @property {Object} analysis - Capacidades de análisis
+ * @property {string[]} analysis.acoustic - ["Real-time Calculation", "Heat Map Visualization"]
+ * @property {string[]} analysis.structural - ["Wall Generation", "Opening Integration"]
+ * @property {string[]} analysis.visual - ["Material Properties", "Lighting Response"]
+ */
