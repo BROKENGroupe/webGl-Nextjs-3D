@@ -18,6 +18,8 @@ import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette"
 import { useCoordinatesStore } from "@/store/coordinatesStore";
 import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
 import { ProjectHierarchyAside } from "@/components/ProjectHierarchyAside";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame } from "lucide-react"; // Ejemplo con Lucide
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -387,82 +389,134 @@ export default function DrawingScene() {
       </Canvas>
 
       {/* Controles de la aplicación */}
-      <div className="absolute top-4 right-4 space-y-2">
+      <div className="absolute top-4 right-4 flex gap-2 z-50">
         {isClosed && !isExtruded && (
-          <button 
-            onClick={handleExtrude}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
-          >
-            Extruir Estructura
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleExtrude}
+                className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+                aria-label="Extruir Estructura"
+              >
+                <Redo2 size={22} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Extruir Estructura</TooltipContent>
+          </Tooltip>
         )}
-        
         {isExtruded && (
           <>
-            <button 
-              onClick={handleBackTo2D}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
-            >
-              Volver a 2D
-            </button>
-            <button 
-              onClick={handleExtrude}
-              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
-            >
-              Re-extruir
-            </button>
-            {/* BOTÓN DE EMERGENCIA */}
-            <button 
-              onClick={handleFixExtrusion}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow-lg transition-colors text-xs"
-              title="Arreglar forma distorsionada"
-            >
-              🔧 Arreglar Forma
-            </button>
-
-            {/* ✅ NUEVO: Botón para abrir análisis acústico directo */}
-            <button 
-              onClick={() => setShowAcousticModal(true)}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded shadow-lg transition-all transform hover:scale-105"
-              title="Análisis acústico profesional"
-              disabled={walls.length === 0}
-            >
-              📊 Análisis Acústico
-            </button>
-
-            {/* ✅ NUEVO: Botón para abrir gestor de paredes */}
-            {/* <button 
-              onClick={() => setShowWallsManager(true)}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
-              title="Gestionar paredes del proyecto"
-            >
-              🧱 Gestionar Paredes
-            </button> */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleBackTo2D}
+                  className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+                  aria-label="Volver a 2D"
+                >
+                  <Undo2 size={22} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Volver a 2D</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleExtrude}
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
+                  aria-label="Re-extruir"
+                >
+                  <Redo2 size={22} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Re-extruir</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleFixExtrusion}
+                  className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+                  aria-label="Arreglar Forma"
+                >
+                  <Wrench size={22} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Arreglar Forma</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setShowAcousticModal(true)}
+                  className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+                  aria-label="Análisis Acústico"
+                  disabled={walls.length === 0}
+                >
+                  <BarChart3 size={22} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Análisis Acústico</TooltipContent>
+            </Tooltip>
           </>
         )}
-        
-        <button 
-          onClick={handleNewDrawing}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
-        >
-          Nuevo Dibujo
-        </button>
-        
-        <button 
-          onClick={handleClearStorage}
-          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded shadow-lg transition-colors text-xs"
-          title="Limpiar datos guardados"
-        >
-          🗑️ Limpiar Storage
-        </button>
-
-        <button 
-          onClick={handleCleanAndReset}
-          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow-lg transition-colors text-xs"
-          title="Limpieza completa y reinicio"
-        >
-          🔧 Reset Completo
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleNewDrawing}
+              className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+              aria-label="Nuevo Dibujo"
+            >
+              <PlusSquare size={22} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Nuevo Dibujo</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleClearStorage}
+              className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+              aria-label="Limpiar Storage"
+            >
+              <Trash2 size={22} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Limpiar Storage</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleCleanAndReset}
+              className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+              aria-label="Reset Completo"
+            >
+              <Wrench size={22} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Reset Completo</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => {/* lógica para agregar planta */}}
+              className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+              aria-label="Agregar Planta"
+            >
+              <Plus size={22} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Agregar Planta</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => {/* lógica para mostrar mapa de calor */}}
+              className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+              aria-label="Mapa de Calor"
+            >
+              <Flame size={22} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Mapa de Calor</TooltipContent>
+        </Tooltip>
       </div>
 
       <ContextMenu
