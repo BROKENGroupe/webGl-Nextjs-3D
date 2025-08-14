@@ -563,7 +563,7 @@ export function DroppableWall({
       if (canDrop) return "#4CAF50";  // Verde: válido
       else return "#FF5722";          // Rojo: inválido
     }
-    return COLORS.WALLS;              // Color estándar
+    return COLORS.wall;              // Color estándar
   };
 
   /**
