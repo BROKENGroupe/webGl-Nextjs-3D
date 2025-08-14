@@ -1,5 +1,6 @@
+import { Opening, Point2D } from '@/types/openings';
 import * as THREE from 'three';
-import { Point2D, Opening } from '../types/openings';
+
 
 /**
  * =====================================================================================

@@ -1,5 +1,6 @@
+import { COLORS, MATERIAL_PROPERTIES } from '@/config/materials';
 import * as THREE from 'three';
-import { COLORS, MATERIAL_PROPERTIES } from '../config/materials';
+
 
 /**
  * =====================================================================================

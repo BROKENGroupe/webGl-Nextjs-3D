@@ -16,9 +16,9 @@
  * @requires LineEventHandler
  */
 
+import { LineEventHandler } from '@/lib/engine/LineEventHandler';
+import { LineGeometryEngine } from '@/lib/engine/LineGeometryEngine';
 import * as THREE from 'three';
-import { LineGeometryEngine } from '../engine/LineGeometryEngine';
-import { LineEventHandler } from '../engine/LineEventHandler';
 
 /**
  * @interface LineRendererProps

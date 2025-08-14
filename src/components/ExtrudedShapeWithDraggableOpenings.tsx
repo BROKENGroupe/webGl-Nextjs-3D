@@ -22,7 +22,6 @@
 
 // ✅ IMPORTS DE SISTEMAS PRINCIPALES
 import { useWallsStore } from "../store/wallsStore";
-import { MaterialService } from "../engine/MaterialService";
 import * as THREE from "three";
 import { useOpeningsStore } from "../store/openingsStore";
 import { useDrawingStore } from "../store/drawingStore";
@@ -32,10 +31,12 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { useBuildingStore } from "../store/buildingStore"; // Asegúrate de importar el store de plantas
 
 // ✅ IMPORTS DE ENGINES ESPECIALIZADOS
-import { GeometryEngine } from "../engine/GeometryEngine";
-import { InteractionEngine } from "../engine/InteractionEngine";
-import { AcousticHeatmapShader } from './AcousticHeatmapShader';
+
+import { AcousticHeatmapShader } from './heatmaps/AcousticHeatmapShader';
 import { Html } from '@react-three/drei';
+import { GeometryEngine } from "@/lib/engine/GeometryEngine";
+import { InteractionEngine } from "@/lib/engine/InteractionEngine";
+import { MaterialService } from "@/lib/engine/MaterialService";
 
 /**
  * @interface ExtrudedShapeWithDraggableOpeningsProps
