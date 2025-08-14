@@ -18,6 +18,7 @@ import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette"
 import { useCoordinatesStore } from "@/store/coordinatesStore";
 import { WallsManager } from "@/components/WallsManager";
 import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
+import { ProjectHierarchyAside } from "@/components/ProjectHierarchyAside";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -431,13 +432,13 @@ export default function DrawingScene() {
             </button>
 
             {/* ✅ NUEVO: Botón para abrir gestor de paredes */}
-            <button 
+            {/* <button 
               onClick={() => setShowWallsManager(true)}
               className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded shadow-lg transition-colors"
               title="Gestionar paredes del proyecto"
             >
               🧱 Gestionar Paredes
-            </button>
+            </button> */}
           </>
         )}
         
@@ -535,6 +536,16 @@ export default function DrawingScene() {
             Haz clic en "📊 Análisis Acústico" para ver resultados detallados
           </div>
         </div>
+      )}
+
+      {/* Componente de jerarquía de proyecto - solo visible en desarrollo */}
+      {process.env.NODE_ENV === 'development' && (
+        <ProjectHierarchyAside
+          floors={[]} // <-- pásale tus datos reales
+          onSelectFloor={id => {/* lógica para seleccionar planta */}}
+          onSelectWall={id => {/* lógica para seleccionar fachada/pared */}}
+          onSelectElement={id => {/* lógica para seleccionar puerta/ventana */}}
+        />
       )}
     </div>
   );

@@ -596,17 +596,17 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
    */
 
   // Vista minimizada - Solo botón de acceso
-  if (!isVisible) {
-    return (
-      <button 
-        onClick={onToggle}
-        className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-colors z-50"
-        title="Abrir gestor de paredes"
-      >
-        🧱 Gestionar Paredes
-      </button>
-    );
-  }
+  // if (!isVisible) {
+  //   return (
+  //     // <button 
+  //     //   onClick={onToggle}
+  //     //   className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-colors z-50"
+  //     //   title="Abrir gestor de paredes"
+  //     // >
+  //     //   🧱 Gestionar Paredes
+  //     // </button>
+  //   );
+  // }
 
   // Cálculo de pared seleccionada
   const selectedWall = selectedWallId ? walls.find(w => w.id === selectedWallId) : null;
@@ -618,19 +618,19 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
   return (
     <>
       {/* BOTÓN DE CIERRE */}
-      <button 
+      {/* <button 
         onClick={onToggle}
         className="fixed top-4 right-4 bg-gray-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-gray-700 transition-colors z-50"
         title="Cerrar gestor de paredes"
       >
         ❌ Cerrar Manager
-      </button>
+      </button> */}
 
       {/* PANEL PRINCIPAL DE GESTIÓN */}
       <div className="fixed top-16 right-4 bg-white rounded-lg shadow-xl p-4 space-y-4 z-40 w-80 max-h-[80vh] overflow-y-auto">
         
         {/* HEADER CON BOTONES DE ANÁLISIS RÁPIDO */}
-        <div className="flex justify-between items-center">
+        {/* <div className="flex justify-between items-center">
           <h3 className="font-bold text-lg text-gray-800">
             🧱 Gestión de Paredes
           </h3>
@@ -650,7 +650,7 @@ export const WallsManager: React.FC<WallsManagerProps> = ({ isVisible, onToggle 
               📋
             </button>
           </div>
-        </div>
+        </div> */}
         
         {/* LISTA DE PAREDES EXISTENTES */}
         <div className="space-y-2">
