@@ -29,6 +29,7 @@ import { useDrawingStore } from "../store/drawingStore";
 import { COLORS, MATERIAL_PROPERTIES, GEOMETRY_CONFIG } from "../config/materials";
 import { Opening, OpeningTemplate } from "../types/openings";
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { useBuildingStore } from "../store/buildingStore"; // Asegúrate de importar el store de plantas
 
 // ✅ IMPORTS DE ENGINES ESPECIALIZADOS
 import { GeometryEngine } from "../engine/GeometryEngine";
@@ -206,6 +207,10 @@ export function ExtrudedShapeWithDraggableOpenings({
    */
   const { openings, updateOpeningPosition } = useOpeningsStore();
   
+  // Store de plantas
+  const floors = useBuildingStore(state => state.floors);
+  const addFloor = useBuildingStore(state => state.addFloor);
+
   /**
    * @section Estados locales del componente
    * @description Gestión de interacciones y estado visual
@@ -541,6 +546,41 @@ export function ExtrudedShapeWithDraggableOpenings({
     }
   }, [isDragActive, draggedTemplate, isDraggingOpening, draggedOpening, handleOpeningPointerUp, onDropOpening, coordinatesToUse, depth]);
 
+  // Función para agregar una nueva planta duplicada
+  function handleAddFloor(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+    event.preventDefault();
+
+    const depth = 3;
+    const lastHeight = floors.length > 0
+      ? floors[floors.length - 1].baseHeight + depth
+      : depth;
+
+    const coords = planeXZCoordinates.length >= 3 ? planeXZCoordinates : coordinatesToUse;
+    const rawWalls = GeometryEngine.generateWallsFromCoordinates(coords);
+    const newWalls = rawWalls.map((wall, idx) => ({
+      ...wall,
+      id: crypto.randomUUID(),
+      wallIndex: idx,
+      template: wall.template ?? null,
+      area: wall.area ?? 0,
+      currentCondition: wall.currentCondition ?? 'default',
+      start: wall.start,
+      end: wall.end,
+    }));
+
+    const newFloor = {
+      id: crypto.randomUUID(),
+      name: `Planta ${floors.length + 1}`,
+      coordinates: coords.map(c => ({ x: c.x, y: 0, z: c.z })),
+      baseHeight: lastHeight,
+      walls: newWalls,
+      openings: []
+    };
+
+    addFloor(newFloor);
+    console.log("➕ Planta agregada correctamente:", newFloor);
+  }
+
   /**
    * @section Renderizado del componente
    * @description Estructura JSX completa con todos los elementos de la habitación
@@ -741,6 +781,76 @@ export function ExtrudedShapeWithDraggableOpenings({
           </button>
         </Html>
       )}
+
+      {/* BOTÓN AGREGAR PLANTA */}
+      <Html position={[0, 4.5, 0]} center>
+        <button
+          onClick={handleAddFloor}
+          className="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold shadow-lg hover:bg-green-700 transition-all"
+          style={{ minWidth: 160 }}
+        >
+          ➕ Agregar Planta
+        </button>
+      </Html>
+
+      {/* 
+        RENDERIZADO DE PLANTAS EXISTENTES
+        Duplica el volumen de la habitación para cada planta en el store
+      */}
+      {floors.map((floor, idx) => {
+        // Extruir paredes de la planta duplicada
+        const wallMeshes = floor.walls.map((wall, wIdx) => (
+          <mesh
+            key={`wall-${floor.id}-${wIdx}`}
+            geometry={GeometryEngine.createWallGeometry(
+              wIdx,
+              wall.start,
+              wall.end,
+              depth,
+              [] // Si quieres aberturas, pásalas aquí
+            )}
+          >
+            <meshStandardMaterial
+              color={COLORS.wall}
+              transparent
+              opacity={COLORS.wallOpacity}
+            />
+          </mesh>
+        ));
+
+        // Extruir techo de la planta duplicada
+        const ceilingMesh = (
+          <mesh
+            geometry={GeometryEngine.createCeilingGeometry(floor.coordinates, depth)}
+            position={[0, 0, 0]}
+          >
+            <meshStandardMaterial
+              color={COLORS.ceiling}
+              transparent
+              opacity={COLORS.ceilingOpacity}
+            />
+          </mesh>
+        );
+
+        // Extruir piso de la planta duplicada
+        const floorMesh = (
+          <mesh geometry={GeometryEngine.createFloorGeometry(floor.coordinates)}>
+            <meshStandardMaterial
+              color={COLORS.wall}
+              transparent
+              opacity={COLORS.wallOpacity}
+            />
+          </mesh>
+        );
+
+        return (
+          <group key={floor.id} position={[0, floor.baseHeight, 0]}>
+            {floorMesh}
+            {wallMeshes}
+            {ceilingMesh}
+          </group>
+        );
+      })}
     </group>
   );
 }

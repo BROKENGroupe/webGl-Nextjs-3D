@@ -33,6 +33,8 @@ export interface Wall {
   id: string;
   wallIndex: number;
   template: WallTemplate;
+  start: { x: number; z: number };
+  end: { x: number; z: number };
   area: number;
   currentCondition: WallCondition;
   acousticRating?: 'A' | 'B' | 'C' | 'D' | 'E';

@@ -15,40 +15,11 @@
  * @description Paleta de colores global del sistema
  */
 export const COLORS = {
-  // Colores principales de paredes
-  WALLS: "#E0E0E0",
-  HOVER: "D2B48C",
-  // Colores de superficies arquitectónicas
-  FLOOR: "#D2B48C",         // ✅ Color beige para pisos
-  CEILING: "#F5F5F5",       // ✅ Color blanco humo para techos
-  
-  // Colores de marcos por tipo de abertura
-  FRAMES: {
-    DOORS: "#8B4513",      // Marrón sillín - marcos de puertas
-    WINDOWS: "#FFFFFF",    // Blanco - marcos de ventanas
-    DEFAULT: "#666666"     // Gris neutro - elementos desconocidos
-  },
-  
-  // Colores de contenido de aberturas
-  OPENINGS: {
-    WOOD_DOOR: "#CD853F",     // Dorado Perú - hojas de puertas de madera
-    SLIDING_PANEL: "#A0A0A0", // Gris - paneles de puertas correderas
-    GLASS: "#87CEEB"          // Azul cielo - cristales de ventanas
-  },
-  
-  // Colores de estado y feedback visual
-  INTERACTIONS: {
-    VALID_DROP: "#4CAF50",    // Verde - posición válida para drop
-    INVALID_DROP: "#FF5722", // Rojo - posición inválida para drop
-    HOVER: "#2196F3"         // Azul - estado hover
-  },
-  
-  // Colores de debug y herramientas
-  DEBUG: {
-    GRID: "#00ff00",         // Verde brillante - elementos de debug
-    CENTER_LINE: "#ff0000",  // Rojo - líneas centrales
-    HELPER: "#ffff00"        // Amarillo - elementos auxiliares
-  }
+  wall: "#B0B0B0",        // Color unificado para paredes
+  wallOpacity: 0.45,      // Transparencia unificada para paredes
+  ceiling: "#C7D2FE",     // Color sólido para techo
+  ceilingOpacity: 0.95,   // Transparencia para techo
+  hover: "#FFD700"        // Color dorado para estado hover
 };
 
 /**

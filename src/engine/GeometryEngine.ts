@@ -12,9 +12,9 @@ import { Point2D, Opening } from '../types/openings';
  * paredes complejas con aberturas (puertas y ventanas) y sistemas de segmentación
  * avanzados para evitar solapamientos.
  * 
- * @author Sistema de Arquitectura 3D
+ * @author insonor Team
  * @version 2.0.0
- * @since 2024
+ * @since 2025
  * 
  * @features
  * - Generación de geometrías optimizadas con BufferGeometry
@@ -60,6 +60,24 @@ type WallSegment = {
   endY?: number;
 };
 
+export interface Wall {
+  // Define wall properties as needed, e.g.:
+  [key: string]: any;
+}
+
+export interface FloorOpening {
+  // Define opening properties as needed, e.g.:
+  [key: string]: any;
+}
+
+export interface Floor {
+  id: string;
+  name: string;
+  walls: Wall[];
+  openings: FloorOpening[];
+  baseHeight: number;
+}
+
 /**
  * @class GeometryEngine
  * @description Motor principal para generación de geometrías arquitectónicas 3D
@@ -69,7 +87,7 @@ type WallSegment = {
  * complejas y sistemas de segmentación automática.
  */
 export class GeometryEngine {
-  
+
   /**
    * @method createFloorGeometry
    * @description Genera geometría de piso a partir de coordenadas 2D usando triangulación fan
@@ -108,23 +126,23 @@ export class GeometryEngine {
     const floorGeometry = new THREE.BufferGeometry();
     const vertices: number[] = [];
     const indices: number[] = [];
-    
+
     // Convertir coordenadas 2D a vértices 3D en el plano Y=0
     coordinates.forEach(coord => {
       vertices.push(coord.x, 0, coord.z);
     });
-    
+
     // Triangulación fan: cada triángulo usa el vértice 0 como pivote
     // Genera triángulos: (0,1,2), (0,2,3), (0,3,4), etc.
     for (let i = 1; i < coordinates.length - 1; i++) {
       indices.push(0, i, i + 1);
     }
-    
+
     // Configurar geometría con datos optimizados
     floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     floorGeometry.setIndex(indices);
     floorGeometry.computeVertexNormals(); // Calcula normales para iluminación
-    
+
     return floorGeometry;
   }
 
@@ -152,21 +170,21 @@ export class GeometryEngine {
     const ceilingGeometry = new THREE.BufferGeometry();
     const vertices: number[] = [];
     const indices: number[] = [];
-    
+
     // Elevar coordenadas al plano del techo
     coordinates.forEach(coord => {
       vertices.push(coord.x, depth, coord.z);
     });
-    
+
     // Triangulación fan invertida para normales hacia abajo
     for (let i = 1; i < coordinates.length - 1; i++) {
       indices.push(0, i + 1, i); // Orden invertido
     }
-    
+
     ceilingGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     ceilingGeometry.setIndex(indices);
     ceilingGeometry.computeVertexNormals();
-    
+
     return ceilingGeometry;
   }
 
@@ -232,18 +250,18 @@ export class GeometryEngine {
    * );
    */
   static createWallGeometry(
-    wallIndex: number, 
-    p1: Point2D, 
-    p2: Point2D, 
+    wallIndex: number,
+    p1: Point2D,
+    p2: Point2D,
     depth: number,
     wallOpenings: Opening[]
   ): THREE.BufferGeometry {
     const wallLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.z - p1.z) ** 2);
     const wallGeometry = new THREE.BufferGeometry();
-    
+
     if (wallOpenings.length === 0) {
       // ===== PARED SIMPLE - OPTIMIZACIÓN PARA CASO COMÚN =====
-      
+
       /**
        * Vértices en orden:
        * 3 ---- 2  (top)
@@ -257,28 +275,28 @@ export class GeometryEngine {
         p2.x, depth, p2.z,    // 2: top right
         p1.x, depth, p1.z     // 3: top left
       ]);
-      
+
       // Dos triángulos formando un quad: (0,2,1) y (0,3,2)
       const wallIndices = [0, 2, 1, 0, 3, 2];
-      
+
       wallGeometry.setAttribute('position', new THREE.BufferAttribute(wallVertices, 3));
       wallGeometry.setIndex(wallIndices);
       wallGeometry.computeVertexNormals();
-      
+
     } else {
       // ===== PARED COMPLEJA - SISTEMA DE SEGMENTACIÓN =====
-      
+
       const vertices: number[] = [];
       const indices: number[] = [];
       let vertexIndex = 0;
-      
+
       // Generar segmentos que evitan las aberturas
       const segments = this.createWallSegments(wallLength, depth, wallOpenings);
-      
+
       // Procesar cada segmento individualmente
       segments.forEach(segment => {
         let segmentVertices: number[];
-        
+
         if (segment.startY !== undefined && segment.endY !== undefined) {
           // ===== SEGMENTO DINTEL (encima de abertura) =====
           /**
@@ -304,26 +322,26 @@ export class GeometryEngine {
             p1.x + (segment.startX / wallLength) * (p2.x - p1.x), segment.height, p1.z + (segment.startX / wallLength) * (p2.z - p1.z)
           ];
         }
-        
+
         // Agregar vértices del segmento al buffer principal
         vertices.push(...segmentVertices);
-        
+
         // Generar índices para los dos triángulos del segmento
         // Cada segmento es un quad = 2 triángulos = 6 índices
         indices.push(
           vertexIndex, vertexIndex + 2, vertexIndex + 1,     // Triángulo 1
           vertexIndex, vertexIndex + 3, vertexIndex + 2      // Triángulo 2
         );
-        
+
         vertexIndex += 4; // 4 vértices por segmento
       });
-      
+
       // Ensamblar geometría final
       wallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
       wallGeometry.setIndex(indices);
       wallGeometry.computeVertexNormals();
     }
-    
+
     return wallGeometry;
   }
 
@@ -401,15 +419,15 @@ export class GeometryEngine {
   private static createWallSegments(wallLength: number, wallHeight: number, openings: Opening[]): WallSegment[] {
     const segments: WallSegment[] = [];
     let currentX = 0; // Posición actual procesada
-    
+
     // Ordenar aberturas por posición para procesamiento secuencial
     const sortedOpenings = [...openings].sort((a, b) => a.position - b.position);
-    
+
     sortedOpenings.forEach(opening => {
       // Calcular límites de la abertura en coordenadas de pared
-      const openingStartX = (opening.position * wallLength) - opening.width/2;
-      const openingEndX = (opening.position * wallLength) + opening.width/2;
-      
+      const openingStartX = (opening.position * wallLength) - opening.width / 2;
+      const openingEndX = (opening.position * wallLength) + opening.width / 2;
+
       // ===== SEGMENTO ANTES DE LA ABERTURA =====
       if (currentX < openingStartX) {
         segments.push({
@@ -418,7 +436,7 @@ export class GeometryEngine {
           height: wallHeight // Segmento completo de suelo a techo
         });
       }
-      
+
       // ===== SEGMENTO DINTEL (encima de abertura) =====
       /**
        * Solo crear dintel si:
@@ -428,7 +446,7 @@ export class GeometryEngine {
       if (opening.type === 'window' || (opening.bottomOffset + opening.height < wallHeight)) {
         const segmentStartY = opening.bottomOffset + opening.height; // Top de la abertura
         const segmentEndY = wallHeight; // Techo
-        
+
         // Verificar que hay espacio suficiente para un dintel (mínimo 10cm)
         if (segmentEndY > segmentStartY + 0.1) {
           segments.push({
@@ -440,7 +458,7 @@ export class GeometryEngine {
           });
         }
       }
-      
+
       // ===== SEGMENTO ANTEPECHO (debajo de ventana) =====
       /**
        * Solo para ventanas que no empiezan en el suelo
@@ -453,11 +471,11 @@ export class GeometryEngine {
           height: opening.bottomOffset // Altura del antepecho
         });
       }
-      
+
       // Avanzar posición actual al final de esta abertura
       currentX = openingEndX;
     });
-    
+
     // ===== SEGMENTO FINAL =====
     // Pared desde la última abertura hasta el final
     if (currentX < wallLength) {
@@ -467,7 +485,7 @@ export class GeometryEngine {
         height: wallHeight
       });
     }
-    
+
     return segments;
   }
 
@@ -498,7 +516,47 @@ export class GeometryEngine {
   static getOpeningsForWall(openings: Opening[], wallIndex: number): Opening[] {
     return openings.filter((opening: Opening) => opening.wallIndex === wallIndex);
   }
+
+  static createFloor(name: string, baseHeight: number = 0) {
+    return {
+      id: crypto.randomUUID(),
+      name,
+      walls: [],
+      openings: [],
+      baseHeight,
+    };
+  }
+
+  static replicateFloor(floor: any, newHeight: number): any {
+    return {
+      ...GeometryEngine.createFloor(floor.name + ' (Copia)', newHeight),
+      walls: floor.walls.map((w: Wall) => ({ ...w })),
+      openings: floor.openings.map((o: FloorOpening) => ({ ...o })),
+    };
+  }
+
+  /**
+   * Genera las paredes a partir de un array de coordenadas 2D (x, z).
+   * Cada pared es un objeto con punto inicial y final.
+   */
+  static generateWallsFromCoordinates(coords: { x: number; z: number }[]): Wall[] {
+    if (!coords || coords.length < 2) return [];
+    const walls: Wall[] = [];
+    for (let i = 0; i < coords.length; i++) {
+      const start = coords[i];
+      const end = coords[(i + 1) % coords.length];
+      walls.push({
+        id: `wall-${i}`,
+        start,
+        end,
+        openings: [],
+      });
+    }
+    return walls;
+  }
 }
+
+
 
 /**
  * =====================================================================================

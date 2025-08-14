@@ -69,6 +69,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               🔧 Arreglar Forma
             </Button>
 
+           
+
             <Separator orientation="vertical" className="h-6" />
 
             {/* BOTÓN TOGGLE DEL PANEL */}

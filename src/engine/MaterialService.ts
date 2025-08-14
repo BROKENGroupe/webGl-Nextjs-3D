@@ -12,9 +12,9 @@ import { COLORS, MATERIAL_PROPERTIES } from '../config/materials';
  * un sistema de cache inteligente que evita la recreación innecesaria de materiales
  * y optimiza el uso de memoria GPU.
  * 
- * @author Sistema de Arquitectura 3D
+ * @author insonor Team
  * @version 2.0.0
- * @since 2024
+ * @since 2025
  * 
  * @features
  * - Cache inteligente de materiales para máximo rendimiento
@@ -110,7 +110,7 @@ export class MaterialService {
       // ===== CREACIÓN DE MATERIAL NUEVO =====
       const material = new THREE.MeshStandardMaterial({
         // Color dinámico basado en estado
-        color: options?.isHovered ? COLORS.HOVER : COLORS.WALLS,
+        color: options?.isHovered ? COLORS.hover : COLORS.wall,
         
         // Renderizado de ambas caras para paredes
         side: THREE.DoubleSide,
@@ -153,7 +153,7 @@ export class MaterialService {
   static getFloorMaterial(): THREE.MeshStandardMaterial {
     if (!this.materials.has('floor')) {
       const material = new THREE.MeshStandardMaterial({
-        color: COLORS.FLOOR,
+        color: COLORS.wall,
         roughness: MATERIAL_PROPERTIES.FLOOR.roughness,
         metalness: MATERIAL_PROPERTIES.FLOOR.metalness,
         // Note: No DoubleSide - solo cara superior del piso
