@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { GeometryEngine } from '@/engine/GeometryEngine';
 import { Floor } from '@/types/floor';
+import { GeometryEngine } from '@/lib/engine/GeometryEngine';
 
 interface BuildingState {
   floors: Floor[];
