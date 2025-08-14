@@ -88,7 +88,7 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
       {/* Piso - Usando variables centralizadas CORREGIDAS */}
       <mesh geometry={floorGeometry}>
         <meshStandardMaterial 
-          color={COLORS.FLOOR}
+          color={COLORS.ceiling}
           side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
           roughness={MATERIAL_PROPERTIES.FLOOR.roughness}
           metalness={MATERIAL_PROPERTIES.FLOOR.metalness}
@@ -102,7 +102,7 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
       {wallGeometries.map((wallGeom, index) => (
         <mesh key={`wall-${index}`} geometry={wallGeom}>
           <meshStandardMaterial 
-            color={COLORS.WALLS}
+            color={COLORS.wall}
             side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
             roughness={MATERIAL_PROPERTIES.WALLS.roughness}
             metalness={MATERIAL_PROPERTIES.WALLS.metalness}
@@ -118,7 +118,7 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
       {/* Techo - Usando variables centralizadas CORREGIDAS */}
       <mesh geometry={ceilingGeometry}>
         <meshStandardMaterial 
-          color={COLORS.CEILING}
+          color={COLORS.ceiling}
           side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
           roughness={MATERIAL_PROPERTIES.CEILING.roughness}
           metalness={MATERIAL_PROPERTIES.CEILING.metalness}
