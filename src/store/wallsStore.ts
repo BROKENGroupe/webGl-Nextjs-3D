@@ -25,7 +25,9 @@ export const useWallsStore = create<WallsStore>((set, get) => ({
       wallIndex,
       template,
       area,
-      currentCondition: 'excellent'
+      currentCondition: 'excellent',
+      start: { x: 0, z: 0 }, // Replace with actual start coordinates if available
+      end: { x: 0, z: 0 }    // Replace with actual end coordinates if available
     };
     
     newWall.acousticRating = calculateWallAcousticRating(newWall);
@@ -310,7 +312,9 @@ export const useWallsStore = create<WallsStore>((set, get) => ({
         wallIndex: index,
         template,
         area,
-        currentCondition: 'excellent'
+        currentCondition: 'excellent',
+        start: { x: coord.x, z: coord.z },
+        end: { x: nextCoord.x, z: nextCoord.z }
       };
       
       newWall.acousticRating = calculateWallAcousticRating(newWall);
