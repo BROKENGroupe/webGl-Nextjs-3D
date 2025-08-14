@@ -93,17 +93,17 @@ export function OpeningFrame({ opening, wallLength, wallHeight }: OpeningFramePr
       case 'double-door':
       case 'sliding-door':
         return { 
-          color: COLORS.FRAMES.DOORS, 
+          color: COLORS.wall, 
           thickness: FRAME_DIMENSIONS.THICKNESS.DOORS 
         };
       case 'window':
         return { 
-          color: COLORS.FRAMES.WINDOWS, 
+          color: COLORS.wall, 
           thickness: FRAME_DIMENSIONS.THICKNESS.WINDOWS 
         };
       default:
         return { 
-          color: COLORS.FRAMES.DEFAULT, 
+          color: COLORS.wall, 
           thickness: FRAME_DIMENSIONS.THICKNESS.DEFAULT 
         };
     }
@@ -191,7 +191,7 @@ export function OpeningFrame({ opening, wallLength, wallHeight }: OpeningFramePr
             FRAME_DIMENSIONS.CONTENT_THICKNESS.DOOR_LEAF
           ]} />
           <meshStandardMaterial 
-            color={COLORS.OPENINGS.WOOD_DOOR}
+            color={COLORS.wall}
             roughness={MATERIAL_PROPERTIES.WOOD.roughness}
             metalness={MATERIAL_PROPERTIES.WOOD.metalness}
           />
@@ -209,7 +209,7 @@ export function OpeningFrame({ opening, wallLength, wallHeight }: OpeningFramePr
               FRAME_DIMENSIONS.CONTENT_THICKNESS.DOOR_LEAF
             ]} />
             <meshStandardMaterial 
-              color={COLORS.OPENINGS.WOOD_DOOR}
+              color={COLORS.wall}
               roughness={MATERIAL_PROPERTIES.WOOD.roughness}
               metalness={MATERIAL_PROPERTIES.WOOD.metalness}
             />
@@ -223,7 +223,7 @@ export function OpeningFrame({ opening, wallLength, wallHeight }: OpeningFramePr
               FRAME_DIMENSIONS.CONTENT_THICKNESS.DOOR_LEAF
             ]} />
             <meshStandardMaterial 
-              color={COLORS.OPENINGS.WOOD_DOOR}
+              color={COLORS.wall}
               roughness={MATERIAL_PROPERTIES.WOOD.roughness}
               metalness={MATERIAL_PROPERTIES.WOOD.metalness}
             />
