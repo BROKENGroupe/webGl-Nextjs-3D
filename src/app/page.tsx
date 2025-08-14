@@ -16,7 +16,6 @@ import { OpeningTemplate } from "@/types/openings";
 import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
 import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
 import { useCoordinatesStore } from "@/store/coordinatesStore";
-import { WallsManager } from "@/components/WallsManager";
 import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
 import { ProjectHierarchyAside } from "@/components/ProjectHierarchyAside";
 
@@ -481,13 +480,7 @@ export default function DrawingScene() {
         isVisible={showOpeningsPalette}
         onToggle={() => setShowOpeningsPalette(!showOpeningsPalette)}
         onStartDrag={handleStartDrag}
-      />
-
-      {/* ✅ NUEVO: WallsManager con estado controlado desde page.tsx */}
-      <WallsManager
-        isVisible={showWallsManager}
-        onToggle={() => setShowWallsManager(!showWallsManager)}
-      />
+      />      
 
       {/* ✅ NUEVO: Modal de Análisis Acústico */}
       <AcousticAnalysisModal

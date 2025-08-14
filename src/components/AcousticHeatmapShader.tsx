@@ -53,11 +53,12 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { AcousticAnalysisEngine } from '../engine/AcousticAnalysisEngine';
+
 import { useWallsStore } from '../store/wallsStore';
 import { useOpeningsStore } from '../store/openingsStore';
 import { heatmapFragmentShader } from '@/shaders/heatmapFragment';
 import { heatmapVertexShader } from '@/shaders/heatmapSurfaceVertex';
+import { AcousticAnalysisEngine } from '@/lib/engine/AcousticAnalysisEngine';
 
 /**
  * @interface AcousticHeatmapShaderProps
