@@ -505,46 +505,6 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
       />
 
       {/* 
-        Marcadores visuales para fuentes acústicas críticas
-        Se muestran solo para aberturas o puntos con intensidad > 0.7
-      */}
-      {heatmapData.points
-        .filter(point => point.type === 'opening' || point.intensity > 0.7)
-        .map(point => (
-          <group key={`marker-${point.id}`}>
-            {/* 
-              Indicador esférico de fuente acústica
-              Color basado en intensidad: rojo para crítico, naranja para elevado
-            */}
-            <mesh position={[point.coordinates.x, 0.08, point.coordinates.z]}>
-              <sphereGeometry args={[0.05, 8, 6]} />
-              <meshBasicMaterial 
-                color={point.intensity > 0.7 ? 0xff0000 : 0xffaa00}
-                transparent
-                opacity={0.9}
-              />
-            </mesh>
-            
-            {/* 
-              Anillo de influencia en superficie
-              Indica el radio de impacto acústico del punto
-            */}
-            <mesh 
-              position={[point.coordinates.x, 0.005, point.coordinates.z]}
-              rotation={[-Math.PI / 2, 0, 0]}
-            >
-              <ringGeometry args={[0.1, 0.15, 16]} />
-              <meshBasicMaterial 
-                color={point.intensity > 0.7 ? 0xff4444 : 0xffaa44}
-                transparent
-                opacity={0.6}
-                side={THREE.DoubleSide}
-              />
-            </mesh>
-          </group>
-        ))}
-
-      {/* 
         Leyenda visual de escala de colores
         Proporciona referencia para interpretación de intensidades
       */}

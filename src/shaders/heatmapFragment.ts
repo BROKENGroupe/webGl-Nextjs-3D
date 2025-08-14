@@ -31,13 +31,8 @@ export const heatmapFragmentShader = `
       vec3 pointPos = pointPositions[i];
       float distance = length(position.xz - pointPos.xz) + 0.1;
       
-      // Retorno directo para puntos muy cercanos
-      if (distance < 0.3) {
-        return pointIntensities[i];
-      }
-      
       // Cálculo de peso IDW (inversamente proporcional al cuadrado de la distancia)
-      float weight = 1.0 / (distance * distance + 0.01);
+      float weight = 1.0 / (distance * distance * 0.2 + 0.01); // <-- Cambia 0.5 a 0.2 para mayor dispersión
       totalWeight += weight;
       weightedSum += pointIntensities[i] * weight;
       minDistance = min(minDistance, distance);
@@ -48,7 +43,7 @@ export const heatmapFragmentShader = `
       
       // Aplicación de falloff basado en distancia al centro del edificio
       float distToCenter = length(position.xz - buildingCenter.xz);
-      float falloff = smoothstep(buildingSize * 0.8, buildingSize * 1.2, distToCenter);
+      float falloff = smoothstep(buildingSize * 1.2, buildingSize * 2.0, distToCenter);
       
       return mix(interpolated, 0.0, falloff);
     }
@@ -67,28 +62,25 @@ export const heatmapFragmentShader = `
    * @returns {vec3} Color RGB correspondiente al nivel acústico
    */
   vec3 heatmapColor(float intensity) {
-    // Definición de paleta de colores acústicos
-    vec3 coldColor = vec3(0.0, 0.8, 0.4);     // Verde azulado - Nivel seguro
-    vec3 coolColor = vec3(0.0, 1.0, 0.8);     // Cian - Nivel bajo
-    vec3 neutralColor = vec3(0.4, 1.0, 0.4);  // Verde claro - Nivel moderado
-    vec3 warmColor = vec3(1.0, 1.0, 0.0);     // Amarillo - Nivel elevado
-    vec3 hotColor = vec3(1.0, 0.5, 0.0);      // Naranja - Nivel alto
-    vec3 criticalColor = vec3(1.0, 0.0, 0.0); // Rojo - Nivel crítico
-    
-    // Interpolación suave entre rangos de intensidad
-    if (intensity < 0.16) {
-      return mix(coldColor, coolColor, intensity * 6.0);
-    } else if (intensity < 0.33) {
-      return mix(coolColor, neutralColor, (intensity - 0.16) * 6.0);
-    } else if (intensity < 0.5) {
-      return mix(neutralColor, warmColor, (intensity - 0.33) * 6.0);
-    } else if (intensity < 0.75) {
-      return mix(warmColor, hotColor, (intensity - 0.5) * 4.0);
-    } else {
-      return mix(hotColor, criticalColor, (intensity - 0.75) * 4.0);
-    }
+    vec3 blueColor    = vec3(0.0, 0.3, 0.8);   // Azul (bajo)
+    vec3 greenColor   = vec3(0.0, 0.8, 0.3);   // Verde (seguro)
+    vec3 yellowColor  = vec3(1.0, 1.0, 0.0);   // Amarillo (precaución)
+    vec3 orangeColor  = vec3(1.0, 0.5, 0.0);   // Naranja (peligro)
+    vec3 redColor     = vec3(1.0, 0.0, 0.0);   // Rojo (crítico)
+
+    float t1 = smoothstep(0.0, 0.25, intensity); // Azul a verde
+    float t2 = smoothstep(0.25, 0.5, intensity); // Verde a amarillo
+    float t3 = smoothstep(0.5, 0.7, intensity);  // Amarillo a naranja
+    float t4 = smoothstep(0.7, 1.0, intensity);  // Naranja a rojo
+
+    vec3 color = mix(blueColor, greenColor, t1);
+    color = mix(color, yellowColor, t2);
+    color = mix(color, orangeColor, t3);
+    color = mix(color, redColor, t4);
+
+    return color;
   }
-  
+
   /**
    * @function main
    * @description Función principal del shader de fragmentos
@@ -99,17 +91,17 @@ export const heatmapFragmentShader = `
   void main() {
     vec3 worldPos = vWorldPosition;
     float intensity = interpolateIntensity(worldPos);
-    
-    // Obtención del color base según intensidad
+
+    // Color corregido
     vec3 color = heatmapColor(intensity);
-    
-    // Aplicación de efecto de ondas dinámicas
-    float wave = sin(time * 0.5 + intensity * 2.0) * 0.05 + 0.95;
+
+    // Efecto de onda dinámico (opcional)
+    float wave = sin(time * 0.5 + intensity * 2.0) * 0.03 + 0.97;
     color *= wave;
-    
-    // Cálculo de transparencia basada en intensidad
-    float alpha = smoothstep(0.0, 0.3, intensity) * 0.8;
-    
+
+    // Opacidad difusa
+    float alpha = smoothstep(0.0, 0.2, intensity) * 0.7 + smoothstep(0.7, 1.0, intensity) * 0.3;
+
     gl_FragColor = vec4(color, alpha);
   }
 `;
