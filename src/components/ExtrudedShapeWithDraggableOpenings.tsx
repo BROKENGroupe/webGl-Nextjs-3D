@@ -80,8 +80,10 @@ interface ExtrudedShapeWithDraggableOpeningsProps {
   onDropOpening: (wallIndex: number, position: number, template: OpeningTemplate) => void;
   isDragActive: boolean;
   draggedTemplate: OpeningTemplate | null;
-  showHeatmap?: boolean; // <-- Nuevo prop
-  onToggleHeatmap?: () => void; // <-- Nuevo prop
+  showHeatmap?: boolean;
+  onToggleHeatmap?: () => void;
+  onAddFloor?: () => void;
+  floors?: any[];
 }
 
 /**
@@ -187,6 +189,8 @@ export function ExtrudedShapeWithDraggableOpenings({
   draggedTemplate,
   showHeatmap = false,
   onToggleHeatmap,
+  onAddFloor,
+  floors = [],
 }: ExtrudedShapeWithDraggableOpeningsProps) {
   
   /**
@@ -213,7 +217,7 @@ export function ExtrudedShapeWithDraggableOpenings({
   const { openings, updateOpeningPosition } = useOpeningsStore();
   
   // Store de plantas
-  const floors = useBuildingStore(state => state.floors);
+  const floorsStore = useBuildingStore(state => state.floors);
   const addFloor = useBuildingStore(state => state.addFloor);
 
   /**
@@ -769,7 +773,7 @@ export function ExtrudedShapeWithDraggableOpenings({
         CONTROL DE TOGGLE PARA MAPA DE CALOR
         Botón interactivo para mostrar/ocultar análisis acústico
       */}
-      {coordinatesToUse.length >= 3 && (
+      {/* {coordinatesToUse.length >= 3 && (
         <Html position={[0, 4, 0]} center>
           <button
             onClick={() => {
@@ -785,26 +789,34 @@ export function ExtrudedShapeWithDraggableOpenings({
             {showHeatmap ? '🔥 Ocultar Mapa Calor' : '🔥 Mostrar Mapa Calor'}
           </button>
         </Html>
-      )}
+      )} */}
 
-      {/* BOTÓN AGREGAR PLANTA */}
+      {/* BOTÓN AGREGAR PLANTA
       <Html position={[0, 4.5, 0]} center>
         <button
-          onClick={handleAddFloor}
+          onClick={onAddFloor} // <-- Usa el callback recibido
           className="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold shadow-lg hover:bg-green-700 transition-all"
           style={{ minWidth: 160 }}
         >
           ➕ Agregar Planta
         </button>
-      </Html>
+      </Html> */}
 
       {/* 
         RENDERIZADO DE PLANTAS EXISTENTES
         Duplica el volumen de la habitación para cada planta en el store
       */}
-      {floors.map((floor, idx) => {
+      {onAddFloor && floors.map((floor, idx) => {
         // Extruir paredes de la planta duplicada
-        const wallMeshes = floor.walls.map((wall, wIdx) => (
+        const wallMeshes = floor.walls.map((wall: {
+          id: string;
+          wallIndex: number;
+          template?: any;
+          area?: number;
+          currentCondition?: string;
+          start: { x: number; z: number };
+          end: { x: number; z: number };
+        }, wIdx: number) => (
           <mesh
             key={`wall-${floor.id}-${wIdx}`}
             geometry={GeometryEngine.createWallGeometry(

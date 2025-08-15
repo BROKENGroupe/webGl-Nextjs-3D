@@ -20,6 +20,7 @@ import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal
 import { ProjectHierarchyAside } from "@/components/ProjectHierarchyAside";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame } from "lucide-react"; // Ejemplo con Lucide
+import { GeometryEngine } from "@/lib/engine/GeometryEngine";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -336,6 +337,46 @@ export default function DrawingScene() {
 
   // Estado para mostrar/ocultar el mapa de calor
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [floors, setFloors] = useState<any[]>([]);
+
+  const handleAddFloor = () => {
+    // Tu lógica para crear la nueva planta
+    const depth = 3;
+    const lastHeight = floors.length > 0
+      ? floors[floors.length - 1].baseHeight + depth
+      : depth;
+
+    const coords = planeXZCoordinates.length >= 3 ? planeXZCoordinates : [
+      { x: -6.5, z: -7 },
+      { x: 4, z: -4.5 },
+      { x: 2, z: 6 },
+      { x: -7.5, z: 4.5 },
+      { x: -6.5, z: -6.5 }
+    ];
+
+    const rawWalls = GeometryEngine.generateWallsFromCoordinates(coords);
+    const newWalls = rawWalls.map((wall, idx) => ({
+      ...wall,
+      id: crypto.randomUUID(),
+      wallIndex: idx,
+      template: wall.template ?? null,
+      area: wall.area ?? 0,
+      currentCondition: wall.currentCondition ?? 'default',
+      start: wall.start,
+      end: wall.end,
+    }));
+
+    const newFloor = {
+      id: crypto.randomUUID(),
+      name: `Planta ${floors.length + 1}`,
+      coordinates: coords.map(c => ({ x: c.x, y: 0, z: c.z })),
+      baseHeight: lastHeight,
+      walls: newWalls,
+      openings: []
+    };
+
+    setFloors([...floors, newFloor]);
+  };
 
   // Handler para alternar la vista del mapa de calor
   const handleToggleHeatmap = () => setShowHeatmap((prev) => !prev);
@@ -392,6 +433,8 @@ export default function DrawingScene() {
             draggedTemplate={draggedTemplate}
             showHeatmap={showHeatmap} // <-- PASA EL ESTADO
             onToggleHeatmap={handleToggleHeatmap} // <-- PASA EL HANDLER
+            onAddFloor={handleAddFloor}
+            floors={floors}
           />
         )}
       </Canvas>
@@ -504,7 +547,7 @@ export default function DrawingScene() {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => {/* lógica para agregar planta */}}
+              onClick={handleAddFloor} // <-- CORRECTO: ejecuta el handler
               className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
               aria-label="Agregar Planta"
             >
