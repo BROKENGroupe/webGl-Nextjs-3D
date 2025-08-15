@@ -767,40 +767,7 @@ export function ExtrudedShapeWithDraggableOpenings({
         wallCoordinates={coordinatesToUse}
         isVisible={showHeatmap}
         externalSoundLevel={70}
-      />
-
-      {/* 
-        CONTROL DE TOGGLE PARA MAPA DE CALOR
-        Botón interactivo para mostrar/ocultar análisis acústico
-      */}
-      {/* {coordinatesToUse.length >= 3 && (
-        <Html position={[0, 4, 0]} center>
-          <button
-            onClick={() => {
-              console.log('🔥 Toggle heatmap:', !showHeatmap);
-              setShowHeatmap(!showHeatmap);
-            }}
-            className={`px-4 py-2 rounded-lg text-white font-semibold transition-all duration-300 shadow-lg ${
-              showHeatmap 
-                ? 'bg-red-600 hover:bg-red-700' 
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {showHeatmap ? '🔥 Ocultar Mapa Calor' : '🔥 Mostrar Mapa Calor'}
-          </button>
-        </Html>
-      )} */}
-
-      {/* BOTÓN AGREGAR PLANTA
-      <Html position={[0, 4.5, 0]} center>
-        <button
-          onClick={onAddFloor} // <-- Usa el callback recibido
-          className="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold shadow-lg hover:bg-green-700 transition-all"
-          style={{ minWidth: 160 }}
-        >
-          ➕ Agregar Planta
-        </button>
-      </Html> */}
+      />      
 
       {/* 
         RENDERIZADO DE PLANTAS EXISTENTES
