@@ -440,7 +440,7 @@ export default function DrawingScene() {
       </Canvas>
 
       {/* Controles de la aplicación */}
-      <div className="absolute top-4 right-4 flex gap-2 z-50">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
         {isClosed && !isExtruded && (
           <Tooltip>
             <TooltipTrigger asChild>
