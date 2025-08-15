@@ -334,6 +334,12 @@ export default function DrawingScene() {
     }, 100);
   };
 
+  // Estado para mostrar/ocultar el mapa de calor
+  const [showHeatmap, setShowHeatmap] = useState(false);
+
+  // Handler para alternar la vista del mapa de calor
+  const handleToggleHeatmap = () => setShowHeatmap((prev) => !prev);
+
   return (
     <div 
       className={`h-screen w-full relative ${
@@ -384,6 +390,8 @@ export default function DrawingScene() {
             onDropOpening={handleDropOpening}
             isDragActive={isDragActive}
             draggedTemplate={draggedTemplate}
+            showHeatmap={showHeatmap} // <-- PASA EL ESTADO
+            onToggleHeatmap={handleToggleHeatmap} // <-- PASA EL HANDLER
           />
         )}
       </Canvas>
@@ -508,7 +516,7 @@ export default function DrawingScene() {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => {/* lógica para mostrar mapa de calor */}}
+              onClick={handleToggleHeatmap}
               className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
               aria-label="Mapa de Calor"
             >

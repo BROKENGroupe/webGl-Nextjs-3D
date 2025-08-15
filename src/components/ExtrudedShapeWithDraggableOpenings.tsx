@@ -80,6 +80,8 @@ interface ExtrudedShapeWithDraggableOpeningsProps {
   onDropOpening: (wallIndex: number, position: number, template: OpeningTemplate) => void;
   isDragActive: boolean;
   draggedTemplate: OpeningTemplate | null;
+  showHeatmap?: boolean; // <-- Nuevo prop
+  onToggleHeatmap?: () => void; // <-- Nuevo prop
 }
 
 /**
@@ -182,7 +184,9 @@ export function ExtrudedShapeWithDraggableOpenings({
   planeCoordinates,
   onDropOpening, 
   isDragActive, 
-  draggedTemplate 
+  draggedTemplate,
+  showHeatmap = false,
+  onToggleHeatmap,
 }: ExtrudedShapeWithDraggableOpeningsProps) {
   
   /**
@@ -256,7 +260,7 @@ export function ExtrudedShapeWithDraggableOpenings({
    * @description Control de visibilidad del mapa de calor acústico
    * @type {boolean}
    */
-  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showHeatmapLocal, setShowHeatmap] = useState(false);
 
   /**
    * @section Determinación de coordenadas
