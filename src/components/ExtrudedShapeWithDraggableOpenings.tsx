@@ -24,7 +24,7 @@
 import { useWallsStore } from "../store/wallsStore";
 import * as THREE from "three";
 import { useOpeningsStore } from "../store/openingsStore";
-import { useDrawingStore } from "../store/drawingStore";
+import { useDrawingStore } from "@/store/drawingStore";
 import { COLORS, MATERIAL_PROPERTIES, GEOMETRY_CONFIG } from "../config/materials";
 import { Opening, OpeningTemplate } from "../types/openings";
 import { useState, useCallback, useMemo, useEffect } from "react";
@@ -835,6 +835,24 @@ export function ExtrudedShapeWithDraggableOpenings({
           </group>
         );
       })}
+
+      {/* 
+        Si necesitas renderizar paredes internas, define el array 'internalWalls' arriba.
+        Ejemplo:
+        const internalWalls = [
+          { start: [0, 0, 0], end: [1, 0, 1] },
+          // ...más paredes internas
+        ];
+        Luego descomenta el siguiente bloque:
+        {internalWalls && internalWalls.map((wall: { start: [number, number, number]; end: [number, number, number] }, idx: number) => (
+          <Line
+            key={idx}
+            points={[wall.start, wall.end]}
+            color="red"
+            lineWidth={2}
+          />
+        ))}
+      */}
     </group>
   );
 }

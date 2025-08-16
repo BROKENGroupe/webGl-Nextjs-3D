@@ -151,4 +151,32 @@ export class LineGeometryEngine {
     const intersects = raycaster.intersectObject(plane);
     return intersects.length > 0 ? intersects[0].point : null;
   }
+
+  /**
+   * @method createInternalWall
+   * @description Crea una línea interna (pared divisoria) entre dos puntos
+   * 
+   * @param {THREE.Vector3} start - Punto inicial de la división
+   * @param {THREE.Vector3} end - Punto final de la división
+   * @returns {Object} Objeto pared interna para renderizado y lógica
+   * 
+   * @example
+   * const wall = LineGeometryEngine.createInternalWall(
+   *   new THREE.Vector3(1, 0, 1),
+   *   new THREE.Vector3(4, 0, 1)
+   * );
+   */
+  static createInternalWall(start: THREE.Vector3, end: THREE.Vector3) {
+    return {
+      id: crypto.randomUUID(),
+      start,
+      end,
+      type: "internal",
+      material: "divider", // Puedes personalizar el material
+      color: "#e53935",    // Rojo para divisiones internas
+      thickness: 0.03,
+      height: 2.5,         // Altura estándar, ajusta según tu lógica
+      // Puedes agregar más propiedades si lo necesitas
+    };
+  }
 }

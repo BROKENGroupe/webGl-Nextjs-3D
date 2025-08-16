@@ -22,6 +22,8 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame } from "lucide-react"; // Ejemplo con Lucide
 import { GeometryEngine } from "@/lib/engine/GeometryEngine";
 import { AppControls } from "@/components/AppControls";
+import { LayerPanel, LayerVisibility } from "@/components/layers/layer-panel";
+import { CollapsibleAside } from "@/components/layers/asside-lateral";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -61,8 +63,21 @@ export default function DrawingScene() {
   // ✅ NUEVO: Acceso al store de paredes
   const { walls } = useWallsStore();
 
+  const defaultVisibility: LayerVisibility = {
+  sources: true,
+  microphones: true,
+  heatmap: true,
+  cube: true,
+};
+
   const [tempHoleLine, setTempHoleLine] = useState<THREE.Vector3[]>([]);
-  
+
+  const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(
+    defaultVisibility
+  );
+  const [selectedLayer, setSelectedLayer] = useState<string | undefined>(
+    undefined
+  );
   // Estados para el menú contextual
   const [contextMenu, setContextMenu] = useState({
     visible: false,
@@ -522,15 +537,15 @@ export default function DrawingScene() {
         </div>
       )}
 
-      {/* Componente de jerarquía de proyecto - solo visible en desarrollo */}
-      {process.env.NODE_ENV === 'development' && (
-        <ProjectHierarchyAside
-          floors={[]} // <-- pásale tus datos reales
-          onSelectFloor={id => {/* lógica para seleccionar planta */}}
-          onSelectWall={id => {/* lógica para seleccionar fachada/pared */}}
-          onSelectElement={id => {/* lógica para seleccionar puerta/ventana */}}
-        />
-      )}
+      {/* Aside derecho */}
+          <CollapsibleAside side="right">
+            <LayerPanel
+              visibility={layerVisibility}
+              onChange={setLayerVisibility}
+              selected={selectedLayer}
+              onSelect={setSelectedLayer}
+            />
+          </CollapsibleAside>
     </div>
   );
 }

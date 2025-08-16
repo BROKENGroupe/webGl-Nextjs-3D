@@ -80,6 +80,7 @@ interface LineRendererProps {
   draggedIndex: number | null;
   isShiftMode: boolean;
   eventHandler: LineEventHandler;
+  onLineClick?: (lineIndex: number, point: THREE.Vector3) => void; // <-- NUEVO
 }
 
 /**
@@ -216,8 +217,15 @@ export function LineRenderer({
   hoveredVertexIndex,
   draggedIndex,
   isShiftMode,
-  eventHandler
+  eventHandler,
+  onLineClick // <-- NUEVO
 }: LineRendererProps) {
+  // Variables internas para renderizado de líneas internas y paredes
+  // Puedes reemplazar estos valores por props si necesitas control externo
+  const isDrawingInternal = false; // Cambia a true cuando estés dibujando una línea interna
+  const internalStart: THREE.Vector3 | null = null;
+  const internalPreview: THREE.Vector3 | null = null;
+  const internalWalls: { start: THREE.Vector3; end: THREE.Vector3 }[] = [];
 
   return (
     <>
@@ -229,38 +237,23 @@ export function LineRenderer({
         // Cálculos geométricos delegados al engine especializado
         const start = points[index];
         const end = points[index + 1];
-        
-        /**
-         * @calculation transform
-         * @description Transformación 3D para posicionar la línea
-         * 
-         * Delega al GeometryEngine el cálculo de:
-         * - Punto medio entre vértices
-         * - Rotación quaternion para alineación
-         * - Distancia euclidiana para escalar
-         */
         const transform = LineGeometryEngine.calculateLineTransform(start, end);
-        
-        /**
-         * @calculation dimensions
-         * @description Dimensiones dinámicas según estado de hover
-         * 
-         * Calcula ancho y profundidad de la línea basado en si está
-         * siendo señalada por el cursor (estado hover).
-         */
         const dimensions = LineGeometryEngine.calculateLineDimensions(
           hoveredLineIndex === index
         );
-        
-        /**
-         * @function lineHandlers
-         * @description Event handlers especializados para líneas
-         * 
-         * Delega al EventHandler la creación de manejadores optimizados
-         * para eventos específicos de líneas (click, hover, etc).
-         */
-        const lineHandlers = eventHandler.createLineHandlers(index);
-        
+
+        // Handler para click en línea
+        const handleLinePointerDown = (event: any) => {
+          if (onLineClick && event.point) {
+            onLineClick(index, event.point.clone());
+          }
+        };
+
+        const lineHandlers = {
+          ...eventHandler.createLineHandlers(index),
+          onPointerDown: handleLinePointerDown
+        };
+
         return (
           <group key={`line-group-${index}`}>
             {/* 
@@ -451,6 +444,32 @@ export function LineRenderer({
           </group>
         );
       })}
+
+      {/* 
+        RENDERIZADO INTERNO (NUEVO)
+        Sección dedicada a la renderización de líneas internas y paredes
+      */}
+      {/* 
+        Renderizado de preview de línea interna
+        Muestra una línea en rojo mientras se está dibujando una nueva línea interna
+      */}
+      {isDrawingInternal && internalStart && internalPreview && (
+        <line>
+          <bufferGeometry attach="geometry" setFromPoints={[internalStart, internalPreview]} />
+          <lineBasicMaterial attach="material" color="red" linewidth={2} />
+        </line>
+      )}
+
+      {/* 
+        Renderizado de paredes internas definitivas
+        Muestra las paredes internas una vez que han sido confirmadas
+      */}
+      {internalWalls.map((wall, idx) => (
+        <line key={idx}>
+          <bufferGeometry attach="geometry" setFromPoints={[wall.start, wall.end]} />
+          <lineBasicMaterial attach="material" color="red" linewidth={2} />
+        </line>
+      ))}
     </>
   );
 }

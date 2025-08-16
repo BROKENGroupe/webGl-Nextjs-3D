@@ -95,8 +95,23 @@ export function LineBuilder({
     },
     onLineHover: setHoveredLineIndex,
     onVertexRightClick,
-    onLineRightClick
+    onLineRightClick: (lineIndex, event) => {
+      // Captura posición del mouse y del punto 3D si está disponible
+      const { clientX, clientY } = event;
+      console.log("🟦 Click derecho en línea", lineIndex, "Mouse:", clientX, clientY);
+
+      // Llama el callback externo si existe
+      onLineRightClick?.(lineIndex, { clientX, clientY });
+    },
   });
+
+  // Handler para click en línea
+  function handleLineClick(lineIndex: number, point: THREE.Vector3) {
+    // Captura el punto 3D donde se hizo click
+    const startPoint = point.clone();
+    // Si necesitas manejar el punto de inicio internamente, agrega lógica aquí o extiende el hook.
+    // Actualmente, dragSystem no tiene setInternalStart ni setInternalPreview.
+  }
 
   return (
     <LineRenderer
@@ -107,6 +122,7 @@ export function LineBuilder({
       draggedIndex={dragSystem.currentDragIndex}
       isShiftMode={dragSystem.isShiftMode}
       eventHandler={eventHandler}
+      onLineClick={handleLineClick}
     />
   );
 }

@@ -19,6 +19,9 @@ interface DrawingState {
   planeHoleCoordinates: { from: { x: number; z: number }; to: { x: number; z: number } }[];
   hasPlaneCoordinates: boolean;
 
+  // Nuevos estados para paredes internas
+  internalWalls: { start: THREE.Vector3; end: THREE.Vector3 }[];
+
   // Acciones existentes
   setCurrentPoints: (points: THREE.Vector3[]) => void;
   addCurrentPoint: (point: THREE.Vector3) => void;
@@ -36,6 +39,10 @@ interface DrawingState {
   savePlaneCoordinates: () => void;
   clearPlaneCoordinates: () => void;
   updatePlaneCoordinatesFromCurrent: () => void;
+
+  // Nuevas acciones para paredes internas
+  addInternalWall: (start: THREE.Vector3, end: THREE.Vector3) => void;
+  removeInternalWall: (index: number) => void;
 }
 
 // Función para asegurar que un objeto es Vector3
@@ -64,6 +71,7 @@ export const useDrawingStore = create<DrawingState>()(
       planeXZCoordinates: [],
       planeHoleCoordinates: [],
       hasPlaneCoordinates: false,
+      internalWalls: [],
 
       // Acciones existentes
       setCurrentPoints: (points) => set({ 
@@ -110,7 +118,8 @@ export const useDrawingStore = create<DrawingState>()(
         isDragging: false,
         planeXZCoordinates: [],
         planeHoleCoordinates: [],
-        hasPlaneCoordinates: false
+        hasPlaneCoordinates: false,
+        internalWalls: [],
       }),
       
       // Nuevas acciones para coordenadas XZ
@@ -158,7 +167,20 @@ export const useDrawingStore = create<DrawingState>()(
           // Solo actualizar si ya tenemos coordenadas guardadas
           state.savePlaneCoordinates();
         }
-      }
+      },
+      
+      // Nuevas acciones para paredes internas
+      addInternalWall: (start, end) =>
+        set((state) => ({
+          internalWalls: [
+            ...state.internalWalls,
+            { start: ensureVector3(start), end: ensureVector3(end) }
+          ],
+        })),
+      removeInternalWall: (index) =>
+        set((state) => ({
+          internalWalls: state.internalWalls.filter((_, i) => i !== index),
+        })),
     }),
     {
       name: 'drawing-storage',
@@ -189,6 +211,10 @@ export const useDrawingStore = create<DrawingState>()(
         planeXZCoordinates: state.planeXZCoordinates,
         planeHoleCoordinates: state.planeHoleCoordinates,
         hasPlaneCoordinates: state.hasPlaneCoordinates,
+        internalWalls: state.internalWalls.map(w => ({
+          start: { x: w.start.x, y: w.start.y, z: w.start.z },
+          end: { x: w.end.x, y: w.end.y, z: w.end.z }
+        })),
       }),
       
       // Reconstruir Vector3 cuando se carga desde storage
@@ -219,6 +245,10 @@ export const useDrawingStore = create<DrawingState>()(
               from: ensureVector3(hole.from),
               to: ensureVector3(hole.to)
             })) || [];
+            state.internalWalls = (state.internalWalls as any[])?.map(w => ({
+              start: ensureVector3(w.start),
+              end: ensureVector3(w.end)
+            })) || [];
             
             console.log('📊 Estado recuperado con Vector3 reconstruidos');
           }
@@ -227,5 +257,3 @@ export const useDrawingStore = create<DrawingState>()(
     }
   )
 );
-
-// (Removed duplicate useDrawingStore definition to avoid redeclaration error)
