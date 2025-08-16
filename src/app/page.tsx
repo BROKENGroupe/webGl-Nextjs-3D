@@ -22,8 +22,8 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/comp
 import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame } from "lucide-react"; // Ejemplo con Lucide
 import { GeometryEngine } from "@/lib/engine/GeometryEngine";
 import { AppControls } from "@/components/AppControls";
-import { LayerPanel, LayerVisibility } from "@/components/layers/layer-panel";
-import { CollapsibleAside } from "@/components/layers/asside-lateral";
+import { LayerPanel, LayerVisibility } from "@/components/asside/layer-panel";
+import { CollapsibleAside } from "@/components/asside/asside-lateral";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
