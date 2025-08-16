@@ -71,7 +71,7 @@ export function CollapsibleAside({ side, children, className }: CollapsibleAside
         <div
           className={`
             hidden md:block fixed z-40 bg-background/95 shadow-lg
-            w-80 h-full p-4
+            w-100 h-full p-4
             transition-all duration-300 ease-in-out
             ${desktopPosition}
             ${panelAnimation}

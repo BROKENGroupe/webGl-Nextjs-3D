@@ -17,6 +17,7 @@
 
 import { useState } from 'react';
 import { OpeningTemplate, OPENING_TEMPLATES } from '@/types/openings';
+import { getBorderColor, handleOpeningDragStart, handleOpeningDragEnd } from '@/lib/dragOpenings';
 
 /**
  * @interface DraggableOpeningsPaletteProps
@@ -82,41 +83,7 @@ interface DraggableOpeningsPaletteProps {
 const PALETTE_TEMPLATES = Object.values(OPENING_TEMPLATES);
 
 /**
- * @function getBorderColor
- * @description Función utilitaria para obtener colores de borde según tipo de elemento
- * 
- * Proporciona una codificación visual consistente para diferentes tipos de elementos
- * arquitectónicos mediante colores de borde distintivos. Mejora la experiencia de
- * usuario al facilitar la identificación rápida de categorías.
- * 
- * ## Mapeo de colores:
- * - **door**: #8B4513 (Marrón sillín - puertas estándar)
- * - **double-door**: #A0522D (Marrón arena - puertas dobles)
- * - **window**: #87CEEB (Azul cielo - ventanas)
- * - **sliding-door**: #CD853F (Dorado Perú - puertas corredizas)
- * - **default**: #6B7280 (Gris - elementos no categorizados)
- * 
- * @param {string} type - Tipo de elemento arquitectónico
- * @returns {string} Código de color hexadecimal correspondiente
- * 
- * @example
- * ```typescript
- * const doorColor = getBorderColor('door');        // '#8B4513'
- * const windowColor = getBorderColor('window');    // '#87CEEB'
- * const unknownColor = getBorderColor('unknown');  // '#6B7280'
- * ```
- * 
- * @accessibility Colores seleccionados para ser distinguibles en casos de daltonismo
- */
-const getBorderColor = (type: string): string => {
-  const colors = {
-    'door': '#8B4513',           // Marrón sillín
-    'double-door': '#A0522D',    // Marrón arena
-    'window': '#87CEEB',         // Azul cielo
-    'sliding-door': '#CD853F'    // Dorado Perú
-  };
-  return colors[type as keyof typeof colors] || '#6B7280'; // Gris por defecto
-};
+ // getBorderColor ahora importado desde lib/dragOpenings
 
 /**
  * @component DraggableOpeningsPalette
@@ -209,60 +176,7 @@ export function DraggableOpeningsPalette({
 
   /**
    * @function handleDragStart
-   * @description Manejador de eventos para inicio de operación de arrastre
    * 
-   * Configura todos los aspectos de la operación de drag-and-drop, incluyendo
-   * la creación de una imagen personalizada de arrastre, transferencia de datos
-   * y notificación al componente padre.
-   * 
-   * ## Proceso de configuración:
-   * 1. **Logging de depuración**: Registra inicio de arrastre
-   * 2. **Actualización de estado**: Marca elemento como siendo arrastrado
-   * 3. **Notificación a padre**: Ejecuta callback onStartDrag
-   * 4. **Creación de imagen de arrastre**: Elemento visual personalizado
-   * 5. **Configuración de transferencia**: Datos JSON del template
-   * 6. **Limpieza de DOM**: Eliminación diferida de elementos temporales
-   * 
-   * ## Imagen de arrastre personalizada:
-   * - **Estilo dinámico**: Color basado en tipo de elemento
-   * - **Información compacta**: Icono + nombre del elemento
-   * - **Presentación profesional**: Sombras y bordes redondeados
-   * - **Posicionamiento preciso**: Offset optimizado para cursor
-   * 
-   * @param {React.DragEvent} e - Evento de arrastre nativo
-   * @param {OpeningTemplate} template - Template del elemento siendo arrastrado
-   * 
-   * @throws {Error} Si falla la creación de la imagen de arrastre
-   * 
-   * @example
-   * ```typescript
-   * // El evento contiene datos transferidos como:
-   * const transferData = {
-   *   id: 'door-standard',
-   *   type: 'door',
-   *   name: 'Puerta Estándar',
-   *   // ... resto de propiedades del template
-   * };
-   * 
-   * // Accessible en el destino como:
-   * const data = JSON.parse(e.dataTransfer.getData('application/json'));
-   * ```
-   */
-  const handleDragStart = (e: React.DragEvent, template: OpeningTemplate) => {
-    console.log('🎯 Drag start:', template.name);
-    setDraggedItem(template);
-    onStartDrag(template);
-    
-    // Creación de imagen de arrastre personalizada
-    const dragImage = document.createElement('div');
-    dragImage.innerHTML = `
-      <div style="
-        background: ${getBorderColor(template.type)}; 
-        color: white; 
-        padding: 8px 12px; 
-        border-radius: 8px; 
-        font-size: 14px; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         pointer-events: none;
         font-family: system-ui;
         white-space: nowrap;
@@ -302,9 +216,12 @@ export function DraggableOpeningsPalette({
    * // - Navegador termina la operación por cualquier motivo
    * ```
    */
+  // Lógica drag-and-drop separada
+  const handleDragStart = (e: React.DragEvent, template: OpeningTemplate) => {
+    handleOpeningDragStart(e, template, onStartDrag, setDraggedItem);
+  };
   const handleDragEnd = () => {
-    console.log('🔚 Drag end');
-    setDraggedItem(null);
+    handleOpeningDragEnd(setDraggedItem);
   };
 
   /**

@@ -103,7 +103,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       </SidebarInset>
       
       {/* ✅ TOOL PANEL */}
-      <ToolPanel 
+      {/* <ToolPanel 
         isOpen={isToolPanelOpen}
         onClose={() => setIsToolPanelOpen(false)}
         shapeCount={4}
@@ -111,11 +111,11 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         onToolSelect={(tool) => {
           console.log("Tool selected:", tool)
         }}
-      />
-      <FloatingPanelToggle
+      /> */}
+      {/* <FloatingPanelToggle
         isOpen={isToolPanelOpen}
         onToggle={() => setIsToolPanelOpen(!isToolPanelOpen)}
-      />
+      /> */}
     </div>
   )
 }
