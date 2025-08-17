@@ -1,6 +1,6 @@
 "use client";
 // Lógica drag-and-drop importada
-import { getBorderColor, handleOpeningDragStart, handleOpeningDragEnd } from '@/lib/dragOpenings';
+import { getBorderColor, handleOpeningDragStart, handleOpeningDragEnd } from '@/lib/engine/dragOpenings';
 import { useOpeningsStore } from '@/store/openingsStore';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

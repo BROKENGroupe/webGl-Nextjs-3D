@@ -6,11 +6,8 @@ export interface WallTemplate {
   material: string;
   thickness: number; // en metros
   acousticProperties: {
-    transmissionLoss: {
-      low: number;   // 125-250 Hz
-      mid: number;   // 500-1000 Hz  
-      high: number;  // 2000-4000 Hz
-    };
+    transmissionLoss: { low: number; mid: number; high: number; };
+    rw: number; // <- Añadido para ISO
     absorptionCoefficient: {
       low: number;
       mid: number;
@@ -49,6 +46,7 @@ export const WALL_TEMPLATES: Record<string, WallTemplate> = {
     thickness: 0.20,
     acousticProperties: {
       transmissionLoss: { low: 45, mid: 52, high: 48 },
+      rw: 52,
       absorptionCoefficient: { low: 0.01, mid: 0.02, high: 0.02 },
       density: 2400,
       porosity: 0.05
@@ -69,6 +67,7 @@ export const WALL_TEMPLATES: Record<string, WallTemplate> = {
     thickness: 0.15,
     acousticProperties: {
       transmissionLoss: { low: 40, mid: 45, high: 42 },
+      rw: 45,
       absorptionCoefficient: { low: 0.02, mid: 0.03, high: 0.04 },
       density: 1200,
       porosity: 0.30
@@ -89,6 +88,7 @@ export const WALL_TEMPLATES: Record<string, WallTemplate> = {
     thickness: 0.125,
     acousticProperties: {
       transmissionLoss: { low: 35, mid: 42, high: 48 },
+      rw: 40,
       absorptionCoefficient: { low: 0.05, mid: 0.08, high: 0.04 },
       density: 650,
       porosity: 0.15

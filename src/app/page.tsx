@@ -17,7 +17,7 @@ import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWi
 import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
 import { useCoordinatesStore } from "@/store/coordinatesStore";
 import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
-import { ProjectHierarchyAside } from "@/components/ProjectHierarchyAside";
+
 import {
   Tooltip,
   TooltipProvider,
