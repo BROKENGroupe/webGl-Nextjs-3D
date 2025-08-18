@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
-import { OpeningTemplate } from '../types/openings';
+import { AcousticMaterial } from '@/types/AcousticMaterial';
 
 export function useDragAndDrop() {
   const [isDragActive, setIsDragActive] = useState(false);
-  const [draggedTemplate, setDraggedTemplate] = useState<OpeningTemplate | null>(null);
+  const [draggedTemplate, setDraggedTemplate] = useState<AcousticMaterial | null>(null);
   const [hoveredWall, setHoveredWall] = useState<number | null>(null);
 
-  const handleDragStart = useCallback((template: OpeningTemplate) => {
-    console.log('🎯 GLOBAL: Iniciando drag de', template.name);
+  const handleDragStart = useCallback((template: AcousticMaterial) => {
+    console.log('🎯 GLOBAL: Iniciando drag de', template.type);
     setIsDragActive(true);
     setDraggedTemplate(template);
     setHoveredWall(null);
