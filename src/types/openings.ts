@@ -4,6 +4,11 @@ import { windowStandard, windowDoubleGlazed } from "../data/acousticWindows";
 
 export type OpeningType = 'door' | 'window' | 'double-door' | 'sliding-door';
 
+export interface Point2D {
+  x: number;  
+  z: number;
+}
+
 export interface Opening {
   id: string;
   type: OpeningType;
