@@ -36,7 +36,7 @@ export const windowDoubleGlazed: AcousticMaterial = {
   type: "Window",
   thickness_mm: 24,
   mass_kg_m2: 18,
-  catalog: "SON Catalog",
+  catalog: "insonor Catalog",
   color: "Transparent",
   doubleLeaf: false,
   lightweightElement: true,

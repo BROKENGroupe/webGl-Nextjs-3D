@@ -34,7 +34,7 @@ export const doorDouble: AcousticMaterial = {
   type: "Double Door",
   thickness_mm: 45,
   mass_kg_m2: 32,
-  catalog: "SON Catalog",
+  catalog: "insonor Catalog",
   color: "Brown",
   doubleLeaf: true,
   lightweightElement: false,

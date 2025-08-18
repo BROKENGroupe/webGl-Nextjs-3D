@@ -8,7 +8,7 @@ export const wallCeramicBrick: AcousticMaterial = {
     type: "Façade",
     thickness_mm: 397.0,
     mass_kg_m2: 602.3,
-    catalog: "SON Catalog",
+    catalog: "insonor Catalog",
     color: "Brown/Red",
     doubleLeaf: false,
     lightweightElement: false,
