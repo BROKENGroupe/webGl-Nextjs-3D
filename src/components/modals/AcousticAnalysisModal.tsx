@@ -56,6 +56,7 @@ import {
   Settings
 } from 'lucide-react';
 import { AcousticMaterial, ThirdOctave } from '@/types/AcousticMaterial';
+import { useIsoResultStore } from '@/store/isoResultStore';
 
 /**
  * @interface AcousticAnalysisModalProps
@@ -88,6 +89,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
   walls
 }) => {
   const [activeSection, setActiveSection] = useState('general');
+  const isoResult = useIsoResultStore((state) => state.isoResult);
 
   /**
    * @section Elementos del menú lateral
@@ -128,6 +130,12 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
       label: 'Recomendaciones',
       icon: <Lightbulb className="h-4 w-4" />,
       description: 'Sugerencias y mejoras'
+    },
+    {
+      id: 'iso',
+      label: 'ISO 12354-4',
+      icon: <Volume2 className="h-4 w-4" />,
+      description: 'Rw final, presión interior y estado de fachadas/aberturas'
     }
   ];
 
@@ -400,6 +408,70 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+
+            {isoResult && (
+              <Card className="border border-gray-200 mt-6">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold text-gray-900">Resultado ISO 12354-4</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Cálculo profesional con parámetros reales y persistencia automática
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col md:flex-row gap-6 items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Volume2 className="h-8 w-8 text-blue-600" />
+                        <div>
+                          <div className="text-4xl font-extrabold text-blue-700 leading-tight drop-shadow">
+                            Rw Final: {isoResult.rwFinal?.toFixed(1)} dB
+                          </div>
+                          <div className="text-base text-gray-600 font-medium mt-1">
+                            <span className="bg-blue-50 px-2 py-1 rounded">ISO 12354-4</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <strong>Presión sonora interior (Lp_in):</strong> {isoResult.input?.Lp_in} dB
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <strong>Paredes:</strong> {isoResult.input?.walls?.length}
+                        <br />
+                        <strong>Aberturas:</strong> {isoResult.input?.openings?.length}
+                      </div>
+                      <div className="text-sm text-gray-700 mb-2">
+                        <strong>Coordenadas:</strong> {JSON.stringify(isoResult.input?.wallCoordinates)}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 mb-2">Mapa de calor acústico</div>
+                      <div className="text-xs text-gray-600 mb-2">
+                        <strong>Puntos totales:</strong> {isoResult.heatmap?.length}
+                        <br />
+                        <strong>Puntos críticos (&gt;0.7):</strong> {isoResult.heatmap?.filter((p: any) => p.intensity > 0.7).length}
+                        <br />
+                        <strong>Puntos buenos (&lt;0.3):</strong> {isoResult.heatmap?.filter((p: any) => p.intensity < 0.3).length}
+                      </div>
+                      <div className="max-h-40 overflow-y-auto border rounded bg-gray-50 p-2 text-xs">
+                        {isoResult.heatmap?.slice(0, 10).map((p: any) => (
+                          <div key={p.id} className="mb-1">
+                            <span className="font-bold">{p.type === 'wall' ? '🧱' : '🚪'}</span> 
+                            <span className="ml-1">{p.description}</span>
+                            <span className="ml-2 text-gray-400">({p.coordinates.x.toFixed(2)}, {p.coordinates.z.toFixed(2)})</span>
+                            <span className={`ml-2 px-2 py-0.5 rounded text-white text-xs ${p.intensity > 0.7 ? 'bg-red-500' : p.intensity < 0.3 ? 'bg-green-500' : 'bg-yellow-500'}`}>
+                              {Math.round(p.intensity * 100)}%
+                            </span>
+                          </div>
+                        ))}
+                        {isoResult.heatmap?.length > 10 && (
+                          <div className="text-gray-400 mt-2">...y {isoResult.heatmap.length - 10} puntos más</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
 
@@ -829,6 +901,86 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
                 <p>5. Considerar certificación acústica del edificio</p>
               </div>
             </div>
+          </div>
+        );
+
+      case 'iso':
+        return (
+          <div className="w-180 min-w-72">
+            <h2 className="text-2xl font-semibold text-blue-800 mb-4 flex items-center gap-2">
+              <Volume2 className="h-7 w-7 text-blue-600" />
+              Resultados ISO 12354-4 Detallados
+            </h2>
+            {isoResult ? (
+              <div>
+                <Card className="border border-blue-200 mb-6">
+                  <CardHeader>
+                    <CardTitle className="text-3xl font-extrabold text-blue-700">Rw Final: {isoResult.rwFinal?.toFixed(1)} dB</CardTitle>
+                    <CardDescription className="text-gray-600">
+                      Presión sonora interior (Lp_in): <span className="font-bold">{isoResult.input?.Lp_in} dB</span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-gray-700 mb-2">
+                      <strong>Paredes:</strong> {isoResult.input?.walls?.length}
+                      <br />
+                      <strong>Aberturas:</strong> {isoResult.input?.openings?.length}
+                    </div>
+                    <div className="text-sm text-gray-700 mb-2">
+                      <strong>Coordenadas:</strong> {JSON.stringify(isoResult.input?.wallCoordinates)}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="border border-gray-200">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold text-gray-900">Estado de Fachadas</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {isoResult.input?.walls?.length > 0 ? (
+                          isoResult.input.walls.map((wall: any, idx: number) => (
+                            <div key={wall.id || idx} className="flex items-center gap-3 border-b border-gray-100 py-2">
+                              <span className="font-bold text-blue-700">🧱 Fachada {idx + 1}</span>
+                              <span className="ml-2 text-gray-700">Estado: <span className="font-semibold">{wall.currentCondition}</span></span>
+                              <span className="ml-2 text-gray-700">Rw: <span className="font-semibold">{wall.template?.weightedIndex?.Rw ?? '-'}</span> dB</span>
+                              <span className="ml-2 text-gray-700">Área: <span className="font-semibold">{wall.area?.toFixed(2) ?? '-'}</span> m²</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-gray-400">No hay fachadas registradas.</div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border border-gray-200">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold text-gray-900">Estado de Puertas y Ventanas</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {isoResult.input?.openings?.length > 0 ? (
+                          isoResult.input.openings.map((opening: any, idx: number) => (
+                            <div key={opening.id || idx} className="flex items-center gap-3 border-b border-gray-100 py-2">
+                              <span className="font-bold text-orange-700">{opening.type === 'door' ? '🚪 Puerta' : '🪟 Ventana'} {idx + 1}</span>
+                              <span className="ml-2 text-gray-700">Estado: <span className="font-semibold">{opening.currentCondition}</span></span>
+                              <span className="ml-2 text-gray-700">Rw: <span className="font-semibold">{opening.template?.weightedIndex?.Rw ?? '-'}</span> dB</span>
+                              <span className="ml-2 text-gray-700">Área: <span className="font-semibold">{(opening.width * opening.height)?.toFixed(2) ?? '-'}</span> m²</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-gray-400">No hay puertas ni ventanas registradas.</div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-500 text-lg mt-10">No hay resultados ISO disponibles.</div>
+            )}
           </div>
         );
 

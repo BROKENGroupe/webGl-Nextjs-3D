@@ -23,9 +23,9 @@ export const windowStandard: AcousticMaterial = {
     { range: "125-4000", value: "26(-2;-4)" }
   ],
   weightedIndex: { Rw: 26, C: -2, Ctr: -4 },
-  height: 0.5,
+  height: 0.2,
   width: 0.9,
-  bottomOffset: 10
+  bottomOffset: 0.6
 };
 
 // Ventana doble vidrio (window-double-glazed)
@@ -54,7 +54,7 @@ export const windowDoubleGlazed: AcousticMaterial = {
     { range: "125-4000", value: "35(-1;-3)" }
   ],
   weightedIndex: { Rw: 35, C: -1, Ctr: -3 },
-  height: 0.5,
+  height: 0.2,
   width: 0.9,
-  bottomOffset: 10
+  bottomOffset: 0.6
 };

@@ -23,7 +23,7 @@ import { AcousticMaterial, ThirdOctave } from '@/types/AcousticMaterial';
 import { ISO12354_4Engine } from '@/lib/engineMath/ISO12354_4Engine';
 
 export class AcousticAnalysisEngine {
-  
+
   /**
    * Analiza el comportamiento acústico de una abertura (puerta/ventana).
    * Calcula la reducción de transmisión, identifica problemas y recomienda mejoras.
@@ -138,7 +138,7 @@ export class AcousticAnalysisEngine {
     externalSoundLevel: number = 70,
     adjacentOpeningsCount: number = 0
   ) {
-    const { template, currentCondition, area } = wall;    
+    const { template, currentCondition, area } = wall;
 
     // Factores de deterioro por condición
     const conditionFactors: Record<string, number> = {
@@ -297,9 +297,11 @@ export class AcousticAnalysisEngine {
     walls: Wall[],
     openings: Opening[],
     wallCoordinates: { x: number; z: number }[],
-    externalSoundLevel: number = 70
+    Lp_in: number = 100
   ) {
-    console.log('🔥 GENERANDO MAPA DE CALOR ACÚSTICO CON ISO 12354-4...');
+    // Presión sonora interior de referencia (ISO 12354-4)
+    //const Lp_in = 100;
+    const bands: ThirdOctave[] = [125, 500, 2000];
 
     const points: Array<{
       id: string;
@@ -310,17 +312,26 @@ export class AcousticAnalysisEngine {
       description: string;
     }> = [];
 
-    // Procesar paredes usando AcousticMaterial y ISO12354_4Engine
+    // Procesar paredes
     walls.forEach((wall, wallIndex) => {
       if (wallIndex >= wallCoordinates.length) return;
       const wallStart = wallCoordinates[wallIndex];
       const wallEnd = wallCoordinates[(wallIndex + 1) % wallCoordinates.length];
-      const bands = ISO12354_4Engine.calcTransmissionLossBands(wall.template, wall.currentCondition);
-      const avgLoss = ISO12354_4Engine.calcAverageTransmissionLoss(bands);
+      const bandsTL = ISO12354_4Engine.calcTransmissionLossBands(wall.template, wall.currentCondition);
+      const avgTL = ISO12354_4Engine.calcAverageTransmissionLoss(bandsTL, bands);
       const adjacentOpenings = openings.filter(o => o.wallIndex === wallIndex);
       const openingsPenalty = adjacentOpenings.length * 2;
-      const effectiveLoss = ISO12354_4Engine.calcEffectiveTransmissionLoss(avgLoss, 0, openingsPenalty);
-      const intensity = Math.max(0, Math.min(1, (45 - effectiveLoss) / 25));
+      const effectiveLoss = ISO12354_4Engine.calcEffectiveTransmissionLoss(avgTL, 0, openingsPenalty);
+
+      // Calcular presión sonora exterior por banda y promedio
+      const LpOutBands: Record<ThirdOctave, number> = {} as any;
+      bands.forEach(band => {
+        LpOutBands[band] = Lp_in - (bandsTL[band] ?? 0);
+      });
+      const avgLpOut = bands.map(b => LpOutBands[b]).reduce((a, b) => a + b, 0) / bands.length;
+
+      //const intensity = Math.max(0, Math.min(1, (100 - avgLpOut) / 60));
+      const intensity = Math.max(0, Math.min(1, avgLpOut / Lp_in));
       for (let i = 0; i <= 2; i++) {
         const t = i / 2;
         const coordinates = {
@@ -333,12 +344,12 @@ export class AcousticAnalysisEngine {
           coordinates,
           intensity,
           transmissionLoss: effectiveLoss,
-          description: `Pared ${wallIndex + 1}: ${effectiveLoss.toFixed(1)}dB`
+          description: `Pared ${wallIndex + 1}: TL=${effectiveLoss.toFixed(1)}dB, Lp_out=${avgLpOut.toFixed(1)}dB`
         });
       }
     });
 
-    // Procesar aberturas usando AcousticMaterial y ISO12354_4Engine
+    // Procesar aberturas
     openings.forEach(opening => {
       const wallIndex = opening.wallIndex;
       if (wallIndex < 0 || wallIndex >= wallCoordinates.length) return;
@@ -349,22 +360,30 @@ export class AcousticAnalysisEngine {
         x: wallStart.x + (wallEnd.x - wallStart.x) * t,
         z: wallStart.z + (wallEnd.z - wallStart.z) * t
       };
-      const bands = ISO12354_4Engine.calcTransmissionLossBands(opening.template, opening.currentCondition);
-      const avgLoss = ISO12354_4Engine.calcAverageTransmissionLoss(bands);
+      const bandsTL = ISO12354_4Engine.calcTransmissionLossBands(opening.template, opening.currentCondition);
+      const avgTL = ISO12354_4Engine.calcAverageTransmissionLoss(bandsTL, bands);
       const areaReduction = ISO12354_4Engine.calcAreaReduction(opening.width * opening.height);
-      const effectiveLoss = ISO12354_4Engine.calcEffectiveTransmissionLoss(avgLoss, areaReduction, 0);
-      const intensity = Math.max(0.4, Math.min(1, (40 - effectiveLoss) / 20));
+      const effectiveLoss = ISO12354_4Engine.calcEffectiveTransmissionLoss(avgTL, areaReduction, 0);
+
+      // Calcular presión sonora exterior por banda y promedio
+      const LpOutBands: Record<ThirdOctave, number> = {} as any;
+      bands.forEach(band => {
+        LpOutBands[band] = Lp_in - (bandsTL[band] ?? 0);
+      });
+      const avgLpOut = bands.map(b => LpOutBands[b]).reduce((a, b) => a + b, 0) / bands.length;
+
+      //const intensity = Math.max(0.4, Math.min(1, (100 - avgLpOut) / 60));
+      const intensity = Math.max(0, Math.min(1, avgLpOut / Lp_in));
       points.push({
         id: opening.id,
         type: 'opening',
         coordinates,
         intensity,
         transmissionLoss: effectiveLoss,
-        description: `${opening.template?.type || 'Abertura'}: ${effectiveLoss.toFixed(1)}dB`
+        description: `${opening.template?.type || 'Abertura'}: TL=${effectiveLoss.toFixed(1)}dB, Lp_out=${avgLpOut.toFixed(1)}dB`
       });
     });
 
-    console.log(`🔥 Puntos generados: ${points.length}`);
     return {
       points,
       stats: {
@@ -381,33 +400,33 @@ export class AcousticAnalysisEngine {
    * @param intensity - Intensidad normalizada (0 = verde, 1 = rojo)
    * @returns Color RGB en formato string
    */
-  static calculateHeatmapColor(intensity: number): string {
-    if (intensity <= 0.25) {
-      const factor = intensity / 0.25;
-      const r = Math.round(255 * factor);
-      const g = 255;
-      const b = 0;
-      return `rgb(${r}, ${g}, ${b})`;
-    } else if (intensity <= 0.5) {
-      const factor = (intensity - 0.25) / 0.25;
-      const r = 255;
-      const g = Math.round(255 * (1 - factor * 0.5));
-      const b = 0;
-      return `rgb(${r}, ${g}, ${b})`;
-    } else if (intensity <= 0.75) {
-      const factor = (intensity - 0.5) / 0.25;
-      const r = 255;
-      const g = Math.round(127 * (1 - factor));
-      const b = 0;
-      return `rgb(${r}, ${g}, ${b})`;
-    } else {
-      const factor = (intensity - 0.75) / 0.25;
-      const r = Math.round(255 * (1 - factor * 0.3));
-      const g = 0;
-      const b = 0;
-      return `rgb(${r}, ${g}, ${b})`;
-    }
-  }
+  // static calculateHeatmapColor(intensity: number): string {
+  //   if (intensity <= 0.25) {
+  //     const factor = intensity / 0.25;
+  //     const r = Math.round(255 * factor);
+  //     const g = 255;
+  //     const b = 0;
+  //     return `rgb(${r}, ${g}, ${b})`;
+  //   } else if (intensity <= 0.5) {
+  //     const factor = (intensity - 0.25) / 0.25;
+  //     const r = 255;
+  //     const g = Math.round(255 * (1 - factor * 0.5));
+  //     const b = 0;
+  //     return `rgb(${r}, ${g}, ${b})`;
+  //   } else if (intensity <= 0.75) {
+  //     const factor = (intensity - 0.5) / 0.25;
+  //     const r = 255;
+  //     const g = Math.round(127 * (1 - factor));
+  //     const b = 0;
+  //     return `rgb(${r}, ${g}, ${b})`;
+  //   } else {
+  //     const factor = (intensity - 0.75) / 0.25;
+  //     const r = Math.round(255 * (1 - factor * 0.3));
+  //     const g = 0;
+  //     const b = 0;
+  //     return `rgb(${r}, ${g}, ${b})`;
+  //   }
+  // }
 
   /**
    * Obtiene el color hexadecimal para visualización en Three.js según la intensidad acústica.
@@ -415,15 +434,104 @@ export class AcousticAnalysisEngine {
    * @param intensity - Intensidad normalizada (0 = verde, 1 = rojo)
    * @returns Color hexadecimal para Three.js
    */
-  static getThreeJSHeatmapColor(intensity: number): number {
-    if (intensity <= 0.25) {
-      return 0x00ff00 + Math.round(intensity * 4 * 255) * 0x010000;
-    } else if (intensity <= 0.5) {
-      return 0xffff00 - Math.round((intensity - 0.25) * 4 * 127) * 0x000100;
-    } else if (intensity <= 0.75) {
-      return 0xff8000 - Math.round((intensity - 0.5) * 4 * 127) * 0x000100;
-    } else {
-      return 0xff0000 - Math.round((intensity - 0.75) * 4 * 76) * 0x010000;
-    }
+  // static getThreeJSHeatmapColor(intensity: number): number {
+  //   if (intensity <= 0.25) {
+  //     return 0x00ff00 + Math.round(intensity * 4 * 255) * 0x010000;
+  //   } else if (intensity <= 0.5) {
+  //     return 0xffff00 - Math.round((intensity - 0.25) * 4 * 127) * 0x000100;
+  //   } else if (intensity <= 0.75) {
+  //     return 0xff8000 - Math.round((intensity - 0.5) * 4 * 127) * 0x000100;
+  //   } else {
+  //     return 0xff0000 - Math.round((intensity - 0.75) * 4 * 76) * 0x010000;
+  //   }
+  // }
+
+
+  /**
+ * Calcula la presión sonora exterior (por banda y global) usando ISO 12354-4,
+ * a partir de una presión sonora interior de referencia (Lp_in = 100 dB).
+ * Devuelve el valor final Rw y el mapa de calor acústico.
+ * 
+ * @param walls - Array de paredes (Wall[])
+ * @param openings - Array de aberturas (Opening[])
+ * @param wallCoordinates - Coordenadas de las paredes
+ * @param Lp_in - Nivel de presión sonora interior de referencia (dB, por banda)
+ * @returns { rwFinal, heatmap }
+ */
+  static calculateExteriorLevelsWithISO(
+    walls: Wall[],
+    openings: Opening[],
+    wallCoordinates: { x: number; z: number }[],
+    Lp_in: number = 100
+  ) {
+    // Bandas clave para el cálculo
+    const bands: ThirdOctave[] = [125, 500, 2000];
+
+    // 1. Calcular transmisión por cada elemento (paredes y aberturas)
+    const elements = [
+      ...walls.map((wall, idx) => ({
+        id: wall.id,
+        type: 'wall',
+        area: wall.area,
+        position: wallCoordinates[idx] || { x: 0, z: 0 },
+        material: wall.template,
+        condition: wall.currentCondition
+      })),
+      ...openings.map(opening => ({
+        id: opening.id,
+        type: 'opening',
+        area: opening.width * opening.height,
+        position: wallCoordinates[opening.wallIndex] || { x: 0, z: 0 },
+        material: opening.template,
+        condition: opening.currentCondition
+      }))
+    ];
+
+    // 2. Calcular transmisión por banda para cada elemento
+    const elementsWithTL = elements.map(el => {
+      const TLbands = ISO12354_4Engine.calcTransmissionLossBands(el.material, el.condition);
+      const avgTL = ISO12354_4Engine.calcAverageTransmissionLoss(TLbands, bands);
+      return {
+        ...el,
+        TLbands,
+        avgTL
+      };
+    });
+
+    // 3. Calcular nivel exterior por banda para cada elemento
+    // Lp_out = Lp_in - TL (por banda)
+    const elementsWithLpOut = elementsWithTL.map(el => {
+      const LpOutBands: Record<ThirdOctave, number> = {} as any;
+      bands.forEach(band => {
+        LpOutBands[band] = Lp_in - (el.TLbands[band] ?? 0);
+      });
+      // Promedio para valor global
+      const avgLpOut = bands.map(b => LpOutBands[b]).reduce((a, b) => a + b, 0) / bands.length;
+      return {
+        ...el,
+        LpOutBands,
+        avgLpOut
+      };
+    });
+
+    // 4. Calcular Rw final ponderado por área
+    const totalArea = elementsWithTL.reduce((sum, el) => sum + el.area, 0);
+    const rwWeighted = elementsWithTL.reduce((sum, el) => sum + (el.material.weightedIndex?.Rw ?? el.avgTL) * el.area, 0) / totalArea;
+
+    // 5. Construir mapa de calor acústico
+    const heatmap = elementsWithLpOut.map(el => ({
+      id: el.id,
+      type: el.type,
+      coordinates: el.position,
+      intensity: Math.max(0, Math.min(1, (100 - el.avgLpOut) / 60)), // 0 = bajo, 1 = alto nivel exterior
+      transmissionLoss: el.avgTL,
+      rw: el.material.weightedIndex?.Rw ?? el.avgTL,
+      description: `${el.type === 'wall' ? 'Pared' : 'Abertura'}: TL=${el.avgTL.toFixed(1)}dB, Lp_out=${el.avgLpOut.toFixed(1)}dB`
+    }));
+
+    return {
+      rwFinal: rwWeighted,
+      heatmap
+    };
   }
 }

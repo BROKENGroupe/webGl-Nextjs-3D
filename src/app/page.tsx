@@ -10,6 +10,7 @@ import { ContextMenu } from "@/components/ContextMenu";
 import { useDrawingStore } from "@/store/drawingStore";
 import { useOpeningsStore } from "@/store/openingsStore";
 import { useWallsStore } from "@/store/wallsStore"; // ✅ NUEVO: Importar WallsStore
+import { useIsoStudyConfigStore } from "@/store/isoStudyConfigStore"; // importa el store zustand
 
 import React from "react";
 import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
@@ -39,6 +40,7 @@ import { LayerPanel, LayerVisibility } from "@/components/asside/layer-panel";
 import { CollapsibleAside } from "@/components/asside/asside-lateral";
 import { AcousticMaterial } from "@/types/AcousticMaterial";
 import { OpeningType } from "@/types/openings";
+import { IsoStudyConfigModal } from "@/components/modals/IsoStudyConfigModal";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -74,6 +76,8 @@ export default function DrawingScene() {
   // ✅ NUEVO: States para el modal de análisis acústico
   const [showAcousticModal, setShowAcousticModal] = useState(false);
   const [showWallsManager, setShowWallsManager] = useState(false);
+  // ✅ NUEVO: State para el modal de configuración ISO
+  const [showIsoConfigModal, setShowIsoConfigModal] = useState(false);
 
   // ✅ NUEVO: Acceso al store de paredes
   const { walls } = useWallsStore();
@@ -460,6 +464,19 @@ export default function DrawingScene() {
   // Handler para alternar la vista del mapa de calor
   const handleToggleHeatmap = () => setShowHeatmap((prev) => !prev);
 
+  // Define the handler for ISO config confirmation
+  const handleIsoConfigConfirm = (config: {
+    height: number;
+    studyType: string;
+    Lp_in: number;
+  }) => {
+    // Guarda los datos en el estado global zustand
+    useIsoStudyConfigStore.getState().setConfig(config);
+    // Opcional: puedes cerrar el modal aquí si lo deseas
+    setShowIsoConfigModal(false);
+    // Opcional: lógica adicional (ejecutar análisis, mostrar resultados, etc.)
+  };
+
   return (
     <div
       className={`h-screen w-full relative ${
@@ -534,6 +551,7 @@ export default function DrawingScene() {
         handleAddFloor={handleAddFloor}
         handleToggleHeatmap={handleToggleHeatmap}
         setShowAcousticModal={setShowAcousticModal}
+        setShowIsoConfigModal={setShowIsoConfigModal}
       />
 
       <ContextMenu
@@ -557,8 +575,7 @@ export default function DrawingScene() {
       <AcousticAnalysisModal
         isOpen={showAcousticModal}
         onClose={() => setShowAcousticModal(false)}
-        walls={walls.map(wall => wall.template).filter(Boolean)}
-        
+        walls={walls.map((wall) => wall.template).filter(Boolean)}
       />
 
       {/* Overlay de drag activo */}
@@ -612,6 +629,12 @@ export default function DrawingScene() {
           onStartDrag={handleStartDrag}
         />
       </CollapsibleAside>
+
+      <IsoStudyConfigModal
+        open={showIsoConfigModal}
+        onClose={() => setShowIsoConfigModal(false)}
+        onConfirm={handleIsoConfigConfirm}
+      />
     </div>
   );
 }

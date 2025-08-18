@@ -38,6 +38,7 @@ import { GeometryEngine } from "@/lib/engine/GeometryEngine";
 import { InteractionEngine } from "@/lib/engine/InteractionEngine";
 import { MaterialService } from "@/lib/engine/MaterialService";
 import { AcousticMaterial } from "@/types/AcousticMaterial";
+import { useIsoStudyConfigStore } from "@/store/isoStudyConfigStore"; // importa el store zustand
 
 /**
  * @interface ExtrudedShapeWithDraggableOpeningsProps
@@ -193,7 +194,13 @@ export function ExtrudedShapeWithDraggableOpenings({
   onAddFloor,
   floors = [],
 }: ExtrudedShapeWithDraggableOpeningsProps) {
-  
+
+  // Obtén los valores configurados desde zustand
+  const { height, Lp_in } = useIsoStudyConfigStore();
+
+  // Usa height para la variable depth
+  const depth = height ?? 3;
+
   /**
    * @section Stores y estado global
    * @description Integración con sistemas de estado centralizados
@@ -337,7 +344,6 @@ export function ExtrudedShapeWithDraggableOpenings({
    * @description Altura estándar de la habitación en metros
    * @type {number}
    */
-  const depth = 3;
   
   /**
    * @section Funciones delegadas a engines
@@ -767,7 +773,7 @@ export function ExtrudedShapeWithDraggableOpenings({
       <AcousticHeatmapShader
         wallCoordinates={coordinatesToUse}
         isVisible={showHeatmap}
-        externalSoundLevel={70}
+        Lp_in={Lp_in ?? 70}
       />      
 
       {/* 

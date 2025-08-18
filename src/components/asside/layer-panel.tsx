@@ -29,6 +29,7 @@ import {
 } from "@radix-ui/react-icons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { AcousticMaterial } from '@/types/AcousticMaterial';
+import { LayerTreePanel } from "./LayerTreePanel"; // importa el componente del árbol de capas
 
 type Layer = {
   key: string;
@@ -130,7 +131,7 @@ export function LayerPanel({
                 {PALETTE_TEMPLATES.filter(t =>
                   t.type.toLowerCase().includes(materialFilter)
                 ).map((template) => {
-                  const stc = template.weightedIndex?.Rw;
+                  const rw = template.weightedIndex?.Rw;
                   //const avgSTC = Math.round((stc.low + stc.mid + stc.high) / 3);
                   return (
                     <div
@@ -159,7 +160,7 @@ export function LayerPanel({
                       <span className="flex-1 font-medium text-gray-800 text-sm">
                         {template.type}
                         <span className="ml-2 text-xs text-gray-500">{template.width}m × {template.height}m</span>
-                        <span className="ml-2 px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs">STC: {}dB</span>
+                        <span className="ml-2 px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs">Rw: {rw}dB</span>
                       </span>
                       <div className="flex gap-1 items-center">
                         <Button variant="ghost" size="icon" aria-label="Ver material">
@@ -183,23 +184,7 @@ export function LayerPanel({
           <TabsContent value="layers">
             <div className="p-4">
               <div className="font-semibold text-sm mb-2">Árbol de Capas en el Modelado</div>
-              {/* Aquí va el componente de árbol de capas, ejemplo básico: */}
-              <ul className="space-y-1">
-                {/* Ejemplo de jerarquía simple, puedes reemplazar por tu lógica de árbol real */}
-                <li className="font-bold text-xs text-gray-700">Planta 1
-                  <ul className="ml-4">
-                    <li className="text-xs text-gray-600">Pared 1</li>
-                    <li className="text-xs text-gray-600">Pared 2</li>
-                    <li className="text-xs text-gray-600">Pared 3</li>
-                  </ul>
-                </li>
-                <li className="font-bold text-xs text-gray-700">Planta 2
-                  <ul className="ml-4">
-                    <li className="text-xs text-gray-600">Pared 1</li>
-                    <li className="text-xs text-gray-600">Pared 2</li>
-                  </ul>
-                </li>
-              </ul>
+              <LayerTreePanel onSelect={onSelect} />
             </div>
           </TabsContent>
         </Tabs>

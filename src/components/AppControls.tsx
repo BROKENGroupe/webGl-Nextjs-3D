@@ -14,6 +14,7 @@ export function AppControls({
   handleAddFloor,
   handleToggleHeatmap,
   setShowAcousticModal,
+  setShowIsoConfigModal
 }: {
   isClosed: boolean;
   isExtruded: boolean;
@@ -27,7 +28,9 @@ export function AppControls({
   handleAddFloor: () => void;
   handleToggleHeatmap: () => void;
   setShowAcousticModal: (v: boolean) => void;
-}) {
+  setShowIsoConfigModal: (v: boolean) => void;
+}) { 
+
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
       {isClosed && !isExtruded && (
@@ -100,14 +103,14 @@ export function AppControls({
       <Tooltip>
         <TooltipTrigger asChild>
           <button
-            onClick={handleNewDrawing}
-            className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
-            aria-label="Nuevo Dibujo"
+            onClick={() => setShowIsoConfigModal(true)}
+            className="bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg shadow transition-colors"
+            aria-label="Configurar Estudio ISO"
           >
-            <PlusSquare size={22} />
+            <Plus size={22} />
           </button>
         </TooltipTrigger>
-        <TooltipContent>Nuevo Dibujo</TooltipContent>
+        <TooltipContent>Nuevo</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -157,6 +160,7 @@ export function AppControls({
         </TooltipTrigger>
         <TooltipContent>Mapa de Calor</TooltipContent>
       </Tooltip>
+      
     </div>
   );
 }

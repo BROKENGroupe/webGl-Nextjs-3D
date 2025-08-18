@@ -59,6 +59,7 @@ import { useOpeningsStore } from '../../store/openingsStore';
 import { heatmapFragmentShader } from '@/shaders/heatmapFragment';
 import { heatmapVertexShader } from '@/shaders/heatmapSurfaceVertex';
 import { AcousticAnalysisEngine } from '@/lib/engine/AcousticAnalysisEngine';
+import { useIsoResultStore } from '@/store/isoResultStore';
 
 /**
  * @interface AcousticHeatmapShaderProps
@@ -90,7 +91,7 @@ import { AcousticAnalysisEngine } from '@/lib/engine/AcousticAnalysisEngine';
 interface AcousticHeatmapShaderProps {
   wallCoordinates: { x: number; z: number }[];
   isVisible: boolean;
-  externalSoundLevel?: number;
+  Lp_in?: number;
   showSurface?: boolean;
 }
 
@@ -160,7 +161,7 @@ interface AcousticHeatmapShaderProps {
 export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({ 
   wallCoordinates, 
   isVisible, 
-  externalSoundLevel = 70
+  Lp_in = 70
 }) => {
   /**
    * @section Hooks de gestión de estado global
@@ -217,42 +218,32 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
    */
   const heatmapData = useMemo(() => {
     if (!isVisible || !walls.length || !wallCoordinates.length) {
-      console.log('🔥 Mapa de calor desactivado - faltan datos:', {
-        isVisible,
-        wallsCount: walls.length,
-        coordinatesCount: wallCoordinates.length
-      });
       return null;
     }
 
-    console.log('🔥 Generando mapa de calor continuo...');
-    console.log('📊 Datos de entrada:', {
-      paredes: walls.length,
-      aberturas: openings.length,
-      coordenadas: wallCoordinates.length,
-      nivelSonidoExterno: externalSoundLevel
-    });
-    
     try {
       const data = AcousticAnalysisEngine.generateDetailedAcousticHeatmap(
         walls,
         openings,
         wallCoordinates,
-        externalSoundLevel
+        Lp_in
       );
-      
-      console.log(`✅ Mapa de calor continuo generado:`, {
-        totalPuntos: data.points.length,
-        puntosCriticos: data.stats?.criticalPoints || 0,
-        puntosBuenos: data.stats?.goodPoints || 0
-      });
-      
+
+      const dataResult = AcousticAnalysisEngine.calculateExteriorLevelsWithISO(
+        walls,
+        openings,
+        wallCoordinates,
+        Lp_in
+      );
+
+      // Guarda el resultado en zustand para consumo global
+      useIsoResultStore.getState().setIsoResult(dataResult);
+
       return data;
     } catch (error) {
-      console.error('❌ Error generando mapa de calor:', error);
       return null;
     }
-  }, [walls, openings, wallCoordinates, isVisible, externalSoundLevel]);
+  }, [walls, openings, wallCoordinates, isVisible, Lp_in]);
 
   /**
    * @memo surfaceGeometry
