@@ -1,3 +1,6 @@
+import { wallCeramicBrick, wallConcreteBlock, wallGypsumBoard } from "@/data/acousticWalls";
+import { AcousticMaterial, ThirdOctave } from "./AcousticMaterial";
+
 export type WallCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged';
 
 export interface WallTemplate {
@@ -29,7 +32,7 @@ export interface WallTemplate {
 export interface Wall {
   id: string;
   wallIndex: number;
-  template: WallTemplate;
+  template: AcousticMaterial;
   start: { x: number; z: number };
   end: { x: number; z: number };
   area: number;
@@ -38,75 +41,21 @@ export interface Wall {
 }
 
 // ✅ TEMPLATES SIMPLES
-export const WALL_TEMPLATES: Record<string, WallTemplate> = {
-  'concrete-standard': {
-    id: 'concrete-standard',
-    name: 'Hormigón Estándar',
-    material: 'Hormigón armado',
-    thickness: 0.20,
-    acousticProperties: {
-      transmissionLoss: { low: 45, mid: 52, high: 48 },
-      rw: 52,
-      absorptionCoefficient: { low: 0.01, mid: 0.02, high: 0.02 },
-      density: 2400,
-      porosity: 0.05
-    },
-    cost: {
-      material: 35,
-      installation: 25
-    },
-    thermalProperties: {
-      conductivity: 1.7,
-      resistance: 0.12
-    }
-  },
-  'brick-standard': {
-    id: 'brick-standard',
-    name: 'Ladrillo Cerámico',
-    material: 'Ladrillo hueco cerámico',
-    thickness: 0.15,
-    acousticProperties: {
-      transmissionLoss: { low: 40, mid: 45, high: 42 },
-      rw: 45,
-      absorptionCoefficient: { low: 0.02, mid: 0.03, high: 0.04 },
-      density: 1200,
-      porosity: 0.30
-    },
-    cost: {
-      material: 28,
-      installation: 18
-    },
-    thermalProperties: {
-      conductivity: 0.45,
-      resistance: 0.33
-    }
-  },
-  'drywall-standard': {
-    id: 'drywall-standard',
-    name: 'Pladur Estándar',
-    material: 'Placa de yeso laminado',
-    thickness: 0.125,
-    acousticProperties: {
-      transmissionLoss: { low: 35, mid: 42, high: 48 },
-      rw: 40,
-      absorptionCoefficient: { low: 0.05, mid: 0.08, high: 0.04 },
-      density: 650,
-      porosity: 0.15
-    },
-    cost: {
-      material: 25,
-      installation: 15
-    },
-    thermalProperties: {
-      conductivity: 0.25,
-      resistance: 0.5
-    }
-  }
+
+
+// ...materiales definidos arriba...
+
+export const WALL_TEMPLATES: Record<string, AcousticMaterial> = {
+  'wall-ceramic-brick': wallCeramicBrick,
+  'wall-concrete-block': wallConcreteBlock,
+  'wall-gypsum-board': wallGypsumBoard
 };
 
 export const calculateWallAcousticRating = (wall: Wall): 'A' | 'B' | 'C' | 'D' | 'E' => {
-  const tl = wall.template.acousticProperties.transmissionLoss;
-  const avgTransmissionLoss = (tl.low + tl.mid + tl.high) / 3;
+  // Usar bandas clave del modelo AcousticMaterial
+  const bands: ThirdOctave[] = [125, 500, 2000];
+  const tlBands = bands.map(band => wall.template.thirdOctaveBands[band] ?? 0);
+  const avgTransmissionLoss = tlBands.reduce((a, b) => a + b, 0) / tlBands.length;
 
   const conditionFactors = {
     'excellent': 1.0,

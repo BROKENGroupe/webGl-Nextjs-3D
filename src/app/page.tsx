@@ -12,7 +12,6 @@ import { useOpeningsStore } from "@/store/openingsStore";
 import { useWallsStore } from "@/store/wallsStore"; // ✅ NUEVO: Importar WallsStore
 
 import React from "react";
-import { OpeningTemplate } from "@/types/openings";
 import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
 import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
 import { useCoordinatesStore } from "@/store/coordinatesStore";
@@ -38,6 +37,8 @@ import { GeometryEngine } from "@/lib/engine/GeometryEngine";
 import { AppControls } from "@/components/AppControls";
 import { LayerPanel, LayerVisibility } from "@/components/asside/layer-panel";
 import { CollapsibleAside } from "@/components/asside/asside-lateral";
+import { AcousticMaterial } from "@/types/AcousticMaterial";
+import { OpeningType } from "@/types/openings";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -104,7 +105,7 @@ export default function DrawingScene() {
   const [showOpeningsPalette, setShowOpeningsPalette] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [draggedTemplate, setDraggedTemplate] =
-    useState<OpeningTemplate | null>(null);
+    useState<AcousticMaterial | null>(null);
   const { openings, addOpening } = useOpeningsStore();
   const { coordinates } = useCoordinatesStore();
 
@@ -325,8 +326,8 @@ export default function DrawingScene() {
   // ===== FUNCIONES PARA DRAG & DROP DE PUERTAS Y VENTANAS =====
 
   // Manejar inicio de drag desde la paleta
-  const handleStartDrag = (template: OpeningTemplate) => {
-    console.log("🎯 Iniciando drag:", template.name);
+  const handleStartDrag = (template: AcousticMaterial) => {
+    console.log("🎯 Iniciando drag:", template.type);
     setIsDragActive(true);
     setDraggedTemplate(template);
   };
@@ -335,7 +336,7 @@ export default function DrawingScene() {
   const handleDropOpening = (
     wallIndex: number,
     position: number,
-    template: OpeningTemplate
+    template: AcousticMaterial
   ) => {
     console.log(
       "📍 Drop en pared:",
@@ -343,12 +344,12 @@ export default function DrawingScene() {
       "posición:",
       position,
       "template:",
-      template.name
+      template.type
     );
 
     const newOpening = {
       id: `opening-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: template.type,
+      type: template.type as OpeningType,
       wallIndex,
       position,
       width: template.width,
@@ -556,8 +557,8 @@ export default function DrawingScene() {
       <AcousticAnalysisModal
         isOpen={showAcousticModal}
         onClose={() => setShowAcousticModal(false)}
-        walls={walls}
-        calculateRw={calculateRw}
+        walls={walls.map(wall => wall.template).filter(Boolean)}
+        
       />
 
       {/* Overlay de drag activo */}

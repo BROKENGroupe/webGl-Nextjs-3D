@@ -32,7 +32,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette"
-import { OpeningTemplate } from "@/types/openings"
+import { AcousticMaterial } from "@/types/AcousticMaterial"
 
 interface ToolPanelProps {
   isOpen?: boolean
@@ -43,7 +43,7 @@ interface ToolPanelProps {
   // ✅ NUEVAS PROPS PARA LA PALETA
   showOpeningsPalette?: boolean
   onToggleOpeningsPalette?: () => void
-  onStartDrag?: (template: OpeningTemplate) => void
+  onStartDrag?: (template: AcousticMaterial) => void
 }
 
 export function ToolPanel({ 

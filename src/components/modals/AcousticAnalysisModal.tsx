@@ -55,6 +55,7 @@ import {
   X,
   Settings
 } from 'lucide-react';
+import { AcousticMaterial, ThirdOctave } from '@/types/AcousticMaterial';
 
 /**
  * @interface AcousticAnalysisModalProps
@@ -63,8 +64,7 @@ import {
 interface AcousticAnalysisModalProps {
   isOpen: boolean;
   onClose: () => void;
-  walls: any[];
-  calculateRw: (tl: any, density: number, thickness: number) => any;
+  walls: AcousticMaterial[];
 }
 
 /**
@@ -85,8 +85,7 @@ interface MenuItem {
 export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
   isOpen,
   onClose,
-  walls,
-  calculateRw
+  walls
 }) => {
   const [activeSection, setActiveSection] = useState('general');
 
@@ -132,49 +131,68 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
     }
   ];
 
+  // Utilidades para AcousticMaterial
+  const getRw = (material: AcousticMaterial) => material.weightedIndex?.Rw ?? 0;
+  const getTLBands = (material: AcousticMaterial) => {
+    const bands: ThirdOctave[] = [125, 500, 2000];
+    return {
+      low: material.thirdOctaveBands[125] ?? 0,
+      mid: material.thirdOctaveBands[500] ?? 0,
+      high: material.thirdOctaveBands[2000] ?? 0,
+      average: bands.map(b => material.thirdOctaveBands[b] ?? 0).reduce((a, b) => a + b, 0) / bands.length
+    };
+  };
+
+  const getRwClassification = (rw: number) => {
+    if (rw >= 55) return 'Excelente';
+    if (rw >= 48) return 'Muy Bueno';
+    if (rw >= 40) return 'Bueno';
+    if (rw >= 35) return 'Regular';
+    if (rw >= 28) return 'Básico';
+    return 'Insuficiente';
+  };
+
   /**
    * @section Cálculos de datos para visualización
    */
   const analysisData = useMemo(() => {
-    if (!walls.length) return null;
+    if (!walls || !Array.isArray(walls) || walls.length === 0) return null;
 
-    // Datos procesados para las paredes
-    const wallsData = walls.map((wall, index) => {
-      const tl = wall.template.acousticProperties.transmissionLoss;
-      const rw = calculateRw(tl, wall.template.acousticProperties.density, wall.template.thickness);
-      const avgTL = (tl.low + tl.mid + tl.high) / 3;
-      const materialCost = wall.template.cost.material * wall.area;
-      const installationCost = wall.template.cost.installation * wall.area;
-      const totalCost = materialCost + installationCost;
+    const wallsData = walls.map((material, index) => {
+      const tlBands = getTLBands(material);
+      const rw = getRw(material);
+      const rwClassification = getRwClassification(rw);
+
+      // Simulación de costos y térmico si existen
+      const materialCost = (material as any).cost?.material ?? 50;
+      const installationCost = (material as any).cost?.installation ?? 30;
+      const area = (material as any).area ?? 10;
+      const totalCost = (materialCost + installationCost) * area;
 
       return {
-        id: wall.id,
-        name: `Pared ${index + 1}`,
-        template: wall.template.name,
-        area: wall.area,
-        condition: wall.currentCondition,
-        acousticRating: wall.acousticRating,
-        rw: rw.value,
-        rwClassification: rw.classification,
-        rwSpectrum: rw.spectrum,
-        avgTL,
-        tlLow: tl.low,
-        tlMid: tl.mid,
-        tlHigh: tl.high,
-        absorption: wall.template.acousticProperties.absorptionCoefficient,
-        density: wall.template.acousticProperties.density,
-        thickness: wall.template.thickness,
-        porosity: wall.template.acousticProperties.porosity,
-        thermalConductivity: wall.template.thermalProperties.conductivity,
-        thermalResistance: wall.template.thermalProperties.resistance,
+        id: material.id ?? `wall-${index}`,
+        name: material.descriptor ?? `Pared ${index + 1}`,
+        template: material.subtype ?? '',
+        area,
+        condition: (material as any).condition ?? 'excellent',
+        acousticRating: rwClassification,
+        rw,
+        rwClassification,
+        avgTL: tlBands.average,
+        tlLow: tlBands.low,
+        tlMid: tlBands.mid,
+        tlHigh: tlBands.high,
+        density: material.mass_kg_m2,
+        thickness: material.thickness_mm / 100,
+        thermalConductivity: (material as any).thermalConductivity ?? 0.4,
+        thermalResistance: (material as any).thermalResistance ?? 2.0,
         materialCost,
         installationCost,
         totalCost,
-        costPerM2: totalCost / wall.area
+        costPerM2: totalCost / area
       };
     });
 
-    // Estadísticas generales
     const totalArea = wallsData.reduce((sum, w) => sum + w.area, 0);
     const totalCost = wallsData.reduce((sum, w) => sum + w.totalCost, 0);
     const avgRw = wallsData.reduce((sum, w) => sum + w.rw, 0) / wallsData.length;
@@ -182,13 +200,11 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
     const avgDensity = wallsData.reduce((sum, w) => sum + w.density, 0) / wallsData.length;
     const avgCostPerM2 = wallsData.reduce((sum, w) => sum + w.costPerM2, 0) / wallsData.length;
 
-    // Distribución por clasificación Rw
     const rwDistribution = wallsData.reduce((acc, wall) => {
       acc[wall.rwClassification] = (acc[wall.rwClassification] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    // Datos para gráfico de barras
     const barChartData = wallsData.map(wall => ({
       name: wall.name,
       rw: wall.rw,
@@ -196,14 +212,12 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
       cost: wall.totalCost / 100
     }));
 
-    // Datos para gráfico de pie
     const pieChartData = Object.entries(rwDistribution).map(([classification, count]) => ({
       name: classification,
       value: count,
       percentage: (count / wallsData.length * 100).toFixed(1)
     }));
 
-    // Datos para análisis de frecuencias
     const frequencyData = wallsData.map(wall => ({
       name: wall.name,
       low: wall.tlLow,
@@ -231,7 +245,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
       },
       distribution: rwDistribution
     };
-  }, [walls, calculateRw]);
+  }, [walls]);
 
   if (!analysisData) {
     return (

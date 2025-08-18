@@ -26,7 +26,7 @@ import * as THREE from "three";
 import { useOpeningsStore } from "../store/openingsStore";
 import { useDrawingStore } from "@/store/drawingStore";
 import { COLORS, MATERIAL_PROPERTIES, GEOMETRY_CONFIG } from "../config/materials";
-import { Opening, OpeningTemplate } from "../types/openings";
+import { Opening, OPENING_TEMPLATES } from "../types/openings";
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useBuildingStore } from "../store/buildingStore"; // Asegúrate de importar el store de plantas
 
@@ -37,6 +37,7 @@ import { Html } from '@react-three/drei';
 import { GeometryEngine } from "@/lib/engine/GeometryEngine";
 import { InteractionEngine } from "@/lib/engine/InteractionEngine";
 import { MaterialService } from "@/lib/engine/MaterialService";
+import { AcousticMaterial } from "@/types/AcousticMaterial";
 
 /**
  * @interface ExtrudedShapeWithDraggableOpeningsProps
@@ -77,9 +78,9 @@ import { MaterialService } from "@/lib/engine/MaterialService";
  */
 interface ExtrudedShapeWithDraggableOpeningsProps {
   planeCoordinates: { x: number; z: number }[];
-  onDropOpening: (wallIndex: number, position: number, template: OpeningTemplate) => void;
+  onDropOpening: (wallIndex: number, position: number, template: AcousticMaterial) => void;
   isDragActive: boolean;
-  draggedTemplate: OpeningTemplate | null;
+  draggedTemplate: AcousticMaterial | null;
   showHeatmap?: boolean;
   onToggleHeatmap?: () => void;
   onAddFloor?: () => void;

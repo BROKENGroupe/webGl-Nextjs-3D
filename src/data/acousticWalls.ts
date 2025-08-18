@@ -1,0 +1,106 @@
+import { AcousticMaterial } from "../types/AcousticMaterial";
+
+// Muro de ladrillo cerámico
+export const wallCeramicBrick: AcousticMaterial = {
+    id: "wall-ceramic-brick",
+    descriptor: "Ceramic Brick Wall",
+    subtype: "Face brick",
+    type: "Façade",
+    thickness_mm: 397.0,
+    mass_kg_m2: 602.3,
+    catalog: "SON Catalog",
+    color: "Brown/Red",
+    doubleLeaf: false,
+    lightweightElement: false,
+    layers: [
+        { name: "12mm lime plaster", thickness_mm: 12.0 },
+        { name: "365mm ceramic block", thickness_mm: 365.0 },
+        { name: "20mm light lime plastered", thickness_mm: 20.0 },
+    ],
+    thirdOctaveBands: {
+        50: 37.0, 63: 35.8, 80: 34.5, 100: 33.3, 125: 29.2, 160: 31.9,
+        200: 33.8, 250: 35.6, 315: 38.0, 400: 40.7, 500: 42.1, 630: 44.1,
+        800: 46.2, 1000: 46.3, 1250: 46.5, 1600: 46.7, 2000: 47.2,
+        2500: 48.6, 3150: 49.1, 4000: 49.6, 5000: 49.6,
+    },
+    octaveBands: [
+        { range: "100-3150", value: "43(-2;-4)" },
+        { range: "125-4000", value: "43(-2;-4)" },
+        { range: "160-5000", value: "43(-2;-4)" },
+        { range: "50-5000", value: "43(-1;-4)" },
+    ],
+    weightedIndex: { Rw: 43, C: -2, Ctr: -4 },
+    height: 2.0,
+    width: 0.9,
+    bottomOffset: 0
+};
+
+// Muro de bloque de hormigón
+export const wallConcreteBlock: AcousticMaterial = {
+    id: "wall-concrete-block",
+    descriptor: "Concrete Block Wall",
+    subtype: "Hollow block",
+    type: "Façade",
+    thickness_mm: 200.0,
+    mass_kg_m2: 320.0,
+    catalog: "SON Catalog",
+    color: "Gray",
+    doubleLeaf: false,
+    lightweightElement: false,
+    layers: [
+        { name: "15mm cement plaster", thickness_mm: 15.0 },
+        { name: "170mm hollow concrete block", thickness_mm: 170.0 },
+        { name: "15mm cement plaster", thickness_mm: 15.0 },
+    ],
+    thirdOctaveBands: {
+        50: 32.0, 63: 31.0, 80: 30.0, 100: 29.0, 125: 28.0, 160: 29.5,
+        200: 31.0, 250: 32.5, 315: 34.0, 400: 36.0, 500: 37.5, 630: 39.0,
+        800: 40.5, 1000: 41.0, 1250: 41.5, 1600: 42.0, 2000: 42.5,
+        2500: 43.0, 3150: 43.5, 4000: 44.0, 5000: 44.0,
+    },
+    octaveBands: [
+        { range: "100-3150", value: "39(-2;-4)" },
+        { range: "125-4000", value: "39(-2;-4)" },
+        { range: "160-5000", value: "39(-2;-4)" },
+        { range: "50-5000", value: "39(-1;-4)" },
+    ],
+    weightedIndex: { Rw: 39, C: -2, Ctr: -4 },
+    height: 2.0,
+    width: 0.9,
+    bottomOffset: 10
+};
+
+// Muro de yeso laminado (tabique ligero)
+export const wallGypsumBoard: AcousticMaterial = {
+    id: "wall-gypsum-board",
+    descriptor: "Gypsum Board Partition",
+    subtype: "Double 12.5mm boards + mineral wool",
+    type: "Partition",
+    thickness_mm: 100.0,
+    mass_kg_m2: 42.0,
+    catalog: "SON Catalog",
+    color: "White",
+    doubleLeaf: true,
+    lightweightElement: true,
+    layers: [
+        { name: "12.5mm gypsum board", thickness_mm: 12.5 },
+        { name: "75mm mineral wool", thickness_mm: 75.0 },
+        { name: "12.5mm gypsum board", thickness_mm: 12.5 },
+    ],
+    thirdOctaveBands: {
+        50: 22.0, 63: 23.0, 80: 24.0, 100: 25.0, 125: 26.0, 160: 27.0,
+        200: 28.0, 250: 29.0, 315: 30.0, 400: 31.0, 500: 32.0, 630: 33.0,
+        800: 34.0, 1000: 35.0, 1250: 36.0, 1600: 37.0, 2000: 38.0,
+        2500: 39.0, 3150: 40.0, 4000: 41.0, 5000: 41.0,
+    },
+    octaveBands: [
+        { range: "100-3150", value: "33(-2;-4)" },
+        { range: "125-4000", value: "33(-2;-4)" },
+        { range: "160-5000", value: "33(-2;-4)" },
+        { range: "50-5000", value: "33(-1;-4)" },
+    ],
+    weightedIndex: { Rw: 33, C: -2, Ctr: -4 },
+    height: 2.0,
+    width: 0.9,
+    bottomOffset: 10
+};

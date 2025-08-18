@@ -21,10 +21,11 @@
 import * as THREE from "three";
 import { useRef, useState, useCallback, useMemo } from "react";
 import { ThreeEvent } from "@react-three/fiber";
-import { Opening, OpeningTemplate } from "../types/openings";
+import { Opening } from "../types/openings";
 import { COLORS, MATERIAL_PROPERTIES } from "../config/materials";
 import { OpeningFrame } from "./OpeningFrame";
 import { useDrawingStore } from "../store/drawingStore";
+import { AcousticMaterial } from "@/types/AcousticMaterial";
 
 /**
  * @interface DroppableWallProps
@@ -73,9 +74,9 @@ interface DroppableWallProps {
   height: number;
   wallIndex: number;
   openings: Opening[];
-  onDropOpening: (wallIndex: number, position: number, template: OpeningTemplate) => void;
+  onDropOpening: (wallIndex: number, position: number, template: AcousticMaterial) => void;
   isDragActive: boolean;
-  draggedTemplate: OpeningTemplate | null;
+  draggedTemplate: AcousticMaterial | null;
 }
 
 /**
@@ -392,7 +393,7 @@ export function DroppableWall({
    * 
    * @performance Algoritmo O(n) donde n es el número de aberturas existentes
    */
-  const validateOpeningPlacement = useCallback((position: number, template: OpeningTemplate) => {
+  const validateOpeningPlacement = useCallback((position: number, template: AcousticMaterial) => {
     // Validación de template
     if (!template) return false;
     

@@ -1,6 +1,8 @@
 // dragOpenings.ts
 // Lógica separada para drag-and-drop de openings (puertas y ventanas)
-import { OpeningTemplate } from '@/types/openings';
+
+import { AcousticMaterial } from "@/types/AcousticMaterial";
+
 
 export function getBorderColor(type: string): string {
   const colors: Record<string, string> = {
@@ -12,7 +14,7 @@ export function getBorderColor(type: string): string {
   return colors[type] ?? '#6B7280';
 }
 
-export function handleOpeningDragStart(e: React.DragEvent, template: OpeningTemplate, onStartDrag?: (template: OpeningTemplate) => void, setDraggedItem?: (item: OpeningTemplate) => void) {
+export function handleOpeningDragStart(e: React.DragEvent, template: AcousticMaterial, onStartDrag?: (template: AcousticMaterial) => void, setDraggedItem?: (item: AcousticMaterial) => void) {
   if (setDraggedItem) setDraggedItem(template);
   if (onStartDrag) onStartDrag(template);
   // Imagen personalizada
@@ -28,7 +30,7 @@ export function handleOpeningDragStart(e: React.DragEvent, template: OpeningTemp
       pointer-events: none;
       font-family: system-ui;
       white-space: nowrap;">
-      ${template.icon || '🏠'} ${template.name}
+      ${template?.imageRef || '🏠'} ${template.type}
     </div>
   `;
   document.body.appendChild(dragImage);

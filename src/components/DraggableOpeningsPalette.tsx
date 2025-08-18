@@ -11,13 +11,15 @@
  * @author insonor Team
  * @since 2025
  * @requires React
- * @requires OpeningTemplate
+ * @requires AcousticMaterial
  * @requires OPENING_TEMPLATES
  */
 
 import { useState } from 'react';
-import { OpeningTemplate, OPENING_TEMPLATES } from '@/types/openings';
-import { getBorderColor, handleOpeningDragStart, handleOpeningDragEnd } from '@/lib/dragOpenings';
+import { OPENING_TEMPLATES } from '@/types/openings';
+import { AcousticMaterial } from '@/types/AcousticMaterial';
+import { getBorderColor, handleOpeningDragEnd, handleOpeningDragStart } from '@/lib/engine/dragOpenings';
+
 
 /**
  * @interface DraggableOpeningsPaletteProps
@@ -34,11 +36,11 @@ import { getBorderColor, handleOpeningDragStart, handleOpeningDragEnd } from '@/
  * ```tsx
  * interface CallbackExample {
  *   onToggle: () => void;
- *   onStartDrag: (template: OpeningTemplate) => void;
+ *   onStartDrag: (template: AcousticMaterial) => void;
  * }
  * 
  * // Implementación típica en componente padre
- * const handleStartDrag = (template: OpeningTemplate) => {
+ * const handleStartDrag = (template: AcousticMaterial) => {
  *   setDraggedTemplate(template);
  *   setIsDragActive(true);
  * };
@@ -47,7 +49,7 @@ import { getBorderColor, handleOpeningDragStart, handleOpeningDragEnd } from '@/
 interface DraggableOpeningsPaletteProps {
   isVisible: boolean;
   onToggle: () => void;
-  onStartDrag: (template: OpeningTemplate) => void;
+  onStartDrag: (template: AcousticMaterial) => void;
 }
 
 /**
@@ -58,7 +60,7 @@ interface DraggableOpeningsPaletteProps {
  * la paleta de elementos arrastrables. Garantiza consistencia entre la
  * definición de tipos y la interfaz de usuario.
  * 
- * @type {OpeningTemplate[]}
+ * @type {AcousticMaterial[]}
  * @source OPENING_TEMPLATES del archivo de tipos
  * 
  * @example
@@ -129,7 +131,7 @@ const PALETTE_TEMPLATES = Object.values(OPENING_TEMPLATES);
  * const [paletteVisible, setPaletteVisible] = useState(false);
  * const [draggedTemplate, setDraggedTemplate] = useState(null);
  * 
- * const handleDragStart = (template: OpeningTemplate) => {
+ * const handleDragStart = (template: AcousticMaterial) => {
  *   setDraggedTemplate(template);
  *   setIsDragActive(true);
  *   console.log('Iniciando arrastre:', template.name);
@@ -142,7 +144,7 @@ const PALETTE_TEMPLATES = Object.values(OPENING_TEMPLATES);
  * />
  * ```
  * 
- * @see {@link OpeningTemplate} Para la estructura de datos de elementos
+ * @see {@link AcousticMaterial} Para la estructura de datos de elementos
  * @see {@link OPENING_TEMPLATES} Para la colección completa de templates
  * 
  * @performance
@@ -169,10 +171,10 @@ export function DraggableOpeningsPalette({
    * Mantiene referencia al template que está siendo arrastrado actualmente
    * para proporcionar feedback visual apropiado durante la operación.
    * 
-   * @type {OpeningTemplate | null}
+   * @type {AcousticMaterial | null}
    * @default null
    */
-  const [draggedItem, setDraggedItem] = useState<OpeningTemplate | null>(null);
+  const [draggedItem, setDraggedItem] = useState<AcousticMaterial | null>(null);
 
   /**
    * @function handleDragStart
@@ -217,7 +219,7 @@ export function DraggableOpeningsPalette({
    * ```
    */
   // Lógica drag-and-drop separada
-  const handleDragStart = (e: React.DragEvent, template: OpeningTemplate) => {
+  const handleDragStart = (e: React.DragEvent, template: AcousticMaterial) => {
     handleOpeningDragStart(e, template, onStartDrag, setDraggedItem);
   };
   const handleDragEnd = () => {
@@ -286,8 +288,8 @@ export function DraggableOpeningsPalette({
            * Extrae y promedia los valores acústicos (bajo, medio, alto) para
            * mostrar una métrica unificada de rendimiento acústico del elemento.
            */
-          const stc = template.acousticProperties.soundTransmissionClass;
-          const avgSTC = Math.round((stc.low + stc.mid + stc.high) / 3);
+          // const stc = template.acousticProperties.soundTransmissionClass;
+          // const avgSTC = Math.round((stc.low + stc.mid + stc.high) / 3);
           
           return (
             <div
@@ -309,29 +311,25 @@ export function DraggableOpeningsPalette({
               }}
               role="button"
               tabIndex={0}
-              aria-label={`Arrastrar ${template.name} - ${template.width}m × ${template.height}m`}
+              aria-label={`Arrastrar ${template.type} - ${template.width}m × ${template.height}m`}
             >
               {/* Icono representativo del elemento */}
               <span className="text-2xl" role="img" aria-label={template.type}>
-                {template.icon || '🏠'}
+                {template?.imageRef || '🏠'}
               </span>
               
               {/* Información principal del elemento */}
               <div className="flex-1">
                 {/* Nombre del elemento */}
                 <div className="font-medium text-gray-800">
-                  {template.name}
+                  {template.type}
                 </div>
                 
                 {/* Dimensiones físicas */}
                 <div className="text-sm text-gray-500">
                   {template.width}m × {template.height}m
-                </div>
+                </div>               
                 
-                {/* Propiedades técnicas y costo */}
-                <div className="text-xs text-gray-400">
-                  STC: {avgSTC}dB • €{template.cost}
-                </div>
               </div>
               
               {/* Indicador visual de elemento arrastrable */}

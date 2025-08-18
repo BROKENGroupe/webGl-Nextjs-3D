@@ -1,3 +1,5 @@
+import { AcousticMaterial, ThirdOctave } from "@/types/AcousticMaterial";
+
 /**
  * Clase base para cálculos acústicos según la norma ISO 12354-4.
  * Permite modelar la transmisión del sonido desde el interior hacia el exterior
@@ -122,6 +124,74 @@ export class ISO12354_4Engine {
    */
   static freeFieldAttenuation(r: number): number {
     return 20 * Math.log10(r) + 11;
+  }
+
+  /**
+   * Calcula la transmisión acústica por bandas ajustada por condición.
+   * @param material Material acústico
+   * @param condition Estado de la abertura o muro
+   * @returns Transmisión por banda { [ThirdOctave]: dB }
+   */
+  static calcTransmissionLossBands(
+    material: AcousticMaterial,
+    condition: string
+  ): Record<ThirdOctave, number> {
+    const conditionFactors: Record<string, number> = {
+      'closed_sealed': 1.0,
+      'closed_unsealed': 0.7,
+      'partially_open': 0.3,
+      'fully_open': 0.1,
+      'damaged': 0.5,
+      'excellent': 1.0,
+      'good': 0.95,
+      'fair': 0.85,
+      'poor': 0.70
+    };
+    const factor = conditionFactors[condition] ?? 0.8;
+    const bands: Record<ThirdOctave, number> = {} as any;
+    for (const bandStr of Object.keys(material.thirdOctaveBands)) {
+      const band = Number(bandStr) as ThirdOctave;
+      bands[band] = material.thirdOctaveBands[band] * factor;
+    }
+    return bands;
+  }
+
+  /**
+   * Calcula el promedio de transmisión acústica en bandas clave.
+   * @param bands Transmisión por banda { [ThirdOctave]: dB }
+   * @param keys Bandas clave (por defecto [125, 500, 2000])
+   * @returns Promedio de transmisión (dB)
+   */
+  static calcAverageTransmissionLoss(
+    bands: Record<ThirdOctave, number>,
+    keys: ThirdOctave[] = [125, 500, 2000]
+  ): number {
+    const values = keys.map(b => bands[b] ?? 0);
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  }
+
+  /**
+   * Calcula la pérdida efectiva de transmisión acústica.
+   * @param avgLoss Promedio de transmisión (dB)
+   * @param areaReduction Penalización por área (dB)
+   * @param openingsPenalty Penalización por aberturas adyacentes (dB)
+   * @returns Pérdida efectiva (dB)
+   */
+  static calcEffectiveTransmissionLoss(
+    avgLoss: number,
+    areaReduction: number,
+    openingsPenalty: number = 0
+  ): number {
+    return Math.max(avgLoss - areaReduction - openingsPenalty, 5);
+  }
+
+  /**
+   * Calcula la penalización por área de abertura (ISO 12354-4).
+   * @param openingArea Área de la abertura en m²
+   * @returns Penalización en dB
+   */
+  static calcAreaReduction(openingArea: number): number {
+    return Math.min(10 * Math.log10(openingArea), 20);
   }
 
   // --- Métodos auxiliares matemáticos ---

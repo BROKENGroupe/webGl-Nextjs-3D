@@ -66,19 +66,20 @@ export const heatmapFragmentShader = `
     vec3 greenColor   = vec3(0.0, 0.8, 0.3);   // Verde (seguro)
     vec3 yellowColor  = vec3(1.0, 1.0, 0.0);   // Amarillo (precaución)
     vec3 orangeColor  = vec3(1.0, 0.5, 0.0);   // Naranja (peligro)
-    vec3 redColor     = vec3(1.0, 0.0, 0.0);   // Rojo (crítico)
+    vec3 redColor     = vec3(1.2, 0.1, 0.0);   // Rojo suavizado
 
-    float t1 = smoothstep(0.0, 0.25, intensity); // Azul a verde
-    float t2 = smoothstep(0.25, 0.5, intensity); // Verde a amarillo
-    float t3 = smoothstep(0.5, 0.7, intensity);  // Amarillo a naranja
-    float t4 = smoothstep(0.7, 1.0, intensity);  // Naranja a rojo
+    // Transiciones más amplias para suavizar el rojo
+    float t1 = smoothstep(0.0, 0.18, intensity); // Azul a verde
+    float t2 = smoothstep(0.18, 0.38, intensity); // Verde a amarillo
+    float t3 = smoothstep(0.38, 0.65, intensity); // Amarillo a naranja
+    float t4 = smoothstep(0.65, 1.0, intensity);  // Naranja a rojo (más suave y extendido)
 
     vec3 color = mix(blueColor, greenColor, t1);
     color = mix(color, yellowColor, t2);
     color = mix(color, orangeColor, t3);
     color = mix(color, redColor, t4);
 
-    return color;
+    return clamp(color, 0.0, 1.0);
   }
 
   /**

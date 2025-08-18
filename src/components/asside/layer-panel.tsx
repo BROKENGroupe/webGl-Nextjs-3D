@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import { Button } from "@/components/ui/button";
-import { OpeningTemplate, OPENING_TEMPLATES } from '@/types/openings';
+import { OPENING_TEMPLATES } from '@/types/openings';
 import { MATERIAL_PROPERTIES } from '@/config/materials';
 import {
   EyeOpenIcon,
@@ -28,6 +28,7 @@ import {
   GearIcon,
 } from "@radix-ui/react-icons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { AcousticMaterial } from '@/types/AcousticMaterial';
 
 type Layer = {
   key: string;
@@ -37,14 +38,14 @@ type Layer = {
   thumbnail?: string;
 };
 
-const PALETTE_TEMPLATES: OpeningTemplate[] = Object.values(OPENING_TEMPLATES);
+const PALETTE_TEMPLATES: AcousticMaterial[] = Object.values(OPENING_TEMPLATES);
 
 const LAYERS: Layer[] = [
   // Solo puertas y ventanas
   ...PALETTE_TEMPLATES.map((template) => ({
     key: template.id,
-    label: template.name,
-    icon: <span style={{fontSize: '1.2em'}}>{template.icon || '🏠'}</span>,
+    label: template.type,
+    icon: <span style={{fontSize: '1.2em'}}>{template.imageRef || '🏠'}</span>,
     group: 'Openings',
     thumbnail: undefined
   })),
@@ -76,11 +77,11 @@ export function LayerPanel({
   onChange: (v: LayerVisibility) => void;
   selected?: string;
   onSelect?: (key: string) => void;
-  onStartDrag?: (template: OpeningTemplate) => void
+  onStartDrag?: (template: AcousticMaterial) => void
 }) {
   const [showMenu, setShowMenu] = useState(false);
   // Estado local para visual feedback (opcional)
-  const [draggedItem, setDraggedItem] = useState<OpeningTemplate | null>(null);
+  const [draggedItem, setDraggedItem] = useState<AcousticMaterial | null>(null);
   const [tab, setTab] = useState("layers");
   const [openGroups, setOpenGroups] = useState<string[]>(GROUPS.map(g => g.key));
   const [materialFilter, setMaterialFilter] = useState("");
@@ -127,10 +128,10 @@ export function LayerPanel({
               </div>
               <div className="flex flex-col gap-2">
                 {PALETTE_TEMPLATES.filter(t =>
-                  t.name.toLowerCase().includes(materialFilter.toLowerCase())
+                  t.type.toLowerCase().includes(materialFilter)
                 ).map((template) => {
-                  const stc = template.acousticProperties.soundTransmissionClass;
-                  const avgSTC = Math.round((stc.low + stc.mid + stc.high) / 3);
+                  const stc = template.weightedIndex?.Rw;
+                  //const avgSTC = Math.round((stc.low + stc.mid + stc.high) / 3);
                   return (
                     <div
                       key={template.id}
@@ -152,13 +153,13 @@ export function LayerPanel({
                       style={{ borderLeft: `4px solid ${getBorderColor(template.type)}` }}
                       role="button"
                       tabIndex={0}
-                      aria-label={`Arrastrar ${template.name} - ${template.width}m × ${template.height}m`}
+                      aria-label={`Arrastrar ${template.type} - ${template.width}m × ${template.height}m`}
                       onClick={() => handleSelect(template.id)}
                     >
                       <span className="flex-1 font-medium text-gray-800 text-sm">
-                        {template.name}
+                        {template.type}
                         <span className="ml-2 text-xs text-gray-500">{template.width}m × {template.height}m</span>
-                        <span className="ml-2 px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs">STC: {avgSTC}dB</span>
+                        <span className="ml-2 px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs">STC: {}dB</span>
                       </span>
                       <div className="flex gap-1 items-center">
                         <Button variant="ghost" size="icon" aria-label="Ver material">
@@ -172,7 +173,7 @@ export function LayerPanel({
                   );
                 })}
                 {PALETTE_TEMPLATES.filter(t =>
-                  t.name.toLowerCase().includes(materialFilter.toLowerCase())
+                  t.type.toLowerCase().includes(materialFilter)
                 ).length === 0 && (
                   <div className="text-center text-gray-400 text-sm py-8">No se encontraron materiales.</div>
                 )}
