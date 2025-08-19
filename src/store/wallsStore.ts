@@ -322,18 +322,27 @@ export const useWallsStore = create<WallsStore>()(
           );
         }
         const template = FLOOR_TEMPLATES['floor-concrete-slab'];
-        // Verifica si ya existe un piso con el mismo área
-        const { floors } = get();
-        if (!floors.some(f => Math.abs(f.area - area) < 0.01)) {
-          const newFloor: FloorCeiling = {
-            id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            area,
-            template
-          };
-          set((state) => ({
-            floors: [...state.floors, newFloor]
-          }));
-        }
+        set((state) => {
+          if (state.floors.length === 0) {
+            // Si no hay piso, lo agrega
+            return {
+              floors: [{
+                id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                area,
+                template
+              }]
+            };
+          } else {
+            // Si ya hay piso, lo actualiza
+            return {
+              floors: state.floors.map((f, idx) =>
+                idx === 0
+                  ? { ...f, area, template }
+                  : f
+              )
+            };
+          }
+        });
       },
 
       generateCeilingFromCoordinates: (coordinates: { x: number; z: number }[]) => {
@@ -347,18 +356,27 @@ export const useWallsStore = create<WallsStore>()(
           );
         }
         const template = CEILING_TEMPLATES['ceiling-concrete-slab'];
-        // Verifica si ya existe un techo con el mismo área
-        const { ceilings } = get();
-        if (!ceilings.some(c => Math.abs(c.area - area) < 0.01)) {
-          const newCeiling: FloorCeiling = {
-            id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            area,
-            template
-          };
-          set((state) => ({
-            ceilings: [...state.ceilings, newCeiling]
-          }));
-        }
+        set((state) => {
+          if (state.ceilings.length === 0) {
+            // Si no hay techo, lo agrega
+            return {
+              ceilings: [{
+                id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                area,
+                template
+              }]
+            };
+          } else {
+            // Si ya hay techo, lo actualiza
+            return {
+              ceilings: state.ceilings.map((c, idx) =>
+                idx === 0
+                  ? { ...c, area, template }
+                  : c
+              )
+            };
+          }
+        });
       },
     }),
     {

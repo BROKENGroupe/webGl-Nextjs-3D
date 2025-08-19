@@ -210,7 +210,7 @@ export function ExtrudedShapeWithDraggableOpenings({
    * @hook useWallsStore
    * @description Gestión de estado de paredes y análisis estructural
    */
-  const { generateWallsFromCoordinates, recalculateAllWallsWithOpenings, generateFloorFromCoordinates } = useWallsStore();
+  const { generateWallsFromCoordinates, recalculateAllWallsWithOpenings, generateFloorFromCoordinates, generateCeilingFromCoordinates } = useWallsStore();
   
   /**
    * @hook useDrawingStore
@@ -315,12 +315,11 @@ export function ExtrudedShapeWithDraggableOpenings({
    */
   useEffect(() => {
     if (coordinatesToUse.length >= 3) {
-      console.log('🎯 COMPONENTE ExtrudedShape MONTADO - Generando paredes...');
       generateWallsFromCoordinates(coordinatesToUse);
       generateFloorFromCoordinates(coordinatesToUse);
-      generateWallsFromCoordinates(coordinatesToUse);
+      generateCeilingFromCoordinates(coordinatesToUse);
     }
-  }, [coordinatesToUse, generateWallsFromCoordinates]);
+  }, [coordinatesToUse, generateWallsFromCoordinates, generateFloorFromCoordinates, generateCeilingFromCoordinates]);
 
   /**
    * @effect recalculateOnOpeningsChange
