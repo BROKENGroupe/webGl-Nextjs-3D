@@ -8,13 +8,15 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { MoreVertical, Wind, DoorOpen } from "lucide-react";
 
 interface LayerTreePanelProps {
-  onSelect?: (type: "wall" | "opening", id: string) => void;
-  onVisibilityChange?: (type: "wall" | "opening", id: string, visible: boolean) => void;
+  onSelect?: (type: "wall" | "opening" | "floor" | "ceiling", id: string) => void;
+  onVisibilityChange?: (type: "wall" | "opening" | "floor" | "ceiling", id: string, visible: boolean) => void;
 }
 
 export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisibilityChange }) => {
   const openings = useOpeningsStore((state) => state.openings) || [];
   const walls = useWallsStore((state) => state.walls) || [];
+  const floors = useWallsStore((state) => state.floors) || [];
+  const ceilings = useWallsStore((state) => state.ceilings) || [];
 
   const expandedWalls = walls.map((wall: any, idx: number) => wall.id || `wall-${idx}`);
 
@@ -26,6 +28,14 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
       const allOpenings = openings.map((opening: any, oidx: number) => opening.id || `opening-${oidx}`);
       return Object.fromEntries(allOpenings.map((id) => [id, true]));
     }
+  );
+
+  // Estado para switches de piso y techo
+  const [floorSwitches, setFloorSwitches] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(floors.map((floor, idx) => [floor.id || `floor-${idx}`, true]))
+  );
+  const [ceilingSwitches, setCeilingSwitches] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(ceilings.map((ceiling, idx) => [ceiling.id || `ceiling-${idx}`, true]))
   );
 
   const handleWallSwitch = (id: string, wallIndex: number) => {
@@ -84,6 +94,26 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
     });
   };
 
+  // Manejador para piso
+  const handleFloorSwitch = (id: string) => {
+    setFloorSwitches((prev) => {
+      const nextState = !prev[id];
+      const next = { ...prev, [id]: nextState };
+      onVisibilityChange?.("floor", id, nextState);
+      return next;
+    });
+  };
+
+  // Manejador para techo
+  const handleCeilingSwitch = (id: string) => {
+    setCeilingSwitches((prev) => {
+      const nextState = !prev[id];
+      const next = { ...prev, [id]: nextState };
+      onVisibilityChange?.("ceiling", id, nextState);
+      return next;
+    });
+  };
+
   if (!walls.length) {
     return (
       <div className="text-gray-400 text-sm my-4">
@@ -101,6 +131,87 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
         </Badge>
       </div>
       <div className="flex-1 overflow-y-auto pr-1">
+        {/* Piso */}
+        {floors.map((floor, idx) => {
+          const floorId = floor.id || `floor-${idx}`;
+          return (
+            <div
+              key={floorId}
+              className="flex items-center gap-3 mb-2 px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 transition-all min-h-[32px]"
+            >
+              <span className="flex items-center justify-center w-6 h-6 rounded bg-gray-100 border border-gray-300 shadow-sm">
+                <span role="img" aria-label="floor" className="text-blue-700">🟫</span>
+              </span>
+              <span className="text-[14px] text-blue-800 font-medium min-w-[70px]">
+                Piso <span className="font-bold">{floor.descriptor}</span>
+              </span>
+              <div className="flex items-center gap-1 ml-auto">
+                <Switch
+                  checked={!!floorSwitches[floorId]}
+                  onCheckedChange={() => handleFloorSwitch(floorId)}
+                  className="scale-90"
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="p-1 rounded hover:bg-blue-100 transition">
+                      <MoreVertical size={15} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => alert(`Ver detalles de Piso ${floor.descriptor}`)}>
+                      Ver detalles
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => alert(`Propiedades de Piso ${floor.descriptor}`)}>
+                      Propiedades
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Techo */}
+        {ceilings.map((ceiling, idx) => {
+          const ceilingId = ceiling.id || `ceiling-${idx}`;
+          return (
+            <div
+              key={ceilingId}
+              className="flex items-center gap-3 mb-2 px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 transition-all min-h-[32px]"
+            >
+              <span className="flex items-center justify-center w-6 h-6 rounded bg-gray-100 border border-gray-300 shadow-sm">
+                <span role="img" aria-label="ceiling" className="text-blue-700">⬛</span>
+              </span>
+              <span className="text-[14px] text-blue-800 font-medium min-w-[70px]">
+                Techo <span className="font-bold">{ceiling.descriptor}</span>
+              </span>
+              <div className="flex items-center gap-1 ml-auto">
+                <Switch
+                  checked={!!ceilingSwitches[ceilingId]}
+                  onCheckedChange={() => handleCeilingSwitch(ceilingId)}
+                  className="scale-90"
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="p-1 rounded hover:bg-blue-100 transition">
+                      <MoreVertical size={15} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => alert(`Ver detalles de Techo ${ceiling.descriptor}`)}>
+                      Ver detalles
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => alert(`Propiedades de Techo ${ceiling.descriptor}`)}>
+                      Propiedades
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Fachadas y aberturas */}
         <Accordion type="multiple" defaultValue={expandedWalls}>
           {walls.map((wall: any, idx: number) => {
             const wallId = wall.id || `wall-${idx}`;

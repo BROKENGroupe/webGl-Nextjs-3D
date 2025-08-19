@@ -1,27 +1,37 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'; // <--- agrega persist
-import { calculateWallAcousticRating, Wall, WALL_TEMPLATES } from '@/types/walls';
+import { calculateWallAcousticRating, CEILING_TEMPLATES, FLOOR_TEMPLATES, Wall, WALL_TEMPLATES } from '@/types/walls';
 import { Opening } from '@/types/openings';
 import { AcousticMaterial, ThirdOctave } from '@/types/AcousticMaterial';
+import { floorConcreteSlab, ceilingConcreteSlab } from "@/data/floors"; // importa los materiales típicos
 
 
 interface WallsStore {
   walls: Wall[];
+  floors: AcousticMaterial[];    // agrega pisos
+  ceilings: AcousticMaterial[];  // agrega techos
   addWall: (wallIndex: number, area: number, template?: AcousticMaterial) => void;
+  addFloor: (material?: AcousticMaterial) => void;
+  addCeiling: (material?: AcousticMaterial) => void;
   updateWall: (wallId: string, updates: Partial<Wall>) => void;
   deleteWall: (wallId: string) => void;
   clearWalls: () => void;
+  clearFloors: () => void;
+  clearCeilings: () => void;
   generateWallsFromCoordinates: (coordinates: any[]) => void;
-  analyzeWallWithOpenings: (wallIndex: number, openings: Opening[]) => void;
-  recalculateAllWallsWithOpenings: (openings: Opening[]) => void;
+  addTypicalFloorAndCeiling: () => void;
   calculateCompositeWallSTC: (wall: Wall, openings: Opening[]) => { low: number; mid: number; high: number; average: number };
   calculateRatingFromSTC: (stc: number) => 'A' | 'B' | 'C' | 'D' | 'E';
+  analyzeWallWithOpenings: (wallIndex: number, openings: Opening[]) => void;
+  // ...resto de la interfaz...
 }
 
 export const useWallsStore = create<WallsStore>()(
   persist(
     (set, get) => ({
       walls: [],
+      floors: [],
+      ceilings: [],
 
       addWall: (wallIndex, area, template = WALL_TEMPLATES['wall-ceramic-brick']) => {
         const newWall: Wall = {
@@ -41,6 +51,25 @@ export const useWallsStore = create<WallsStore>()(
         }));
 
         console.log('🧱 Nueva pared agregada:', newWall);
+      },
+
+      addFloor: (material = FLOOR_TEMPLATES['floor-concrete-slab']) => {
+        set((state) => ({
+          floors: [...state.floors, material]
+        }));
+        console.log('🟫 Piso agregado:', material);
+      },
+
+      addCeiling: (material = CEILING_TEMPLATES['ceiling-concrete-slab']) => {
+        set((state) => ({
+          ceilings: [...state.ceilings, material]
+        }));
+        console.log('⬛ Techo agregado:', material);
+      },
+
+      addTypicalFloorAndCeiling: () => {
+        get().addFloor(floorConcreteSlab);
+        get().addCeiling(ceilingConcreteSlab);
       },
 
       updateWall: (wallId, updates) => {
@@ -68,7 +97,15 @@ export const useWallsStore = create<WallsStore>()(
         set({ walls: [] });
       },
 
-      analyzeWallWithOpenings: (wallIndex, openings) => {
+      clearFloors: () => {
+        set({ floors: [] });
+      },
+
+      clearCeilings: () => {
+        set({ ceilings: [] });
+      },
+
+      analyzeWallWithOpenings: (wallIndex: number, openings: Opening[]) => {
         const { walls } = get();
         const wall = walls.find(w => w.wallIndex === wallIndex);
 
@@ -128,7 +165,7 @@ export const useWallsStore = create<WallsStore>()(
         }
       },
 
-      recalculateAllWallsWithOpenings: (openings) => {
+      recalculateAllWallsWithOpenings: (openings: Opening[]) => {
         const { walls } = get();
 
         walls.forEach(wall => {
@@ -238,11 +275,23 @@ export const useWallsStore = create<WallsStore>()(
             walls: [...state.walls, newWall]
           }));
         });
+        // Solo agrega piso y techo si no existen
+        const { floors, ceilings } = get();
+        if (floors.length === 0) {
+          get().addFloor(floorConcreteSlab);
+        }
+        if (ceilings.length === 0) {
+          get().addCeiling(ceilingConcreteSlab);
+        }
       }
     }),
     {
       name: "walls-storage", // clave en localStorage
-      partialize: (state) => ({ walls: state.walls }) // solo persiste las paredes
+      partialize: (state) => ({
+        walls: state.walls,
+        floors: state.floors,
+        ceilings: state.ceilings
+      })
     }
   )
 );

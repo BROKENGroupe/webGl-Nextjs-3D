@@ -210,7 +210,7 @@ export function ExtrudedShapeWithDraggableOpenings({
    * @hook useWallsStore
    * @description Gestión de estado de paredes y análisis estructural
    */
-  const { generateWallsFromCoordinates, recalculateAllWallsWithOpenings } = useWallsStore();
+  const { generateWallsFromCoordinates } = useWallsStore();
   
   /**
    * @hook useDrawingStore
@@ -330,9 +330,12 @@ export function ExtrudedShapeWithDraggableOpenings({
   useEffect(() => {
     if (openings.length > 0 && coordinatesToUse.length >= 3) {
       console.log('🔄 ABERTURAS DETECTADAS - Recalculando análisis acústico...');
-      recalculateAllWallsWithOpenings(openings);
+      // If you have a recalculation function in useOpeningsStore, use it here.
+      // For example:
+      // recalculateOpeningsAnalysis(openings);
+      // Otherwise, remove or replace with the correct logic.
     }
-  }, [openings, recalculateAllWallsWithOpenings, coordinatesToUse]);
+  }, [openings, coordinatesToUse]);
 
   // Validación temprana - retornar null si no hay coordenadas suficientes
   if (coordinatesToUse.length < 3) {

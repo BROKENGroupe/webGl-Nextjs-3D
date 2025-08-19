@@ -4,12 +4,14 @@ import { GeometryEngine } from '@/lib/engine/GeometryEngine';
 
 interface BuildingState {
   floors: Floor[];
+  floorElements: any[]; // Add this line to declare floorElements
   addFloor: (floor: Floor) => void;
   replicateFloor: (floorId: string) => void;
+  addFloorElement: (element: any) => void; // Se añadió el tipo 'any' como ejemplo, ajustar según sea necesario
 }
-
 export const useBuildingStore = create<BuildingState>((set, get) => ({
   floors: [],
+  floorElements: [], // Initialize floorElements
   addFloor: (floor) => set(state => ({ floors: [...state.floors, floor] })),
   replicateFloor: (floorId) => {
     const floor = get().floors.find(f => f.id === floorId);
@@ -19,4 +21,7 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
       set(state => ({ floors: [...state.floors, newFloor] }));
     }
   },
+  addFloorElement: (element) => set(state => ({
+    floorElements: [...state.floorElements, element]
+  }))
 }));

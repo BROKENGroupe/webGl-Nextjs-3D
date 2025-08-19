@@ -1,5 +1,6 @@
 import { wallCeramicBrick, wallConcreteBlock, wallGypsumBoard } from "@/data/acousticWalls";
 import { AcousticMaterial, ThirdOctave } from "./AcousticMaterial";
+import { ceilingConcreteSlab, floorConcreteSlab } from "@/data/floors";
 
 export type WallCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged';
 
@@ -49,6 +50,17 @@ export const WALL_TEMPLATES: Record<string, AcousticMaterial> = {
   'wall-ceramic-brick': wallCeramicBrick,
   'wall-concrete-block': wallConcreteBlock,
   'wall-gypsum-board': wallGypsumBoard
+};
+
+// Define templates para piso y techo igual que para paredes
+export const FLOOR_TEMPLATES: Record<string, AcousticMaterial> = {
+  "floor-concrete-slab": floorConcreteSlab,
+  // puedes agregar más tipos aquí
+};
+
+export const CEILING_TEMPLATES: Record<string, AcousticMaterial> = {
+  "ceiling-concrete-slab": ceilingConcreteSlab,
+  // puedes agregar más tipos aquí
 };
 
 export const calculateWallAcousticRating = (wall: Wall): 'A' | 'B' | 'C' | 'D' | 'E' => {
