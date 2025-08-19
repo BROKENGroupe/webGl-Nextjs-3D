@@ -1,29 +1,36 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware'; // <--- agrega persist
+import { persist } from 'zustand/middleware';
 import { calculateWallAcousticRating, CEILING_TEMPLATES, FLOOR_TEMPLATES, Wall, WALL_TEMPLATES } from '@/types/walls';
 import { Opening } from '@/types/openings';
 import { AcousticMaterial, ThirdOctave } from '@/types/AcousticMaterial';
-import { floorConcreteSlab, ceilingConcreteSlab } from "@/data/floors"; // importa los materiales típicos
+import { floorConcreteSlab, ceilingConcreteSlab } from "@/data/floors";
 
+// Tipos para piso y techo (más genéricos)
+interface FloorCeiling {
+  id: string;
+  area: number;
+  template: AcousticMaterial;
+}
 
 interface WallsStore {
   walls: Wall[];
-  floors: AcousticMaterial[];    // agrega pisos
-  ceilings: AcousticMaterial[];  // agrega techos
+  floors: FloorCeiling[];
+  ceilings: FloorCeiling[];
   addWall: (wallIndex: number, area: number, template?: AcousticMaterial) => void;
-  addFloor: (material?: AcousticMaterial) => void;
-  addCeiling: (material?: AcousticMaterial) => void;
+  addFloor: (area: number, template?: AcousticMaterial) => void;
+  addCeiling: (area: number, template?: AcousticMaterial) => void;
   updateWall: (wallId: string, updates: Partial<Wall>) => void;
   deleteWall: (wallId: string) => void;
   clearWalls: () => void;
   clearFloors: () => void;
   clearCeilings: () => void;
   generateWallsFromCoordinates: (coordinates: any[]) => void;
-  addTypicalFloorAndCeiling: () => void;
   calculateCompositeWallSTC: (wall: Wall, openings: Opening[]) => { low: number; mid: number; high: number; average: number };
   calculateRatingFromSTC: (stc: number) => 'A' | 'B' | 'C' | 'D' | 'E';
   analyzeWallWithOpenings: (wallIndex: number, openings: Opening[]) => void;
-  // ...resto de la interfaz...
+  recalculateAllWallsWithOpenings: (openings: Opening[]) => void;
+  generateFloorFromCoordinates: (coordinates: { x: number; z: number }[]) => void;
+  generateCeilingFromCoordinates: (coordinates: { x: number; z: number }[]) => void;
 }
 
 export const useWallsStore = create<WallsStore>()(
@@ -41,35 +48,46 @@ export const useWallsStore = create<WallsStore>()(
           area,
           currentCondition: 'excellent',
           start: { x: 0, z: 0 },
-          end: { x: 0, z: 0 }
+          end: { x: 0, z: 0 },
+          acousticRating: calculateWallAcousticRating({
+            id: '',
+            wallIndex,
+            template,
+            area,
+            currentCondition: 'excellent',
+            start: { x: 0, z: 0 },
+            end: { x: 0, z: 0 }
+          })
         };
-
         newWall.acousticRating = calculateWallAcousticRating(newWall);
-
         set((state) => ({
           walls: [...state.walls, newWall]
         }));
-
         console.log('🧱 Nueva pared agregada:', newWall);
       },
 
-      addFloor: (material = FLOOR_TEMPLATES['floor-concrete-slab']) => {
+      addFloor: (area, template = FLOOR_TEMPLATES['floor-concrete-slab']) => {
+        const newFloor: FloorCeiling = {
+          id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          area,
+          template
+        };
         set((state) => ({
-          floors: [...state.floors, material]
+          floors: [...state.floors, newFloor]
         }));
-        console.log('🟫 Piso agregado:', material);
+        console.log('🟫 Piso agregado:', newFloor);
       },
 
-      addCeiling: (material = CEILING_TEMPLATES['ceiling-concrete-slab']) => {
+      addCeiling: (area, template = CEILING_TEMPLATES['ceiling-concrete-slab']) => {
+        const newCeiling: FloorCeiling = {
+          id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          area,
+          template
+        };
         set((state) => ({
-          ceilings: [...state.ceilings, material]
+          ceilings: [...state.ceilings, newCeiling]
         }));
-        console.log('⬛ Techo agregado:', material);
-      },
-
-      addTypicalFloorAndCeiling: () => {
-        get().addFloor(floorConcreteSlab);
-        get().addCeiling(ceilingConcreteSlab);
+        console.log('⬛ Techo agregado:', newCeiling);
       },
 
       updateWall: (wallId, updates) => {
@@ -248,17 +266,25 @@ export const useWallsStore = create<WallsStore>()(
       generateWallsFromCoordinates: (coordinates) => {
         set({ walls: [] });
 
+        // Calcular área del polígono (piso/techo) usando la fórmula de Shoelace
+        let totalFloorArea = 0;
+        if (coordinates.length > 2) {
+          totalFloorArea = Math.abs(
+            coordinates.reduce((sum, curr, i, arr) => {
+              const next = arr[(i + 1) % arr.length];
+              return sum + (curr.x * next.z - next.x * curr.z);
+            }, 0) / 2
+          );
+        }
+
         coordinates.forEach((coord, index) => {
           const nextCoord = coordinates[(index + 1) % coordinates.length];
-
           const wallLength = Math.sqrt(
             (nextCoord.x - coord.x) ** 2 + (nextCoord.z - coord.z) ** 2
           );
-
           const wallHeight = 3.0;
           const area = wallLength * wallHeight;
           const template = WALL_TEMPLATES['wall-ceramic-brick'];
-
           const newWall: Wall = {
             id: `wall-${Date.now()}-${index}`,
             wallIndex: index,
@@ -266,27 +292,77 @@ export const useWallsStore = create<WallsStore>()(
             area,
             currentCondition: 'excellent',
             start: { x: coord.x, z: coord.z },
-            end: { x: nextCoord.x, z: nextCoord.z }
+            end: { x: nextCoord.x, z: nextCoord.z },
+            acousticRating: undefined
           };
-
           newWall.acousticRating = calculateWallAcousticRating(newWall);
-
           set((state) => ({
             walls: [...state.walls, newWall]
           }));
         });
-        // Solo agrega piso y techo si no existen
+
+        // Solo agrega piso y techo si no existen, y les asigna el área calculada
         const { floors, ceilings } = get();
         if (floors.length === 0) {
-          get().addFloor(floorConcreteSlab);
+          get().addFloor(totalFloorArea, floorConcreteSlab);
         }
         if (ceilings.length === 0) {
-          get().addCeiling(ceilingConcreteSlab);
+          get().addCeiling(totalFloorArea, ceilingConcreteSlab);
         }
-      }
+      },
+
+      generateFloorFromCoordinates: (coordinates: { x: number; z: number }[]) => {
+        let area = 0;
+        if (coordinates.length > 2) {
+          area = Math.abs(
+            coordinates.reduce((sum, curr, i, arr) => {
+              const next = arr[(i + 1) % arr.length];
+              return sum + (curr.x * next.z - next.x * curr.z);
+            }, 0) / 2
+          );
+        }
+        const template = FLOOR_TEMPLATES['floor-concrete-slab'];
+        // Verifica si ya existe un piso con el mismo área
+        const { floors } = get();
+        if (!floors.some(f => Math.abs(f.area - area) < 0.01)) {
+          const newFloor: FloorCeiling = {
+            id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            area,
+            template
+          };
+          set((state) => ({
+            floors: [...state.floors, newFloor]
+          }));
+        }
+      },
+
+      generateCeilingFromCoordinates: (coordinates: { x: number; z: number }[]) => {
+        let area = 0;
+        if (coordinates.length > 2) {
+          area = Math.abs(
+            coordinates.reduce((sum, curr, i, arr) => {
+              const next = arr[(i + 1) % arr.length];
+              return sum + (curr.x * next.z - next.x * curr.z);
+            }, 0) / 2
+          );
+        }
+        const template = CEILING_TEMPLATES['ceiling-concrete-slab'];
+        // Verifica si ya existe un techo con el mismo área
+        const { ceilings } = get();
+        if (!ceilings.some(c => Math.abs(c.area - area) < 0.01)) {
+          const newCeiling: FloorCeiling = {
+            id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            area,
+            template
+          };
+          set((state) => ({
+            ceilings: [...state.ceilings, newCeiling]
+          }));
+        }
+      },
     }),
     {
-      name: "walls-storage", // clave en localStorage
+      name: "walls-storage",
       partialize: (state) => ({
         walls: state.walls,
         floors: state.floors,
@@ -295,3 +371,6 @@ export const useWallsStore = create<WallsStore>()(
     }
   )
 );
+
+
+

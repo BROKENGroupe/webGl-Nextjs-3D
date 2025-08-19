@@ -114,7 +114,7 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
     });
   };
 
-  if (!walls.length) {
+  if (!walls.length && !floors.length && !ceilings.length) {
     return (
       <div className="text-gray-400 text-sm my-4">
         No hay datos de capas disponibles.
@@ -143,7 +143,10 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                 <span role="img" aria-label="floor" className="text-blue-700">🟫</span>
               </span>
               <span className="text-[14px] text-blue-800 font-medium min-w-[70px]">
-                Piso <span className="font-bold">{floor.descriptor}</span>
+                Piso <span className="font-bold">{floor.template?.descriptor}</span>
+              </span>
+              <span className="text-xs text-gray-500 italic ml-2">
+                Área: {floor.area ? floor.area.toFixed(2) : "N/A"} m²
               </span>
               <div className="flex items-center gap-1 ml-auto">
                 <Switch
@@ -158,10 +161,10 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => alert(`Ver detalles de Piso ${floor.descriptor}`)}>
+                    <DropdownMenuItem onClick={() => alert(`Ver detalles de Piso ${floor.template?.descriptor}`)}>
                       Ver detalles
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => alert(`Propiedades de Piso ${floor.descriptor}`)}>
+                    <DropdownMenuItem onClick={() => alert(`Propiedades de Piso ${floor.template?.descriptor}`)}>
                       Propiedades
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -183,7 +186,10 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                 <span role="img" aria-label="ceiling" className="text-blue-700">⬛</span>
               </span>
               <span className="text-[14px] text-blue-800 font-medium min-w-[70px]">
-                Techo <span className="font-bold">{ceiling.descriptor}</span>
+                Techo <span className="font-bold">{ceiling.template?.descriptor}</span>
+              </span>
+              <span className="text-xs text-gray-500 italic ml-2">
+                Área: {ceiling.area ? ceiling.area.toFixed(2) : "N/A"} m²
               </span>
               <div className="flex items-center gap-1 ml-auto">
                 <Switch
@@ -198,10 +204,10 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => alert(`Ver detalles de Techo ${ceiling.descriptor}`)}>
+                    <DropdownMenuItem onClick={() => alert(`Ver detalles de Techo ${ceiling.template?.descriptor}`)}>
                       Ver detalles
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => alert(`Propiedades de Techo ${ceiling.descriptor}`)}>
+                    <DropdownMenuItem onClick={() => alert(`Propiedades de Techo ${ceiling.template?.descriptor}`)}>
                       Propiedades
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -224,8 +230,11 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                       🧱
                     </Badge>
                     <span className="text-[15px] font-medium text-blue-800">
-                      Fachada <span className="font-bold">{idx + 1} {wall.template.descriptor}</span>
+                      Fachada <span className="font-bold">{idx + 1} {wall.template?.descriptor || wall.descriptor}</span>
                     </span>
+                  </span>
+                  <span className="text-xs text-gray-500 italic ml-2">
+                    Área: {wall.area ? wall.area.toFixed(2) : "N/A"} m²
                   </span>
                   <div className="flex items-center gap-1 ml-auto">
                     <Switch
