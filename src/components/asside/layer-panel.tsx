@@ -95,7 +95,7 @@ export function LayerPanel({
   return (
     <div className="w-96 border-gray-200 bg-white">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-semibold">Panel de Capas</CardTitle>
+        <CardTitle className="text-lg font-semibold">Panel de propiedades</CardTitle>
        
       </CardHeader>
       <CardContent className="p-0">

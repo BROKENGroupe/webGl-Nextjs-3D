@@ -104,3 +104,4 @@ export const wallGypsumBoard: AcousticMaterial = {
     width: 0.9,
     bottomOffset: 10
 };
+

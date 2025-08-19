@@ -113,7 +113,7 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                       🧱
                     </Badge>
                     <span className="text-[15px] font-medium text-blue-800">
-                      Fachada <span className="font-bold">{idx + 1}</span>
+                      Fachada <span className="font-bold">{idx + 1} {wall.template.descriptor}</span>
                     </span>
                   </span>
                   <div className="flex items-center gap-1 ml-auto">
