@@ -9,14 +9,14 @@ import { LineBuilder } from "@/components/LineBuilder";
 import { ContextMenu } from "@/components/ContextMenu";
 import { useDrawingStore } from "@/store/drawingStore";
 import { useOpeningsStore } from "@/store/openingsStore";
-import { useWallsStore } from "@/store/wallsStore"; // ✅ NUEVO: Importar WallsStore
-import { useIsoStudyConfigStore } from "@/store/isoStudyConfigStore"; // importa el store zustand
+import { useWallsStore } from "@/store/wallsStore";
+import { useIsoStudyConfigStore } from "@/store/isoStudyConfigStore";
 
 import React from "react";
 import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
 import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
 import { useCoordinatesStore } from "@/store/coordinatesStore";
-import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
+import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal";
 
 import {
   Tooltip,
@@ -73,13 +73,10 @@ export default function DrawingScene() {
     updatePlaneCoordinatesFromCurrent,
   } = useDrawingStore();
 
-  // ✅ NUEVO: States para el modal de análisis acústico
   const [showAcousticModal, setShowAcousticModal] = useState(false);
   const [showWallsManager, setShowWallsManager] = useState(false);
-  // ✅ NUEVO: State para el modal de configuración ISO
   const [showIsoConfigModal, setShowIsoConfigModal] = useState(false);
 
-  // ✅ NUEVO: Acceso al store de paredes
   const { walls } = useWallsStore();
 
   const defaultVisibility: LayerVisibility = {
@@ -113,7 +110,6 @@ export default function DrawingScene() {
   const { openings, addOpening } = useOpeningsStore();
   const { coordinates } = useCoordinatesStore();
 
-  // ✅ NUEVO: Función para calcular Rw (necesaria para el modal)
   const calculateRw = (
     transmissionLoss: any,
     density: number,
@@ -121,17 +117,13 @@ export default function DrawingScene() {
   ) => {
     const { low, mid, high } = transmissionLoss;
 
-    // Cálculo simplificado del Rw basado en ISO 717-1
-    const massPerArea = density * thickness; // kg/m²
+    const massPerArea = density * thickness;
 
-    // Ley de masas: Rw ≈ 20 × log10(massPerArea) - 42
     let rwBase = 20 * Math.log10(massPerArea) - 42;
 
-    // Corrección por frecuencias (promedio ponderado)
     const frequencyCorrection = mid * 0.5 + low * 0.3 + high * 0.2 - rwBase;
     const rwCalculated = rwBase + frequencyCorrection * 0.3;
 
-    // Clasificación según valor Rw
     let classification = "";
     let spectrum = "";
 
