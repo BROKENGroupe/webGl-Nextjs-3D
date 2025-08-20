@@ -479,9 +479,9 @@ export default function DrawingScene() {
 
   return (
     <div
-      className={`h-screen w-full relative ${
+      className={`w-full relative ${
         isDragActive ? "cursor-grabbing" : "cursor-default"
-      }`}
+      }`} style={{ height: "93vh" }}
       onContextMenu={(e) => {
         e.preventDefault();
         if (contextMenu.visible) {

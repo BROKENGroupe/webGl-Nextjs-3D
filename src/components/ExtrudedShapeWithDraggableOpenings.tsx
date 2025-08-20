@@ -196,10 +196,18 @@ export function ExtrudedShapeWithDraggableOpenings({
 }: ExtrudedShapeWithDraggableOpeningsProps) {
 
   // Obtén los valores configurados desde zustand
-  const { height, Lp_in } = useIsoStudyConfigStore();
+  const { height } = useIsoStudyConfigStore();
+  const { setWallHeight } = useWallsStore();
 
   // Usa height para la variable depth
   const depth = height ?? 3;
+
+  // Sincroniza la altura global con el store de paredes
+  useEffect(() => {
+    if (height) {
+      setWallHeight(depth);
+    }
+  }, [height, setWallHeight]);
 
   /**
    * @section Stores y estado global
@@ -774,7 +782,7 @@ export function ExtrudedShapeWithDraggableOpenings({
       <AcousticHeatmapShader
         wallCoordinates={coordinatesToUse}
         isVisible={showHeatmap}
-        Lp_in={Lp_in ?? 70}
+        Lp_in={70}
       />      
 
       {/* 

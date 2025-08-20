@@ -16,6 +16,8 @@ interface WallsStore {
   walls: Wall[];
   floors: FloorCeiling[];
   ceilings: FloorCeiling[];
+  wallHeight: number; // <-- NUEVO
+  setWallHeight: (height: number) => void; // <-- NUEVO
   addWall: (wallIndex: number, area: number, template?: AcousticMaterial) => void;
   addFloor: (area: number, template?: AcousticMaterial) => void;
   addCeiling: (area: number, template?: AcousticMaterial) => void;
@@ -39,6 +41,9 @@ export const useWallsStore = create<WallsStore>()(
       walls: [],
       floors: [],
       ceilings: [],
+      wallHeight: 3.0, // valor inicial por defecto
+
+      setWallHeight: (height: number) => set({ wallHeight: height }),
 
       addWall: (wallIndex, area, template = WALL_TEMPLATES['wall-ceramic-brick']) => {
         const newWall: Wall = {
@@ -277,12 +282,13 @@ export const useWallsStore = create<WallsStore>()(
           );
         }
 
+        const wallHeight = get().wallHeight; // <-- usa el valor dinámico
+
         coordinates.forEach((coord, index) => {
           const nextCoord = coordinates[(index + 1) % coordinates.length];
           const wallLength = Math.sqrt(
             (nextCoord.x - coord.x) ** 2 + (nextCoord.z - coord.z) ** 2
           );
-          const wallHeight = 3.0;
           const area = wallLength * wallHeight;
           const template = WALL_TEMPLATES['wall-ceramic-brick'];
           const newWall: Wall = {
@@ -384,7 +390,8 @@ export const useWallsStore = create<WallsStore>()(
       partialize: (state) => ({
         walls: state.walls,
         floors: state.floors,
-        ceilings: state.ceilings
+        ceilings: state.ceilings,
+        wallHeight: state.wallHeight
       })
     }
   )

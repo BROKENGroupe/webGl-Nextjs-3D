@@ -33,10 +33,8 @@ export const IsoStudyConfigModal: React.FC<IsoStudyConfigModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogTitle className="font-bold text-blue-700">
-        Configurar Estudio Acústico
-      </DialogTitle>
+    <>
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>      
       <DialogContent>
         <div className="space-y-4 mt-2">
           <div>
@@ -91,5 +89,6 @@ export const IsoStudyConfigModal: React.FC<IsoStudyConfigModalProps> = ({
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
