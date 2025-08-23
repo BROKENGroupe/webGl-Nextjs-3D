@@ -20,7 +20,7 @@ export default function RegisterPage() {
     try {
       await registerUser(data);
       alert("¡Registro exitoso! Serás redirigido para iniciar sesión.");
-      router.push("/login");
+      router.push("/auth/login");
     } catch (error: any) {
       alert(
         "Error en el registro: " +
@@ -188,7 +188,7 @@ export default function RegisterPage() {
           <p className="text-center text-sm text-gray-500 mt-8">
             Have an account?{" "}
             <Link
-              href="/login"
+              href="/auth/login"
               className="font-semibold text-green-600 hover:underline"
             >
               Sign in
