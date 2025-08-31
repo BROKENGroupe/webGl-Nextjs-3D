@@ -19,8 +19,8 @@
 import * as THREE from "three";
 import { useState } from "react";
 import { LineRenderer } from "./LineRenderer";
-import { useDragSystem } from "../hooks/useDragSystem";
-import { LineEventHandler } from "../core/engine/LineEventHandler";
+import { useDragSystem } from "../../hooks/useDragSystem";
+import { LineEventHandler } from "../../core/engine/LineEventHandler";
 
 /**
  * Propiedades del componente LineBuilder

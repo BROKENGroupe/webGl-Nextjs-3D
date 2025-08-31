@@ -18,8 +18,8 @@
 
 
 import * as THREE from 'three';
-import { LineEventHandler } from '../core/engine/LineEventHandler';
-import { LineGeometryEngine } from '../core/engine/LineGeometryEngine';
+import { LineEventHandler } from '../../core/engine/LineEventHandler';
+import { LineGeometryEngine } from '../../core/engine/LineGeometryEngine';
 
 /**
  * @interface LineRendererProps
