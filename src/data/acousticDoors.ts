@@ -1,4 +1,4 @@
-import { AcousticMaterial } from "../types/AcousticMaterial";
+import { AcousticMaterial } from "../modules/editor/types/AcousticMaterial";
 
 export const doorStandard: AcousticMaterial = {
   id: "door-standard",

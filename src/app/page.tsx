@@ -4,43 +4,27 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useState } from "react";
-import { DrawingSurface } from "@/components/DrawingSurface";
-import { LineBuilder } from "@/components/LineBuilder";
-import { ContextMenu } from "@/components/ContextMenu";
-import { useDrawingStore } from "@/store/drawingStore";
-import { useOpeningsStore } from "@/store/openingsStore";
-import { useWallsStore } from "@/store/wallsStore"; // ✅ NUEVO: Importar WallsStore
-import { useIsoStudyConfigStore } from "@/store/isoStudyConfigStore"; // importa el store zustand
+import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
+import { LineBuilder } from "@/modules/editor/components/LineBuilder";
+import { ContextMenu } from "@/modules/editor/components/ContextMenu";
 
 import React from "react";
-import { ExtrudedShapeWithDraggableOpenings } from "@/components/ExtrudedShapeWithDraggableOpenings";
-import { DraggableOpeningsPalette } from "@/components/DraggableOpeningsPalette";
-import { useCoordinatesStore } from "@/store/coordinatesStore";
-import { AcousticAnalysisModal } from "@/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
+import { ExtrudedShapeWithDraggableOpenings } from "@/modules/editor/components/ExtrudedShapeWithDraggableOpenings";
 
-import {
-  Tooltip,
-  TooltipProvider,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
-import {
-  Undo2,
-  Redo2,
-  Trash2,
-  Wrench,
-  BarChart3,
-  PlusSquare,
-  Plus,
-  Flame,
-} from "lucide-react"; // Ejemplo con Lucide
-import { GeometryEngine } from "@/lib/engine/GeometryEngine";
-import { AppControls } from "@/components/AppControls";
-import { LayerPanel, LayerVisibility } from "@/components/asside/layer-panel";
-import { CollapsibleAside } from "@/components/asside/asside-lateral";
-import { AcousticMaterial } from "@/types/AcousticMaterial";
-import { OpeningType } from "@/types/openings";
-import { IsoStudyConfigModal } from "@/components/modals/IsoStudyConfigModal";
+import { AcousticAnalysisModal } from "@/modules/analytics/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
+
+import { AppControls } from "@/modules/editor/components/AppControls";
+import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+import { IsoStudyConfigModal } from "@/modules/editor/components/modals/IsoStudyConfigModal";
+import { useCoordinatesStore } from "@/modules/editor/store/coordinatesStore";
+import { useDrawingStore } from "@/modules/editor/store/drawingStore";
+import { useIsoStudyConfigStore } from "@/modules/editor/store/isoStudyConfigStore";
+import { useOpeningsStore } from "@/modules/editor/store/openingsStore";
+import { useWallsStore } from "@/modules/editor/store/wallsStore";
+import { GeometryEngine } from "@/modules/editor/core/engine/GeometryEngine";
+import { OpeningType } from "@/modules/editor/types/openings";
+import { CollapsibleAside } from "@/modules/editor/components/asside/asside-lateral";
+import { LayerVisibility, LayerPanel } from "@/modules/editor/components/asside/layer-panel";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global

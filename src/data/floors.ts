@@ -1,4 +1,4 @@
-import { AcousticMaterial } from "@/types/AcousticMaterial";
+import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
 
 // Piso típico de losa de hormigón
 export const floorConcreteSlab: AcousticMaterial = {

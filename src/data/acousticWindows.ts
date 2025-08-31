@@ -1,4 +1,4 @@
-import { AcousticMaterial } from "../types/AcousticMaterial";
+import { AcousticMaterial } from "../modules/editor/types/AcousticMaterial";
 
 // Ventana simple (window-standard)
 export const windowStandard: AcousticMaterial = {

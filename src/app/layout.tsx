@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { Separator } from "@/components/ui/separator";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/shared/ui/sidebar";
+import { AppSidebar } from "@/shared/layout/app-sidebar";
+import { Separator } from "@/shared/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,7 +11,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+} from "@/shared/ui/breadcrumb";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
