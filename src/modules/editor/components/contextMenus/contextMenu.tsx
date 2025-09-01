@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 
 interface ContextMenuProps {
   x: number;
@@ -12,7 +13,14 @@ interface ContextMenuProps {
 export default function ContextMenu({
   x, y, visible, onProperties, onChangeMaterial, onClose
 }: ContextMenuProps) {
-  if (!visible) return null;
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient || !visible) return null;
+
   return (
     <div
       style={{

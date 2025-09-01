@@ -3,12 +3,11 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
 import { LineBuilder } from "@/modules/editor/components/2d/LineBuilder";
-import { ContextMenu } from "@/modules/editor/components/ContextMenu";
 
-import React from "react";
+import React, { useState } from "react";
 import { ExtrudedShapeWithDraggableOpenings } from "@/modules/editor/components/ExtrudedShapeWithDraggableOpenings";
 
 import { AcousticAnalysisModal } from "@/modules/analytics/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
@@ -24,7 +23,14 @@ import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { GeometryEngine } from "@/modules/editor/core/engine/GeometryEngine";
 import { OpeningType } from "@/modules/editor/types/openings";
 import { CollapsibleAside } from "@/modules/editor/components/asside/asside-lateral";
-import { LayerVisibility, LayerPanel } from "@/modules/editor/components/asside/layer-panel";
+import {
+  LayerVisibility,
+  LayerPanel,
+} from "@/modules/editor/components/asside/layer-panel";
+import ContextMenu from "./contextMenus/contextMenu";
+import FacadeContextMenu from "./contextMenus/FacadeContextMenu";
+import PropertiesModal from "./modals/PropertiesModal";
+import MaterialModal from "./modals/materialModal";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -73,6 +79,25 @@ export default function DrawingScene() {
     cube: true,
   };
 
+  function handleCloseContextMenu() {
+    setContextMenu({ ...contextMenu, visible: false });
+  }
+
+  function handleProperties() {
+    setShowPropertiesModal(true);
+    //handleCloseContextMenu();
+  }
+
+  function handleChangeMaterial() {
+    // Set selectedWallIndex based on contextMenu.itemIndex if available
+    if (contextMenu.itemIndex !== null) {
+      setSelectedWallIndex(contextMenu.itemIndex);
+    }
+    setShowMaterialModal(true);
+    //handleCloseContextMenu();
+  }
+  //handleCloseContextMenu();
+
   const [tempHoleLine, setTempHoleLine] = useState<THREE.Vector3[]>([]);
 
   const [layerVisibility, setLayerVisibility] =
@@ -96,6 +121,13 @@ export default function DrawingScene() {
     useState<AcousticMaterial | null>(null);
   const { openings, addOpening } = useOpeningsStore();
   const { coordinates } = useCoordinatesStore();
+
+  const handleWallContextMenu = (event: any, facadeName: string) => {
+    event.preventDefault();
+    setMenuPosition({ x: event.clientX, y: event.clientY });
+    setSelectedFacadeName(facadeName);
+    setMenuVisible(true);
+  };
 
   // ✅ NUEVO: Función para calcular Rw (necesaria para el modal)
   const calculateRw = (
@@ -461,17 +493,51 @@ export default function DrawingScene() {
     // Opcional: lógica adicional (ejecutar análisis, mostrar resultados, etc.)
   };
 
+  // Menú contextual
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const menuRef = useRef<HTMLDivElement>(null);
+  // State for selected facade name for context menu
+  const [selectedFacadeName, setSelectedFacadeName] = useState<string | null>(
+    null
+  );
+  // State for MaterialModal visibility
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  // State for selected wall index for MaterialModal
+  const [selectedWallIndex, setSelectedWallIndex] = useState<number | null>(
+    null
+  );
+  // State for PropertiesModal visibility
+  const [showPropertiesModal, setShowPropertiesModal] = useState(false);
+  // State for MaterialModal visibility
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuVisible(false);
+      }
+    };
+    if (menuVisible) {
+      document.addEventListener("mousedown", handleClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+    };
+  }, [menuVisible]);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMenuPosition({ x: e.clientX, y: e.clientY });
+    setMenuVisible(true);
+  };
+
   return (
     <div
       className={`w-full relative ${
         isDragActive ? "cursor-grabbing" : "cursor-default"
-      }`} style={{ height: "93vh" }}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        if (contextMenu.visible) {
-          handleContextMenuClose();
-        }
-      }}
+      }`}
+      style={{ height: "93vh" }}
+      onContextMenu={handleContextMenu}
     >
       <Canvas
         camera={{ position: [10, 10, 10], fov: 50 }}
@@ -517,6 +583,7 @@ export default function DrawingScene() {
             onToggleHeatmap={handleToggleHeatmap} // <-- PASA EL HANDLER
             onAddFloor={handleAddFloor}
             floors={floors}
+            onWallContextMenu={handleWallContextMenu} // <-- NUEVO PROP
           />
         )}
       </Canvas>
@@ -538,14 +605,14 @@ export default function DrawingScene() {
         setShowIsoConfigModal={setShowIsoConfigModal}
       />
 
-      <ContextMenu
-        x={contextMenu.x}
-        y={contextMenu.y}
-        visible={contextMenu.visible}
-        onClose={handleContextMenuClose}
-        onDelete={handleDelete}
-        itemType={contextMenu.itemType}
-        itemIndex={contextMenu.itemIndex}
+      <FacadeContextMenu
+        x={menuPosition.x}
+        y={menuPosition.y}
+        visible={menuVisible}
+        facadeName={selectedFacadeName ?? ""}
+        onProperties={handleProperties}
+        onChangeMaterial={handleChangeMaterial}
+        onClose={() => setMenuVisible(false)}
       />
 
       {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
@@ -561,20 +628,6 @@ export default function DrawingScene() {
         onClose={() => setShowAcousticModal(false)}
         walls={walls.map((wall) => wall.template).filter(Boolean)}
       />
-
-      {/* Overlay de drag activo */}
-      {/* {isDragActive && draggedTemplate && (
-        <div className="fixed inset-0 bg-blue-500 bg-opacity-10 pointer-events-none z-30">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg">
-              📍 Suelta sobre una pared para colocar {draggedTemplate.name}
-              <div className="text-sm mt-1 opacity-80">
-                ESC para cancelar
-              </div>
-            </div>
-          </div>
-        </div>
-      )} */}
 
       {/* Listener global para detectar drag end */}
       {isDragActive && (
@@ -618,6 +671,18 @@ export default function DrawingScene() {
         open={showIsoConfigModal}
         onClose={() => setShowIsoConfigModal(false)}
         onConfirm={handleIsoConfigConfirm}
+      />
+
+      <PropertiesModal
+        visible={showPropertiesModal}
+        wallIndex={selectedWallIndex ?? 0}
+        onClose={() => setShowPropertiesModal(false)}
+      />
+
+      <MaterialModal
+        visible={showMaterialModal}
+        wallIndex={selectedWallIndex ?? 0}
+        onClose={() => setShowMaterialModal(false)}
       />
     </div>
   );
