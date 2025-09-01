@@ -526,7 +526,7 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
           Gradiente vertical para referencia de intensidades
           Colores correspondientes a la paleta del shader fragment
         */}
-        {[
+        {/* {[
           { intensity: 0.0, color: 0x008040, label: 'Seguro' },
           { intensity: 0.2, color: 0x00ff80, label: 'Bajo' },
           { intensity: 0.4, color: 0x40ff40, label: 'Moderado' },
@@ -541,7 +541,7 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
             <boxGeometry args={[0.1, 0.15, 0.1]} />
             <meshBasicMaterial color={level.color} />
           </mesh>
-        ))}
+        ))} */}
       </group>
     </group>
   );
