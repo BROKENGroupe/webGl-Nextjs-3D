@@ -360,9 +360,15 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
    * ];
    * ```
    */
+  // Calcula los límites de la fachada para la máscara poligonal
+  const maxFacadePoints = 16;
+  const facadePolygon = useMemo(() => {
+    // Convierte las coordenadas de la fachada a un array de puntos 2D
+    return wallCoordinates.slice(0, maxFacadePoints).map(c => [c.x, c.z]);
+  }, [wallCoordinates]);
+
   const surfaceShaderMaterial = useMemo(() => {
     if (!heatmapData?.points.length || !wallCoordinates.length) {
-      console.warn('⚠️ No hay datos suficientes para generar material shader');
       return null;
     }
 
@@ -426,10 +432,20 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
       depthWrite: false         // Evita problemas de z-fighting con otros objetos
     });
 
-    // Guardar referencia para actualizaciones posteriores
+    // Pasa el polígono de la fachada como uniform al shader
+    const facadePoints = new Array(maxFacadePoints * 2).fill(0);
+    facadePolygon.forEach((pt, idx) => {
+      facadePoints[idx * 2] = pt[0];
+      facadePoints[idx * 2 + 1] = pt[1];
+    });
+
+    material.uniforms.facadePoints = { value: facadePoints };
+    material.uniforms.facadePointCount = { value: Math.min(facadePolygon.length, maxFacadePoints) };
+
+    // Guarda el material en la referencia para actualizaciones posteriores
     shaderMaterialRef.current = material;
     return material;
-  }, [heatmapData, wallCoordinates]);
+  }, [heatmapData, wallCoordinates, facadePolygon]);
 
   /**
    * @hook useFrame
