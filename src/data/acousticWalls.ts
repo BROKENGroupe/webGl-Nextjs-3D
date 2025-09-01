@@ -105,3 +105,79 @@ export const wallGypsumBoard: AcousticMaterial = {
     bottomOffset: 10
 };
 
+// Muro de tabique hueco de ladrillo fino
+export const wallThinBrickPartition: AcousticMaterial = {
+    id: "wall-thin-brick-partition",
+    descriptor: "Thin Brick Partition",
+    subtype: "Single 70mm brick",
+    type: "Partition",
+    thickness_mm: 70.0,
+    mass_kg_m2: 95.0,
+    catalog: "Basic Catalog",
+    color: "LightBrown",
+    doubleLeaf: false,
+    lightweightElement: true,
+    layers: [
+        { name: "70mm hollow brick", thickness_mm: 70.0 },
+        { name: "10mm plaster", thickness_mm: 10.0 },
+    ],
+    thirdOctaveBands: {
+        50: 18.0, 63: 19.0, 80: 20.0, 100: 21.0, 125: 22.0, 160: 23.0,
+        200: 24.0, 250: 25.0, 315: 26.0, 400: 27.0, 500: 28.0, 630: 29.0,
+        800: 30.0, 1000: 31.0, 1250: 32.0, 1600: 33.0, 2000: 34.0,
+        2500: 35.0, 3150: 36.0, 4000: 36.5, 5000: 37.0,
+    },
+    octaveBands: [
+        { range: "100-3150", value: "28(-3;-6)" },
+        { range: "125-4000", value: "28(-3;-6)" },
+    ],
+    weightedIndex: { Rw: 28, C: -3, Ctr: -6 },
+    height: 2.0,
+    width: 0.9,
+    bottomOffset: 0
+};
+
+// Muro de madera liviana
+export const wallLightWoodPanel: AcousticMaterial = {
+    id: "wall-light-wood-panel",
+    descriptor: "Light Wood Panel",
+    subtype: "Single 18mm panel",
+    type: "Partition",
+    thickness_mm: 18.0,
+    mass_kg_m2: 12.0,
+    catalog: "Basic Catalog",
+    color: "Wood",
+    doubleLeaf: false,
+    lightweightElement: true,
+    layers: [
+        { name: "18mm wood panel", thickness_mm: 18.0 },
+    ],
+    thirdOctaveBands: {
+        50: 12.0, 63: 13.0, 80: 14.0, 100: 15.0, 125: 16.0, 160: 17.0,
+        200: 18.0, 250: 19.0, 315: 20.0, 400: 21.0, 500: 22.0, 630: 23.0,
+        800: 24.0, 1000: 25.0, 1250: 26.0, 1600: 27.0, 2000: 28.0,
+        2500: 29.0, 3150: 30.0, 4000: 30.5, 5000: 31.0,
+    },
+    octaveBands: [
+        { range: "100-3150", value: "22(-4;-8)" },
+        { range: "125-4000", value: "22(-4;-8)" },
+    ],
+    weightedIndex: { Rw: 22, C: -4, Ctr: -8 },
+    height: 2.0,
+    width: 0.9,
+    bottomOffset: 0
+};
+
+export const materialColorMap: Record<string, string> = {
+  "Brown/Red": "#B55239",
+  "Gray": "#A0A0A0",
+  "White": "#F5F5F5",
+  "LightBrown": "#D2B48C",
+  "Wood": "#C19A6B",
+  // Agrega más colores según tus materiales
+};
+
+export function getMaterialColor(material: { color?: string }) {
+  return materialColorMap[material.color ?? "White"] ?? "#CCCCCC";
+}
+

@@ -6,6 +6,8 @@ import {
   wallCeramicBrick,
   wallConcreteBlock,
   wallGypsumBoard,
+  wallLightWoodPanel,
+  wallThinBrickPartition,
 } from "@/data/acousticWalls";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 
@@ -20,6 +22,8 @@ async function fetchAcousticWalls() {
     wallCeramicBrick,
     wallConcreteBlock,
     wallGypsumBoard,
+    wallLightWoodPanel,
+    wallThinBrickPartition
   ];
 }
 

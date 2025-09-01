@@ -270,8 +270,6 @@ export const useWallsStore = create<WallsStore>()(
       },
 
       generateWallsFromCoordinates: (coordinates) => {
-        set({ walls: [] });
-
         // Calcular área del polígono (piso/techo) usando la fórmula de Shoelace
         let totalFloorArea = 0;
         if (coordinates.length > 2) {
@@ -283,32 +281,40 @@ export const useWallsStore = create<WallsStore>()(
           );
         }
 
-        const wallHeight = get().wallHeight; // <-- usa el valor dinámico
+        set((state) => {
+          const wallHeight = state.wallHeight;
 
-        coordinates.forEach((coord, index) => {
-          const nextCoord = coordinates[(index + 1) % coordinates.length];
-          const wallLength = Math.sqrt(
-            (nextCoord.x - coord.x) ** 2 + (nextCoord.z - coord.z) ** 2
-          );
-          const area = wallLength * wallHeight;
-          const template = WALL_TEMPLATES['wall-ceramic-brick'];
-          const newWall: Wall = {
-            id: `wall-${Date.now()}-${index}`,
-            wallIndex: index,
-            template,
-            area,
-            currentCondition: 'excellent',
-            start: { x: coord.x, z: coord.z },
-            end: { x: nextCoord.x, z: nextCoord.z },
-            acousticRating: undefined
-          };
-          newWall.acousticRating = calculateWallAcousticRating(newWall);
-          set((state) => ({
-            walls: [...state.walls, newWall]
-          }));
+          const updatedWalls = coordinates.map((coord, index) => {
+            const nextCoord = coordinates[(index + 1) % coordinates.length];
+            const wallLength = Math.sqrt(
+              (nextCoord.x - coord.x) ** 2 + (nextCoord.z - coord.z) ** 2
+            );
+            const area = wallLength * wallHeight;
+
+            // Busca si ya existe la pared en el store y conserva el material/template
+            const prevWall = state.walls.find(w => w.wallIndex === index);
+
+            return {
+              id: prevWall?.id ?? `wall-${Date.now()}-${index}`,
+              wallIndex: index,
+              template: prevWall?.template ?? WALL_TEMPLATES['wall-ceramic-brick'],
+              area,
+              currentCondition: prevWall?.currentCondition ?? 'excellent',
+              start: { x: coord.x, z: coord.z },
+              end: { x: nextCoord.x, z: nextCoord.z },
+              acousticRating: undefined
+            };
+          });
+
+          // // Calcula el rating acústico para cada pared
+          // updatedWalls.forEach(wall => {
+          //   wall.acousticRating = calculateWallAcousticRating(wall);
+          // });
+
+          return { walls: updatedWalls };
         });
 
-        // Solo agrega piso y techo si no existen, y les asigna el área calculada
+        // Piso y techo igual
         const { floors, ceilings } = get();
         if (floors.length === 0) {
           get().addFloor(totalFloorArea, floorConcreteSlab);

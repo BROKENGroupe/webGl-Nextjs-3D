@@ -42,6 +42,7 @@ import { MaterialService } from "@/modules/editor/core/engine/MaterialService";
 import { Opening } from "../types/openings";
 import { AcousticHeatmapShader } from "./heatmaps/AcousticHeatmapShader";
 import ContextMenu from "./contextMenus/contextMenu";
+import { getMaterialColor } from "@/data/acousticWalls";
 
 /**
  * @interface ExtrudedShapeWithDraggableOpeningsProps
@@ -764,7 +765,7 @@ export function ExtrudedShapeWithDraggableOpenings({
                 >
                   {/* Material dinámico según estado de interacción */}
                   <primitive
-                    object={MaterialService.getWallMaterial({
+                    object={MaterialService.getWallMaterial({                      
                       isHovered:
                         (hoveredWall === index &&
                           (isDragActive || isDraggingOpening)) ||

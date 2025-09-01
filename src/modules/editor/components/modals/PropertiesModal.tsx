@@ -1,8 +1,20 @@
 import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import React, { useEffect, useState } from "react";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
-import { wallCeramicBrick, wallConcreteBlock, wallGypsumBoard } from "@/data/acousticWalls";
+import {
+  wallCeramicBrick,
+  wallConcreteBlock,
+  wallGypsumBoard,
+  wallLightWoodPanel,
+  wallThinBrickPartition,
+} from "@/data/acousticWalls";
 
 interface PropertiesModalProps {
   visible: boolean;
@@ -15,10 +27,16 @@ async function fetchAcousticWalls() {
     wallCeramicBrick,
     wallConcreteBlock,
     wallGypsumBoard,
+    wallLightWoodPanel,
+    wallThinBrickPartition,
   ];
 }
 
-export default function PropertiesModal({ visible, wallIndex, onClose }: PropertiesModalProps) {
+export default function PropertiesModal({
+  visible,
+  wallIndex,
+  onClose,
+}: PropertiesModalProps) {
   const [wallsData, setWallsData] = useState<any[]>([]);
   const walls = useWallsStore((state) => state.walls);
 
@@ -27,13 +45,13 @@ export default function PropertiesModal({ visible, wallIndex, onClose }: Propert
   }, []);
 
   // Busca la pared seleccionada por índice
-  const selectedWall = walls.find(w => w.wallIndex === wallIndex);
+  const selectedWall = walls.find((w) => w.wallIndex === wallIndex);
 
   // Obtiene el template acústico de la pared seleccionada
   const acoustic = selectedWall?.template;
 
   return (
-    <Dialog open={visible} onOpenChange={open => !open && onClose()}>
+    <Dialog open={visible} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Propiedades de la fachada</DialogTitle>
@@ -41,29 +59,36 @@ export default function PropertiesModal({ visible, wallIndex, onClose }: Propert
         {selectedWall ? (
           <div className="mb-4 space-y-2">
             <div>
-              <span className="font-semibold">Nombre:</span> {selectedWall.template?.descriptor || "Sin asignar"}
+              <span className="font-semibold">Nombre:</span>{" "}
+              {selectedWall.template?.descriptor || "Sin asignar"}
             </div>
             <div>
               <span className="font-semibold">ID:</span> {selectedWall.id}
             </div>
             {acoustic && (
               <div className="border rounded-lg p-4 bg-gray-50 mt-2">
-                <div className="font-semibold text-lg mb-2">{acoustic.descriptor}</div>
+                <div className="font-semibold text-lg mb-2">
+                  {acoustic.descriptor}
+                </div>
                 <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm text-gray-700 mb-2">
                   <div>
                     <span className="font-medium">Tipo:</span> {acoustic.type}
                   </div>
                   <div>
-                    <span className="font-medium">Subtipo:</span> {acoustic.subtype}
+                    <span className="font-medium">Subtipo:</span>{" "}
+                    {acoustic.subtype}
                   </div>
                   <div>
-                    <span className="font-medium">Espesor:</span> {acoustic.thickness_mm} mm
+                    <span className="font-medium">Espesor:</span>{" "}
+                    {acoustic.thickness_mm} mm
                   </div>
                   <div>
-                    <span className="font-medium">Masa:</span> {acoustic.mass_kg_m2} kg/m²
+                    <span className="font-medium">Masa:</span>{" "}
+                    {acoustic.mass_kg_m2} kg/m²
                   </div>
                   <div>
-                    <span className="font-medium">Rw:</span> {acoustic.weightedIndex?.Rw} dB
+                    <span className="font-medium">Rw:</span>{" "}
+                    {acoustic.weightedIndex?.Rw} dB
                   </div>
                   <div>
                     <span className="font-medium">Color:</span> {acoustic.color}
@@ -91,10 +116,14 @@ export default function PropertiesModal({ visible, wallIndex, onClose }: Propert
             )}
           </div>
         ) : (
-          <div className="text-gray-500">No se encontró la fachada seleccionada.</div>
+          <div className="text-gray-500">
+            No se encontró la fachada seleccionada.
+          </div>
         )}
         <DialogFooter>
-          <Button variant="secondary" onClick={onClose}>Cerrar</Button>
+          <Button variant="secondary" onClick={onClose}>
+            Cerrar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
