@@ -1,7 +1,7 @@
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   wallCeramicBrick,
   wallConcreteBlock,
@@ -17,32 +17,28 @@ interface MaterialModalProps {
   onClose: () => void;
 }
 
-async function fetchAcousticWalls() {
-  return [
-    wallCeramicBrick,
-    wallConcreteBlock,
-    wallGypsumBoard,
-    wallLightWoodPanel,
-    wallThinBrickPartition
-  ];
-}
+const acousticWallsData = [
+  wallCeramicBrick,
+  wallConcreteBlock,
+  wallGypsumBoard,
+  wallLightWoodPanel,
+  wallThinBrickPartition
+];
 
 export default function MaterialModal({ visible, wallIndex, onClose }: MaterialModalProps) {
   const [query, setQuery] = useState("");
-  const [wallsData, setWallsData] = useState<any[]>([]);
   const walls = useWallsStore((state) => state.walls);
-  const updateWall = useWallsStore((state) => state.updateWall);
+  const updateWallByIndex = useWallsStore((state) => state.updateWallByIndex);
 
-  useEffect(() => {
-    fetchAcousticWalls().then(setWallsData);
-  }, []);
-
-  // Busca la pared seleccionada por nombre de fachada
+  // Busca la pared seleccionada por wallIndex
   const selectedWall = walls.find(w => w.wallIndex === wallIndex);
 
-  const filtered = wallsData.filter(wall =>
-    wall.descriptor.toLowerCase().includes(query.toLowerCase())
-  );
+  // Filtra los materiales usando useMemo
+  const filtered = useMemo(() => {
+    return acousticWallsData.filter(wall =>
+      wall.descriptor.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [query]);
 
   return (
     <Dialog open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
@@ -74,19 +70,19 @@ export default function MaterialModal({ visible, wallIndex, onClose }: MaterialM
             className="flex flex-wrap gap-6"
             style={{ paddingBottom: "16px" }}
           >
-            {filtered.map(wall => (
+            {filtered.map((material, idx) => (
               <div
-                key={wall.id}
+                key={material.descriptor + idx}
                 className="min-w-[280px] max-w-[320px] border rounded-xl p-6 bg-white shadow-lg hover:shadow-xl transition flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="font-semibold text-base truncate">{wall.descriptor}</div>
+                  <div className="font-semibold text-base truncate">{material.descriptor}</div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => {
                       if (selectedWall) {
-                        updateWall(selectedWall.id, { template: wall });
+                        updateWallByIndex(wallIndex, { template: material });
                       }
                       onClose();
                     }}
@@ -96,28 +92,28 @@ export default function MaterialModal({ visible, wallIndex, onClose }: MaterialM
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700 mb-2">
                   <div>
-                    <span className="font-medium">Tipo:</span> {wall.type}
+                    <span className="font-medium">Tipo:</span> {material.type}
                   </div>
                   <div>
-                    <span className="font-medium">Subtipo:</span> {wall.subtype}
+                    <span className="font-medium">Subtipo:</span> {material.subtype}
                   </div>
                   <div>
-                    <span className="font-medium">Espesor:</span> {wall.thickness_mm} mm
+                    <span className="font-medium">Espesor:</span> {material.thickness_mm} mm
                   </div>
                   <div>
-                    <span className="font-medium">Masa:</span> {wall.mass_kg_m2} kg/m²
+                    <span className="font-medium">Masa:</span> {material.mass_kg_m2} kg/m²
                   </div>
                   <div>
-                    <span className="font-medium">Rw:</span> {wall.weightedIndex?.Rw} dB
+                    <span className="font-medium">Rw:</span> {material.weightedIndex?.Rw} dB
                   </div>
                   <div>
-                    <span className="font-medium">Color:</span> {wall.color}
+                    <span className="font-medium">Color:</span> {material.color}
                   </div>
                 </div>
                 <div className="mt-1">
                   <span className="font-medium">Capas:</span>
                   <ul className="list-disc ml-4 text-xs text-gray-600">
-                    {wall.layers.map((layer: any, idx: number) => (
+                    {material.layers.map((layer: any, idx: number) => (
                       <li key={idx}>
                         {layer.name} ({layer.thickness_mm} mm)
                       </li>

@@ -122,7 +122,7 @@ export default function DrawingScene() {
   const { openings, addOpening } = useOpeningsStore();
   const { coordinates } = useCoordinatesStore();
 
-  const handleWallContextMenu = (event: any, facadeName: string) => {
+  const handleWallContextMenu = (event: any, facadeName: number) => {
     event.preventDefault();
     setMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedFacadeName(facadeName);
@@ -498,7 +498,7 @@ export default function DrawingScene() {
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
   // State for selected facade name for context menu
-  const [selectedFacadeName, setSelectedFacadeName] = useState<string | null>(
+  const [selectedFacadeName, setSelectedFacadeName] = useState<number | null>(
     null
   );
   // State for MaterialModal visibility
@@ -609,7 +609,7 @@ export default function DrawingScene() {
         x={menuPosition.x}
         y={menuPosition.y}
         visible={menuVisible}
-        facadeName={selectedFacadeName ?? ""}
+        facadeName={selectedFacadeName ?? 0}
         onProperties={handleProperties}
         onChangeMaterial={handleChangeMaterial}
         onClose={() => setMenuVisible(false)}
@@ -675,13 +675,13 @@ export default function DrawingScene() {
 
       <PropertiesModal
         visible={showPropertiesModal}
-        wallIndex={selectedWallIndex ?? 0}
+        wallIndex={2}
         onClose={() => setShowPropertiesModal(false)}
       />
 
       <MaterialModal
         visible={showMaterialModal}
-        wallIndex={selectedWallIndex ?? 0}
+        wallIndex={selectedFacadeName ?? 0}
         onClose={() => setShowMaterialModal(false)}
       />
     </div>
