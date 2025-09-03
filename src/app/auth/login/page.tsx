@@ -16,13 +16,13 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>();
   const router = useRouter();
-  const { login, devLogin } = useAuth();
+  //const { login, devLogin } = useAuth();
 
   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
     try {
       const response = await loginUser(data);
       const { user, token } = response.data;
-      login(user, token);
+     // login(user, token);
       router.push("/dashboard");
     } catch (error: any) {
       alert(
