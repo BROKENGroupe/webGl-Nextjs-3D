@@ -173,11 +173,25 @@ const MaterialsViewer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
-  const [selectedMaterial, setSelectedMaterial] = useState(null);
+  type SelectedMaterial = { key: string } & typeof ACOUSTIC_MATERIAL_PROPERTIES[keyof typeof ACOUSTIC_MATERIAL_PROPERTIES] | null;
+  const [selectedMaterial, setSelectedMaterial] = useState<SelectedMaterial>(null);
 
   // Función para obtener el nombre legible del material
-  const getMaterialName = (key) => {
-    const names = {
+  const materialKeys = [
+    'CONCRETE_WALL',
+    'BRICK_WALL',
+    'DRYWALL_SINGLE',
+    'CONCRETE_FLOOR',
+    'WOOD_FLOOR',
+    'WOOD_DOOR_SOLID',
+    'METAL_DOOR',
+    'SINGLE_GLAZING',
+    'DOUBLE_GLAZING'
+  ] as const;
+  type MaterialKey = typeof materialKeys[number];
+
+  const getMaterialName = (key: string) => {
+    const names: Record<MaterialKey, string> = {
       CONCRETE_WALL: 'Pared de Concreto',
       BRICK_WALL: 'Pared de Ladrillo',
       DRYWALL_SINGLE: 'Drywall Simple',
@@ -188,11 +202,11 @@ const MaterialsViewer = () => {
       SINGLE_GLAZING: 'Vidrio Simple',
       DOUBLE_GLAZING: 'Vidrio Doble'
     };
-    return names[key] || key;
+    return (key in names ? names[key as MaterialKey] : key);
   };
 
   // Función para obtener la categoría de un material
-  const getMaterialCategory = (materialKey) => {
+  const getMaterialCategory = (materialKey: string) => {
     for (const [category, materials] of Object.entries(MATERIAL_CATEGORIES)) {
       if (materials.includes(materialKey)) {
         return category;
@@ -202,15 +216,16 @@ const MaterialsViewer = () => {
   };
 
   // Función para obtener el color de la categoría
-  const getCategoryColor = (category) => {
-    const colors = {
+  type CategoryKey = 'WALLS' | 'FLOORS' | 'DOORS' | 'WINDOWS' | 'OTHER';
+  const getCategoryColor = (category: string) => {
+    const colors: Record<CategoryKey, string> = {
       WALLS: 'bg-blue-100 text-blue-800',
       FLOORS: 'bg-green-100 text-green-800',
       DOORS: 'bg-yellow-100 text-yellow-800',
       WINDOWS: 'bg-purple-100 text-purple-800',
       OTHER: 'bg-gray-100 text-gray-800'
     };
-    return colors[category] || colors.OTHER;
+    return colors[category as CategoryKey] ?? colors.OTHER;
   };
 
   // Filtrar materiales
@@ -223,7 +238,7 @@ const MaterialsViewer = () => {
   }, [searchTerm, selectedCategory]);
 
   // Componente para mostrar gráfico de absorción
-  const AbsorptionChart = ({ absorption, title }) => {
+  const AbsorptionChart: React.FC<{ absorption: number[]; title: string }> = ({ absorption, title }) => {
     const maxValue = Math.max(...absorption);
     return (
       <div className="bg-gray-50 p-4 rounded-lg">
@@ -249,7 +264,11 @@ const MaterialsViewer = () => {
   };
 
   // Componente Card para vista de tarjetas
-  const MaterialCard = ({ materialKey, material }) => {
+  interface MaterialCardProps {
+    materialKey: string;
+    material: typeof ACOUSTIC_MATERIAL_PROPERTIES[keyof typeof ACOUSTIC_MATERIAL_PROPERTIES];
+  }
+  const MaterialCard: React.FC<MaterialCardProps> = ({ materialKey, material }) => {
     const category = getMaterialCategory(materialKey);
     return (
       <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200">
