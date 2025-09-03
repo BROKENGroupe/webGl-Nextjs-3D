@@ -10,8 +10,33 @@ const MATERIAL_CATEGORIES = {
 
 const FREQUENCY_BANDS = [125, 250, 500, 1000, 2000, 4000];
 
-const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
+type NewMaterialModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (material: any) => void; // Replace 'any' with a more specific type if available
+};
+
+type FormDataType = {
+  name: string;
+  category: string;
+  surfaceMass: string;
+  thickness: string;
+  density: string;
+  absorption: string[];
+  transmissionLoss: string[];
+  rw: string;
+  c: string;
+  ctr: string;
+  flowResistivity: string;
+  porosity: string;
+  tortuosity: string;
+  youngModulus: string;
+  poissonRatio: string;
+  dampingLoss: string;
+};
+
+const NewMaterialModal: React.FC<NewMaterialModalProps> = ({ isOpen, onClose, onSave }) => {
+  const [formData, setFormData] = useState<FormDataType>({
     name: '',
     category: 'WALLS',
     surfaceMass: '',
@@ -30,10 +55,10 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
     dampingLoss: ''
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState('basic');
 
-  const validateField = (name, value) => {
+  const validateField = (name: string, value: string) => {
     const newErrors = { ...errors };
 
     switch (name) {
@@ -54,7 +79,7 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
       case 'youngModulus':
       case 'poissonRatio':
       case 'dampingLoss':
-        if (value === '' || isNaN(value) || Number(value) < 0) {
+        if (value === '' || isNaN(Number(value)) || Number(value) < 0) {
           newErrors[name] = 'Debe ser un número positivo';
         } else {
           delete newErrors[name];
@@ -62,7 +87,7 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
         break;
       case 'c':
       case 'ctr':
-        if (value === '' || isNaN(value)) {
+        if (value === '' || isNaN(Number(value))) {
           newErrors[name] = 'Debe ser un número válido';
         } else {
           delete newErrors[name];
@@ -75,7 +100,7 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
     setErrors(newErrors);
   };
 
-  const handleInputChange = (name, value) => {
+  const handleInputChange = (name: keyof FormDataType, value: string) => {
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -83,7 +108,11 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
     validateField(name, value);
   };
 
-  const handleArrayInputChange = (arrayName, index, value) => {
+  const handleArrayInputChange = (
+    arrayName: 'absorption' | 'transmissionLoss',
+    index: number,
+    value: string
+  ) => {
     const newArray = [...formData[arrayName]];
     newArray[index] = value;
     setFormData(prev => ({
@@ -94,7 +123,7 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
     // Validar que el valor sea un número entre 0 y 1 para absorción
     if (arrayName === 'absorption') {
       const newErrors = { ...errors };
-      if (value === '' || isNaN(value) || Number(value) < 0 || Number(value) > 1) {
+      if (value === '' || isNaN(Number(value)) || Number(value) < 0 || Number(value) > 1) {
         newErrors[`${arrayName}_${index}`] = 'Debe ser un número entre 0 y 1';
       } else {
         delete newErrors[`${arrayName}_${index}`];
@@ -105,7 +134,7 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
     // Validar que el valor sea un número positivo para transmission loss
     if (arrayName === 'transmissionLoss') {
       const newErrors = { ...errors };
-      if (value === '' || isNaN(value) || Number(value) < 0) {
+      if (value === '' || isNaN(Number(value)) || Number(value) < 0) {
         newErrors[`${arrayName}_${index}`] = 'Debe ser un número positivo';
       } else {
         delete newErrors[`${arrayName}_${index}`];
@@ -114,43 +143,48 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
     }
   };
 
+  // Calcula el NRC como el promedio de los coeficientes de absorción en 250, 500, 1000 y 2000 Hz
   const calculateNRC = () => {
-    const absorption = formData.absorption.map(val => Number(val) || 0);
-    if (absorption.every(val => val >= 0 && val <= 1)) {
-      const nrc = (absorption[1] + absorption[2] + absorption[3] + absorption[4]) / 4;
-      return nrc.toFixed(3);
-    }
-    return '0.000';
+    // Indices for 250, 500, 1000, 2000 Hz in FREQUENCY_BANDS: [125, 250, 500, 1000, 2000, 4000]
+    const indices = [1, 2, 3, 4];
+    const values = indices.map(i => {
+      const val = Number(formData.absorption[i]);
+      return isNaN(val) ? 0 : val;
+    });
+    const nrc = values.reduce((sum, v) => sum + v, 0) / values.length;
+    return nrc.toFixed(3);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e:any) => {
     e.preventDefault();
     
     // Validar todos los campos
-    const requiredFields = ['name', 'surfaceMass', 'thickness', 'density', 'rw', 'c', 'ctr', 
-                           'flowResistivity', 'porosity', 'tortuosity', 'youngModulus', 
-                           'poissonRatio', 'dampingLoss'];
+    const requiredFields: (keyof FormDataType)[] = [
+      'name', 'surfaceMass', 'thickness', 'density', 'rw', 'c', 'ctr',
+      'flowResistivity', 'porosity', 'tortuosity', 'youngModulus',
+      'poissonRatio', 'dampingLoss'
+    ];
     
     let hasErrors = false;
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
 
     requiredFields.forEach(field => {
       if (!formData[field] || formData[field] === '') {
-        newErrors[field] = 'Campo requerido';
+        newErrors[field as string] = 'Campo requerido';
         hasErrors = true;
       }
     });
 
     // Validar arrays de absorción y transmission loss
     formData.absorption.forEach((val, index) => {
-      if (val === '' || isNaN(val) || Number(val) < 0 || Number(val) > 1) {
+      if (val === '' || isNaN(Number(val)) || Number(val) < 0 || Number(val) > 1) {
         newErrors[`absorption_${index}`] = 'Requerido (0-1)';
         hasErrors = true;
       }
     });
 
     formData.transmissionLoss.forEach((val, index) => {
-      if (val === '' || isNaN(val) || Number(val) < 0) {
+      if (val === '' || isNaN(Number(val)) || Number(val) < 0) {
         newErrors[`transmissionLoss_${index}`] = 'Requerido (>0)';
         hasErrors = true;
       }
@@ -629,9 +663,9 @@ const NewMaterialModal = ({ isOpen, onClose, onSave }) => {
 // Componente de demostración
 const MaterialsCreatorDemo = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [materials, setMaterials] = useState([]);
+  const [materials, setMaterials] = useState<{ name: string; category: string; properties: any }[]>([]);
 
-  const handleSaveMaterial = (materialData) => {
+  const handleSaveMaterial = (materialData: { name: string; category: string; properties: any }) => {
     console.log('Nuevo material creado:', materialData);
     setMaterials(prev => [...prev, materialData]);
     alert(`Material "${materialData.name}" creado exitosamente!`);
@@ -666,7 +700,7 @@ const MaterialsCreatorDemo = () => {
                   <div key={index} className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="font-medium text-gray-900">{material.name}</h3>
                     <p className="text-sm text-gray-600">
-                      Categoría: {MATERIAL_CATEGORIES[material.category]} | 
+                      Categoría: {MATERIAL_CATEGORIES[material.category as keyof typeof MATERIAL_CATEGORIES]} | 
                       Rw: {material.properties.rw} dB | 
                       NRC: {material.properties.nrc.toFixed(3)}
                     </p>
