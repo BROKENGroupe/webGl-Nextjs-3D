@@ -38,7 +38,6 @@ export const resetPassword = (
 ): Promise<AxiosResponse<void>> => {
   return apiClient.post(`/auth/reset-password/${token}`, { password });
 };
-
 export const getGoogleAuthUrl = (): string => {
   return "https://api.tu-backend.com/auth/google";
 };
