@@ -4,7 +4,7 @@ interface FacadeContextMenuProps {
   x: number;
   y: number;
   visible: boolean;
-  facadeName: string;
+  facadeName: number;
   onProperties: () => void;
   onChangeMaterial: () => void;
   onClose: () => void;

@@ -23,6 +23,7 @@ interface WallsStore {
   addFloor: (area: number, template?: AcousticMaterial) => void;
   addCeiling: (area: number, template?: AcousticMaterial) => void;
   updateWall: (wallId: string, updates: Partial<Wall>) => void;
+  updateWallByIndex: (wallIndex: number, updates: Partial<Wall>) => void; // <-- NUEVO
   deleteWall: (wallId: string) => void;
   clearWalls: () => void;
   clearFloors: () => void;
@@ -46,7 +47,7 @@ export const useWallsStore = create<WallsStore>()(
 
       setWallHeight: (height: number) => set({ wallHeight: height }),
 
-      addWall: (wallIndex, area, template = WALL_TEMPLATES['wall-ceramic-brick']) => {
+      addWall: (wallIndex, area, template = WALL_TEMPLATES['wall-gypsum-board']) => {
         const newWall: Wall = {
           id: `wall-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           wallIndex,
@@ -100,6 +101,23 @@ export const useWallsStore = create<WallsStore>()(
         set((state) => ({
           walls: state.walls.map(wall => {
             if (wall.id === wallId) {
+              const updatedWall = { ...wall, ...updates };
+              return {
+                ...updatedWall,
+                acousticRating: calculateWallAcousticRating(updatedWall)
+              };
+            }
+            return wall;
+          })
+        }));
+      },
+
+      // NUEVO: Actualiza la pared por wallIndex
+      updateWallByIndex: (wallIndex, updates) => {
+        set((state) => ({
+          walls: state.walls.map(wall => {
+            if (wall.wallIndex === wallIndex) {
+              debugger
               const updatedWall = { ...wall, ...updates };
               return {
                 ...updatedWall,
@@ -297,7 +315,7 @@ export const useWallsStore = create<WallsStore>()(
             return {
               id: prevWall?.id ?? `wall-${Date.now()}-${index}`,
               wallIndex: index,
-              template: prevWall?.template ?? WALL_TEMPLATES['wall-ceramic-brick'],
+              template: prevWall?.template ?? WALL_TEMPLATES['wall-gypsum-board'],
               area,
               currentCondition: prevWall?.currentCondition ?? 'excellent',
               start: { x: coord.x, z: coord.z },
@@ -403,6 +421,8 @@ export const useWallsStore = create<WallsStore>()(
     }
   )
 );
+
+
 
 
 

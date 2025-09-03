@@ -94,7 +94,7 @@ interface ExtrudedShapeWithDraggableOpeningsProps {
   onToggleHeatmap?: () => void;
   onAddFloor?: () => void;
   floors?: any[];
-  onWallContextMenu?: (event: any, facadeName: string) => void;
+  onWallContextMenu?: (event: any, facadeName: number) => void;
 }
 
 /**
@@ -831,8 +831,7 @@ export function ExtrudedShapeWithDraggableOpenings({
                           if (onWallContextMenu) {
                             onWallContextMenu(
                               e.nativeEvent,
-                              "Elemento" +
-                                Number(e.object.userData.wallIndex + 1)
+                              Number(e.object.userData.wallIndex + 1)
                             );
                           }
                         }}
