@@ -6,159 +6,44 @@ import { Search, Filter, Eye, BarChart3, Info, Waves } from 'lucide-react';
 // Simulación de los datos importados del archivo materials.ts
 const ACOUSTIC_MATERIAL_PROPERTIES = {
   CONCRETE_WALL: {
-    surfaceMass: 240,
-    thickness: 0.15,
     density: 2400,
-    absorption: [0.01, 0.01, 0.02, 0.02, 0.02, 0.02],
-    nrc: 0.02,
-    transmissionLoss: [30, 35, 40, 45, 50, 55],
+    acoustic_indices:
+      [
+        {
+          frecuency: 125,
+          value_R: 0.1
+        },
+        {
+          frecuency: 250,
+          value_R: 0.25
+        },
+        {
+          frecuency: 500,
+          value_R: 0.5
+        },
+        {
+          frecuency: 1000,
+          value_R: 0.1
+        },
+        {
+          frecuency: 2000,
+          value_R: 0.1
+        },
+        {
+          frecuency: 4000,
+          value_R: 0.1
+        }
+      ],
+    is_active: true,
+    picture: null,
     rw: 45,
-    c: -2,
-    ctr: -5,
-    flowResistivity: 100000,
-    porosity: 5,
-    tortuosity: 1.2,
-    youngModulus: 30000000000,
-    poissonRatio: 0.2,
-    dampingLoss: 0.02
   },
-  BRICK_WALL: {
-    surfaceMass: 180,
-    thickness: 0.12,
-    density: 1800,
-    absorption: [0.02, 0.02, 0.03, 0.04, 0.05, 0.07],
-    nrc: 0.04,
-    transmissionLoss: [28, 32, 38, 42, 46, 50],
-    rw: 42,
-    c: -1,
-    ctr: -4,
-    flowResistivity: 80000,
-    porosity: 8,
-    tortuosity: 1.3,
-    youngModulus: 15000000000,
-    poissonRatio: 0.25,
-    dampingLoss: 0.03
-  },
-  DRYWALL_SINGLE: {
-    surfaceMass: 8,
-    thickness: 0.0125,
-    density: 700,
-    absorption: [0.05, 0.07, 0.09, 0.10, 0.08, 0.06],
-    nrc: 0.08,
-    transmissionLoss: [15, 18, 22, 28, 32, 35],
-    rw: 28,
-    c: 0,
-    ctr: -2,
-    flowResistivity: 15000,
-    porosity: 15,
-    tortuosity: 1.1,
-    youngModulus: 3000000000,
-    poissonRatio: 0.3,
-    dampingLoss: 0.05
-  },
-  CONCRETE_FLOOR: {
-    surfaceMass: 300,
-    thickness: 0.20,
-    density: 2400,
-    absorption: [0.01, 0.01, 0.015, 0.02, 0.02, 0.02],
-    nrc: 0.02,
-    transmissionLoss: [32, 38, 44, 50, 55, 58],
-    rw: 50,
-    c: -2,
-    ctr: -6,
-    flowResistivity: 150000,
-    porosity: 3,
-    tortuosity: 1.1,
-    youngModulus: 35000000000,
-    poissonRatio: 0.2,
-    dampingLoss: 0.02
-  },
-  WOOD_FLOOR: {
-    surfaceMass: 12,
-    thickness: 0.02,
-    density: 600,
-    absorption: [0.15, 0.12, 0.10, 0.08, 0.07, 0.06],
-    nrc: 0.09,
-    transmissionLoss: [18, 22, 26, 30, 34, 36],
-    rw: 30,
-    c: 1,
-    ctr: -1,
-    flowResistivity: 25000,
-    porosity: 20,
-    tortuosity: 1.4,
-    youngModulus: 12000000000,
-    poissonRatio: 0.35,
-    dampingLoss: 0.08
-  },
-  WOOD_DOOR_SOLID: {
-    surfaceMass: 25,
-    thickness: 0.04,
-    density: 650,
-    absorption: [0.10, 0.08, 0.06, 0.05, 0.05, 0.05],
-    nrc: 0.06,
-    transmissionLoss: [20, 24, 28, 32, 35, 37],
-    rw: 32,
-    c: 0,
-    ctr: -2,
-    flowResistivity: 30000,
-    porosity: 12,
-    tortuosity: 1.3,
-    youngModulus: 10000000000,
-    poissonRatio: 0.4,
-    dampingLoss: 0.06
-  },
-  METAL_DOOR: {
-    surfaceMass: 40,
-    thickness: 0.05,
-    density: 800,
-    absorption: [0.05, 0.04, 0.03, 0.03, 0.03, 0.04],
-    nrc: 0.03,
-    transmissionLoss: [25, 30, 35, 40, 42, 44],
-    rw: 40,
-    c: -2,
-    ctr: -4,
-    flowResistivity: 80000,
-    porosity: 5,
-    tortuosity: 1.1,
-    youngModulus: 200000000000,
-    poissonRatio: 0.3,
-    dampingLoss: 0.02
-  },
-  SINGLE_GLAZING: {
-    surfaceMass: 10,
-    thickness: 0.006,
-    density: 2500,
-    absorption: [0.18, 0.06, 0.04, 0.03, 0.02, 0.02],
-    nrc: 0.04,
-    transmissionLoss: [20, 22, 25, 28, 30, 32],
-    rw: 28,
-    c: -1,
-    ctr: -3,
-    flowResistivity: 1000000,
-    porosity: 0,
-    tortuosity: 1.0,
-    youngModulus: 70000000000,
-    poissonRatio: 0.23,
-    dampingLoss: 0.001
-  },
-  DOUBLE_GLAZING: {
-    surfaceMass: 20,
-    thickness: 0.024,
-    density: 1200,
-    absorption: [0.10, 0.04, 0.03, 0.02, 0.02, 0.02],
-    nrc: 0.03,
-    transmissionLoss: [25, 28, 32, 36, 40, 42],
-    rw: 36,
-    c: -2,
-    ctr: -4,
-    flowResistivity: 500000,
-    porosity: 75,
-    tortuosity: 1.0,
-    youngModulus: 70000000000,
-    poissonRatio: 0.23,
-    dampingLoss: 0.01
-  }
 };
+
+ interface acusticIndex {
+  frecuency: number;
+  value_R: number;
+}
 
 const MATERIAL_CATEGORIES = {
   WALLS: ['CONCRETE_WALL', 'BRICK_WALL', 'DRYWALL_SINGLE'],
@@ -173,11 +58,12 @@ const MaterialsViewer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
-  const [selectedMaterial, setSelectedMaterial] = useState(null);
+  type MaterialDetail = typeof ACOUSTIC_MATERIAL_PROPERTIES[keyof typeof ACOUSTIC_MATERIAL_PROPERTIES] & { key: string } | null;
+  const [selectedMaterial, setSelectedMaterial] = useState<MaterialDetail>(null);
 
   // Función para obtener el nombre legible del material
-  const getMaterialName = (key) => {
-    const names = {
+  const getMaterialName = (key: string) => {
+    const names: Record<string, string> = {
       CONCRETE_WALL: 'Pared de Concreto',
       BRICK_WALL: 'Pared de Ladrillo',
       DRYWALL_SINGLE: 'Drywall Simple',
@@ -188,11 +74,11 @@ const MaterialsViewer = () => {
       SINGLE_GLAZING: 'Vidrio Simple',
       DOUBLE_GLAZING: 'Vidrio Doble'
     };
-    return names[key] || key;
+    return names[key as keyof typeof names] ?? key;
   };
 
   // Función para obtener la categoría de un material
-  const getMaterialCategory = (materialKey) => {
+  const getMaterialCategory = (materialKey: string) => {
     for (const [category, materials] of Object.entries(MATERIAL_CATEGORIES)) {
       if (materials.includes(materialKey)) {
         return category;
@@ -202,15 +88,17 @@ const MaterialsViewer = () => {
   };
 
   // Función para obtener el color de la categoría
-  const getCategoryColor = (category) => {
-    const colors = {
+  const getCategoryColor = (
+    category: 'WALLS' | 'FLOORS' | 'DOORS' | 'WINDOWS' | 'OTHER' | string
+  ) => {
+    const colors: Record<'WALLS' | 'FLOORS' | 'DOORS' | 'WINDOWS' | 'OTHER', string> = {
       WALLS: 'bg-blue-100 text-blue-800',
       FLOORS: 'bg-green-100 text-green-800',
       DOORS: 'bg-yellow-100 text-yellow-800',
       WINDOWS: 'bg-purple-100 text-purple-800',
       OTHER: 'bg-gray-100 text-gray-800'
     };
-    return colors[category] || colors.OTHER;
+    return colors[category as keyof typeof colors] ?? colors.OTHER;
   };
 
   // Filtrar materiales
@@ -223,8 +111,8 @@ const MaterialsViewer = () => {
   }, [searchTerm, selectedCategory]);
 
   // Componente para mostrar gráfico de absorción
-  const AbsorptionChart = ({ absorption, title }) => {
-    const maxValue = Math.max(...absorption);
+  const AbsorptionChart = ({ absorption, title }: { absorption: acusticIndex[]; title: string }) => {
+    const maxValue = Math.max(...absorption.map(a => a.value_R));
     return (
       <div className="bg-gray-50 p-4 rounded-lg">
         <h4 className="text-sm font-medium text-gray-700 mb-3">{title}</h4>
@@ -233,13 +121,13 @@ const MaterialsViewer = () => {
             <div key={index} className="flex-1 flex flex-col items-center">
               <div
                 className="w-full bg-blue-500 rounded-t"
-                style={{ height: `${(value / maxValue) * 100}%` }}
+                style={{ height: `${(value.value_R / maxValue) * 100}%` }}
               />
               <span className="text-xs text-gray-500 mt-1">
                 {FREQUENCY_BANDS[index]}
               </span>
               <span className="text-xs font-medium">
-                {value.toFixed(2)}
+                {value.value_R.toFixed(2)}
               </span>
             </div>
           ))}
@@ -249,7 +137,13 @@ const MaterialsViewer = () => {
   };
 
   // Componente Card para vista de tarjetas
-  const MaterialCard = ({ materialKey, material }) => {
+  const MaterialCard = ({
+    materialKey,
+    material
+  }: {
+    materialKey: string;
+    material: typeof ACOUSTIC_MATERIAL_PROPERTIES[keyof typeof ACOUSTIC_MATERIAL_PROPERTIES];
+  }) => {
     const category = getMaterialCategory(materialKey);
     return (
       <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200">
@@ -276,21 +170,21 @@ const MaterialsViewer = () => {
               <p className="text-xs text-gray-500 uppercase tracking-wide">Rw (dB)</p>
               <p className="text-xl font-bold text-gray-900">{material.rw}</p>
             </div>
-            <div className="bg-gray-50 p-3 rounded-lg">
+            {/* <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-xs text-gray-500 uppercase tracking-wide">NRC</p>
               <p className="text-xl font-bold text-gray-900">{material.nrc.toFixed(2)}</p>
-            </div>
+            </div> */}
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Densidad</p>
               <p className="text-sm font-semibold text-gray-900">{material.density} kg/m³</p>
             </div>
-            <div className="bg-gray-50 p-3 rounded-lg">
+            {/* <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Espesor</p>
               <p className="text-sm font-semibold text-gray-900">{(material.thickness * 1000).toFixed(1)} mm</p>
-            </div>
+            </div> */}
           </div>
 
-          <AbsorptionChart absorption={material.absorption} title="Coeficientes de Absorción" />
+          <AbsorptionChart absorption={material.acoustic_indices} title="Coeficientes de Absorción" />
         </div>
       </div>
     );
@@ -325,7 +219,7 @@ const MaterialsViewer = () => {
                   <Info className="mr-2" size={20} />
                   Propiedades Físicas
                 </h3>
-                <div className="space-y-3">
+                {/* <div className="space-y-3">
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Masa Superficial:</span>
                     <span className="font-medium">{selectedMaterial.surfaceMass} kg/m²</span>
@@ -346,7 +240,7 @@ const MaterialsViewer = () => {
                     <span className="text-gray-600">Tortuosidad:</span>
                     <span className="font-medium">{selectedMaterial.tortuosity}</span>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Propiedades acústicas */}
@@ -360,7 +254,7 @@ const MaterialsViewer = () => {
                     <span className="text-gray-600">Rw (Índice de reducción):</span>
                     <span className="font-medium">{selectedMaterial.rw} dB</span>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
+                  {/* <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">C (Término espectral):</span>
                     <span className="font-medium">{selectedMaterial.c} dB</span>
                   </div>
@@ -375,20 +269,16 @@ const MaterialsViewer = () => {
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Resistividad al flujo:</span>
                     <span className="font-medium">{selectedMaterial.flowResistivity} Pa·s/m²</span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
 
             {/* Gráficos */}
             <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AbsorptionChart 
-                absorption={selectedMaterial.absorption} 
-                title="Coeficientes de Absorción por Frecuencia" 
-              />
-              <AbsorptionChart 
-                absorption={selectedMaterial.transmissionLoss} 
-                title="Pérdidas de Transmisión (dB)" 
+              <AbsorptionChart
+                absorption={selectedMaterial.acoustic_indices}
+                title="Coeficientes de Absorción por Frecuencia"
               />
             </div>
           </div>
@@ -445,21 +335,19 @@ const MaterialsViewer = () => {
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('cards')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'cards'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === 'cards'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 Tarjetas
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'table'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === 'table'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 Tabla
               </button>
@@ -524,9 +412,6 @@ const MaterialsViewer = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {material.rw}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {material.nrc.toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {material.density} kg/m³
