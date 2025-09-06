@@ -8,62 +8,63 @@ import { MaterialCard } from './components/MaterialCard';
 import { MaterialsTable } from './components/MaterialsTable';
 import { MaterialDetailModal } from './components/MaterialDetailModal';
 import { CreateMaterialModal } from './components/CreateMaterialModal';
+import { EditMaterialModal } from './components/EditMaterialModal';
+import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 import { EmptyState } from './components/EmptyState';
-import { Skeleton } from '@/shared/ui/skeleton'; // Assuming this is the correct path
+import { Skeleton } from '@/shared/ui/skeleton';
 
 // Hooks
 import { useMaterials } from './hooks/useMaterials';
-import { CreateMaterialRequest } from '@/services/materialsService';
 
 const MaterialsViewer = () => {
   const {
-    searchTerm,
-    setSearchTerm,
-    selectedCategory,
-    setSelectedCategory,
-    viewMode,
-    setViewMode,
-    selectedMaterial,
-    setSelectedMaterial,
+    // State
     materials,
+    viewMode,
     isLoading,
+    isSubmitting,
     error,
-    isCreateModalOpen,
-    openCreateModal,
-    closeCreateModal,
-    addMaterial
+    searchTerm,
+    selectedCategory,
+    selectedMaterial, // For details
+    materialToEdit,
+    materialToDelete,
+    
+    // State Setters
+    setViewMode,
+    setSearchTerm,
+    setSelectedCategory,
+    setSelectedMaterial,
+
+    // CRUD Actions
+    createMaterial,
+    updateMaterial,
+    deleteMaterial,
+
+    // Modal Handlers
+    handleOpenEditModal,
+    handleCloseEditModal,
+    handleOpenDeleteModal,
+    handleCloseDeleteModal,
   } = useMaterials();
 
-  const handleCloseModal = () => {
-    setSelectedMaterial(null);
-  };
-
-  const handleSaveMaterial = async (materialData: CreateMaterialRequest) => {
-    try {
-      await addMaterial(materialData);
-      // The modal will be closed on success from the hook
-    } catch (err) {
-      // The hook already sets the error state, but you might want to show a notification here
-      console.error("Failed to save material from page");
-    }
-  };
+  // Separate state for create modal to not conflict with edit/delete flows
+  const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
 
   const renderContent = () => {
     if (isLoading) {
-      return (
-        viewMode === 'cards' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Skeleton key={index} className="h-48 w-full" />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <Skeleton key={index} className="h-12 w-full" />
-            ))}
-          </div>
-        )
+      return viewMode === 'cards' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Skeleton key={index} className="h-48 w-full" />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Skeleton key={index} className="h-12 w-full" />
+          ))}
+        </div>
       );
     }
 
@@ -72,7 +73,7 @@ const MaterialsViewer = () => {
     }
 
     if (materials.length === 0) {
-      return <EmptyState />;
+      return <EmptyState onCreateNew={() => setIsCreateModalOpen(true)} />;
     }
 
     return viewMode === 'cards' ? (
@@ -81,7 +82,9 @@ const MaterialsViewer = () => {
           <MaterialCard 
             key={material._id} 
             material={material}
-            onViewDetails={() => setSelectedMaterial(material)}
+            onViewDetails={setSelectedMaterial}
+            onEdit={handleOpenEditModal}
+            onDelete={handleOpenDeleteModal}
           />
         ))}
       </div>
@@ -89,6 +92,8 @@ const MaterialsViewer = () => {
       <MaterialsTable 
         materials={materials}
         onViewDetails={setSelectedMaterial}
+        onEdit={handleOpenEditModal}
+        onDelete={handleOpenDeleteModal}
       />
     );
   };
@@ -106,7 +111,7 @@ const MaterialsViewer = () => {
             onCategoryChange={setSelectedCategory}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
-            onCreateMaterial={openCreateModal}
+            onCreateMaterial={() => setIsCreateModalOpen(true)}
           />
 
           <div className="mb-6">
@@ -117,15 +122,34 @@ const MaterialsViewer = () => {
 
           {renderContent()}
 
+          {/* Modals */}
           <MaterialDetailModal 
             material={selectedMaterial}
-            onClose={handleCloseModal}
+            onClose={() => setSelectedMaterial(null)}
           />
 
           <CreateMaterialModal
             isOpen={isCreateModalOpen}
-            onClose={closeCreateModal}
-            onSave={handleSaveMaterial}
+            onClose={() => setIsCreateModalOpen(false)}
+            onSave={async (data) => {
+              await createMaterial(data);
+              setIsCreateModalOpen(false);
+            }}
+          />
+
+          <EditMaterialModal
+            isOpen={!!materialToEdit}
+            onClose={handleCloseEditModal}
+            material={materialToEdit}
+            onSave={updateMaterial}
+          />
+
+          <DeleteConfirmationModal
+            isOpen={!!materialToDelete}
+            onClose={handleCloseDeleteModal}
+            onConfirm={deleteMaterial}
+            materialName={materialToDelete?.name || ''}
+            isLoading={isSubmitting}
           />
         </div>
       </div>
