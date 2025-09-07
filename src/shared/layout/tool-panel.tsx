@@ -220,7 +220,7 @@ export function ToolPanel({
 
           {/* Info del Sistema */}
           <div className="text-xs text-muted-foreground space-y-1 p-2 bg-muted/30 rounded">
-            <div>🎯 WebGL 3D Builder v1.0</div>
+            <div>🎯 insonor v1.0</div>
             <div>🎮 Modo: Visualización 3D</div>
             <div>⚡ Rendimiento: 60 FPS</div>
           </div>

@@ -26,7 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">WebGL 3D Builder</BreadcrumbLink>
+                  <BreadcrumbLink href="#">insonor</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>

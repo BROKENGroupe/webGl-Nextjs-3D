@@ -575,15 +575,15 @@ export default function DrawingScene() {
         {/* MODO 3D - Renderizar con funcionalidad de drag & drop */}
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           <ExtrudedShapeWithDraggableOpenings
-            planeCoordinates={[]} // Se ignora, usa drawingStore internamente
+            planeCoordinates={[]} 
             onDropOpening={handleDropOpening}
             isDragActive={isDragActive}
             draggedTemplate={draggedTemplate}
-            showHeatmap={showHeatmap} // <-- PASA EL ESTADO
-            onToggleHeatmap={handleToggleHeatmap} // <-- PASA EL HANDLER
+            showHeatmap={showHeatmap} 
+            onToggleHeatmap={handleToggleHeatmap} 
             onAddFloor={handleAddFloor}
             floors={floors}
-            onWallContextMenu={handleWallContextMenu} // <-- NUEVO PROP
+            onWallContextMenu={handleWallContextMenu} 
           />
         )}
       </Canvas>
@@ -675,7 +675,7 @@ export default function DrawingScene() {
 
       <PropertiesModal
         visible={showPropertiesModal}
-        wallIndex={2}
+        wallIndex={selectedFacadeName ?? 0}
         onClose={() => setShowPropertiesModal(false)}
       />
 
