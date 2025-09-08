@@ -58,3 +58,92 @@ export const windowDoubleGlazed: AcousticMaterial = {
   width: 0.9,
   bottomOffset: 1
 };
+
+// Ventana laminada (window-laminated)
+export const windowLaminated: AcousticMaterial = {
+  id: "window-laminated",
+  descriptor: "Laminated Glass Window",
+  subtype: "Laminated Safety Glass",
+  type: "Window",
+  thickness_mm: 8,
+  mass_kg_m2: 17,
+  catalog: "SON Catalog",
+  color: "Transparent",
+  doubleLeaf: false,
+  lightweightElement: true,
+  layers: [
+    { name: "Laminated glass", thickness_mm: 8 }
+  ],
+  thirdOctaveBands: {
+    50: 16, 63: 17, 80: 18, 100: 19, 125: 20, 160: 21, 200: 22, 250: 23, 315: 24, 400: 25,
+    500: 27, 630: 27, 800: 26, 1000: 27, 1250: 26, 1600: 25, 2000: 24, 2500: 23, 3150: 22, 4000: 21, 5000: 20
+  },
+  octaveBands: [
+    { range: "125-4000", value: "28(-2;-5)" }
+  ],
+  weightedIndex: { Rw: 28, C: -2, Ctr: -5 },
+  height: 0.1,
+  width: 0.9,
+  bottomOffset: 2
+};
+
+// Ventana triple vidrio (window-triple-glazed)
+export const windowTripleGlazed: AcousticMaterial = {
+  id: "window-triple-glazed",
+  descriptor: "Triple Glazing Window",
+  subtype: "Triple Glass Argon",
+  type: "Window",
+  thickness_mm: 36,
+  mass_kg_m2: 22,
+  catalog: "insonor Catalog",
+  color: "Transparent",
+  doubleLeaf: false,
+  lightweightElement: true,
+  layers: [
+    { name: "Glass pane 1", thickness_mm: 6 },
+    { name: "Argon gap 1", thickness_mm: 12 },
+    { name: "Glass pane 2", thickness_mm: 6 },
+    { name: "Argon gap 2", thickness_mm: 6 },
+    { name: "Glass pane 3", thickness_mm: 6 }
+  ],
+  thirdOctaveBands: {
+    50: 26, 63: 28, 80: 30, 100: 31, 125: 32, 160: 34, 200: 36, 250: 37, 315: 38, 400: 39,
+    500: 39, 630: 38, 800: 37, 1000: 39, 1250: 38, 1600: 37, 2000: 36, 2500: 35, 3150: 34, 4000: 33,
+    5000: 32
+  },
+  octaveBands: [
+    { range: "125-4000", value: "39(-1;-3)" }
+  ],
+  weightedIndex: { Rw: 39, C: -1, Ctr: -3 },
+  height: 0.1,
+  width: 0.9,
+  bottomOffset: 1
+};
+
+// Ventana acústica (window-acoustic)
+export const windowAcoustic: AcousticMaterial = {
+  id: "window-acoustic",
+  descriptor: "Acoustic Window",
+  subtype: "Special Acoustic Glass",
+  type: "Window",
+  thickness_mm: 12,
+  mass_kg_m2: 25,
+  catalog: "insonor Catalog",
+  color: "Transparent",
+  doubleLeaf: false,
+  lightweightElement: false,
+  layers: [
+    { name: "Acoustic glass", thickness_mm: 12 }
+  ],
+  thirdOctaveBands: {
+    50: 20, 63: 22, 80: 24, 100: 25, 125: 26, 160: 28, 200: 30, 250: 32, 315: 33, 400: 34,
+    500: 36, 630: 36, 800: 35, 1000: 36, 1250: 35, 1600: 34, 2000: 33, 2500: 32, 3150: 31, 4000: 30, 5000: 29
+  },
+  octaveBands: [
+    { range: "125-4000", value: "36(-1;-3)" }
+  ],
+  weightedIndex: { Rw: 36, C: -1, Ctr: -3 },
+  height: 0.1,
+  width: 0.9,
+  bottomOffset: 1
+};

@@ -15,7 +15,13 @@ import {
   wallLightWoodPanel,
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
-import { windowStandard, windowDoubleGlazed } from "@/data/acousticWindows";
+import {
+  windowStandard,
+  windowDoubleGlazed,
+  windowAcoustic,
+  windowLaminated,
+  windowTripleGlazed,
+} from "@/data/acousticWindows";
 import { doorAcoustic, doorDouble, doorStandard } from "@/data/acousticDoors";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { useOpeningsStore } from "../../store/openingsStore";
@@ -39,6 +45,9 @@ const acousticMaterialsData = [
   wallLightWoodPanel,
   wallThinBrickPartition,
   windowStandard,
+  windowTripleGlazed,
+  windowAcoustic,
+  windowLaminated,
   windowDoubleGlazed,
   doorStandard,
   doorDouble,
@@ -106,9 +115,8 @@ export default function MaterialModal({
         typeFilter === "all"
           ? true
           : typeFilter === "wall"
-          ? material.type
-              ?.toLowerCase()
-              .includes("wall") || material.type?.toLowerCase().includes("partition")
+          ? material.type?.toLowerCase().includes("wall") ||
+            material.type?.toLowerCase().includes("partition")
           : typeFilter === "door"
           ? material.type?.toLowerCase().includes("door")
           : typeFilter === "window"
@@ -221,16 +229,20 @@ export default function MaterialModal({
                     <span className="font-medium">Tipo:</span> {material.type}
                   </div>
                   <div>
-                    <span className="font-medium">Subtipo:</span> {material.subtype}
+                    <span className="font-medium">Subtipo:</span>{" "}
+                    {material.subtype}
                   </div>
                   <div>
-                    <span className="font-medium">Espesor:</span> {material.thickness_mm} mm
+                    <span className="font-medium">Espesor:</span>{" "}
+                    {material.thickness_mm} mm
                   </div>
                   <div>
-                    <span className="font-medium">Masa:</span> {material.mass_kg_m2} kg/m²
+                    <span className="font-medium">Masa:</span>{" "}
+                    {material.mass_kg_m2} kg/m²
                   </div>
                   <div>
-                    <span className="font-medium">Rw:</span> {material.weightedIndex?.Rw} dB
+                    <span className="font-medium">Rw:</span>{" "}
+                    {material.weightedIndex?.Rw} dB
                   </div>
                   <div>
                     <span className="font-medium">Color:</span> {material.color}

@@ -15,7 +15,7 @@ import {
   wallLightWoodPanel,
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
-import { windowStandard, windowDoubleGlazed } from "@/data/acousticWindows";
+import { windowStandard, windowDoubleGlazed, windowLaminated, windowAcoustic, windowTripleGlazed } from "@/data/acousticWindows";
 import { useOpeningsStore } from "../../store/openingsStore";
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 
@@ -37,12 +37,13 @@ async function fetchAcousticWalls() {
     wallLightWoodPanel,
     wallThinBrickPartition,
     windowStandard,
-    windowDoubleGlazed,
-    windowStandard,
+    windowTripleGlazed,
+    windowAcoustic,
+    windowLaminated,
     windowDoubleGlazed,
     doorStandard,
     doorDouble,
-    doorAcoustic,
+    doorAcoustic
   ];
 }
 

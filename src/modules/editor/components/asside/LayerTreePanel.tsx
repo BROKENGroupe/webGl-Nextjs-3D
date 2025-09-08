@@ -127,9 +127,9 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
 
   return (
     <div className="flex flex-col h-full my-2">
-      <div className="text-[15px] font-semibold text-blue-700 flex items-center gap-2 mb-1">
+      <div className="text-[15px] font-semibold text-black flex items-center gap-2 mb-1">
         <span>Árbol de Capas</span>
-        <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200 text-[12px] font-medium">
+        <Badge variant="outline" className="ml-2 bg-gray-100 text-black border-gray-300 text-[12px] font-medium">
           {walls.length} fachadas
         </Badge>
       </div>
@@ -140,12 +140,12 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
           return (
             <div
               key={floorId}
-              className="flex items-center gap-3 mb-2 px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 transition-all min-h-[28px]"
+              className="flex items-center gap-3 mb-2 px-2 py-1 rounded bg-gray-50 hover:bg-gray-100 transition-all min-h-[28px]"
             >
               <span className="flex items-center justify-center w-5 h-5 rounded bg-gray-100 border border-gray-300 shadow-sm">
-                <span role="img" aria-label="floor" className="text-blue-700 text-[13px]">🟫</span>
+                <span role="img" aria-label="floor" className="text-black text-[13px]">🟫</span>
               </span>
-              <span className="text-[13px] text-blue-800 font-medium min-w-[70px]">
+              <span className="text-[13px] text-black font-medium min-w-[70px]">
                 Piso <span className="font-bold">{floor.template?.descriptor}</span>
               </span>
               <span className="text-[11px] text-gray-500 italic ml-2">
@@ -159,7 +159,7 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="p-1 rounded hover:bg-blue-100 transition">
+                    <button className="p-1 rounded hover:bg-gray-100 transition">
                       <MoreVertical size={13} />
                     </button>
                   </DropdownMenuTrigger>
@@ -183,12 +183,12 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
           return (
             <div
               key={ceilingId}
-              className="flex items-center gap-3 mb-2 px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 transition-all min-h-[28px]"
+              className="flex items-center gap-3 mb-2 px-2 py-1 rounded bg-gray-50 hover:bg-gray-100 transition-all min-h-[28px]"
             >
               <span className="flex items-center justify-center w-5 h-5 rounded bg-gray-100 border border-gray-300 shadow-sm">
-                <span role="img" aria-label="ceiling" className="text-blue-700 text-[13px]">⬛</span>
+                <span role="img" aria-label="ceiling" className="text-black text-[13px]">⬛</span>
               </span>
-              <span className="text-[13px] text-blue-800 font-medium min-w-[70px]">
+              <span className="text-[13px] text-black font-medium min-w-[70px]">
                 Techo <span className="font-bold">{ceiling.template?.descriptor}</span>
               </span>
               <span className="text-[11px] text-gray-500 italic ml-2">
@@ -202,7 +202,7 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="p-1 rounded hover:bg-blue-100 transition">
+                    <button className="p-1 rounded hover:bg-gray-100 transition">
                       <MoreVertical size={13} />
                     </button>
                   </DropdownMenuTrigger>
@@ -227,12 +227,12 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
             const wallOpenings = openings.filter((opening: any) => opening.wallIndex === idx);
             return (
               <AccordionItem key={wallId} value={wallId}>
-                <AccordionTrigger className="flex items-center gap-2 px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded transition-all min-h-[32px]">
+                <AccordionTrigger className="flex items-center gap-2 px-2 py-1 bg-gray-50 hover:bg-gray-100 rounded transition-all min-h-[32px]">
                   <span className="flex items-center gap-2">
-                    <Badge variant="secondary" className="mr-1 text-lg px-1 py-1 bg-white border border-blue-200 shadow-sm">
+                    <Badge variant="secondary" className="mr-1 text-lg px-1 py-1 bg-white border border-gray-300 shadow-sm">
                       <span className="text-[15px]">🧱</span>
                     </Badge>
-                    <span className="text-[13px] font-medium text-blue-800">
+                    <span className="text-[13px] font-medium text-black">
                       Fachada <span className="font-bold">{idx + 1} {wall.template?.descriptor || wall.descriptor}</span>
                     </span>
                   </span>
@@ -247,7 +247,7 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                     />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="p-1 rounded hover:bg-blue-100 transition">
+                        <button className="p-1 rounded hover:bg-gray-100 transition">
                           <MoreVertical size={13} />
                         </button>
                       </DropdownMenuTrigger>
@@ -271,16 +271,16 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({ onSelect, onVisi
                         return (
                           <div
                             key={openingId}
-                            className="flex items-center gap-3 mb-2 px-2 py-1 rounded hover:bg-blue-50 transition-all min-h-[24px]"
+                            className="flex items-center gap-3 mb-2 px-2 py-1 rounded hover:bg-gray-50 transition-all min-h-[24px]"
                           >
                             <span className="flex items-center justify-center w-5 h-5 rounded bg-gray-100 border border-gray-300 shadow-sm">
                               {isWindow ? (
-                                <Wind size={13} className="text-blue-500" />
+                                <Wind size={13} className="text-black" />
                               ) : (
-                                <DoorOpen size={13} className="text-orange-700" />
+                                <DoorOpen size={13} className="text-black" />
                               )}
                             </span>
-                            <span className="text-[12px] text-gray-700 font-medium min-w-[70px]">
+                            <span className="text-[12px] text-gray-800 font-medium min-w-[70px]">
                               {isWindow ? "Ventana" : "Puerta"} <span className="font-bold">{oidx + 1}</span>
                             </span>
                             <span className="text-[11px] text-gray-500 italic flex-1">

@@ -22,7 +22,7 @@ import {
   wallLightWoodPanel,
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
-import { windowStandard, windowDoubleGlazed } from "@/data/acousticWindows";
+import { windowStandard, windowDoubleGlazed, windowAcoustic, windowLaminated, windowTripleGlazed } from "@/data/acousticWindows";
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 import { ceilingConcreteSlab, floorConcreteSlab } from "@/data/floors";
 
@@ -55,6 +55,9 @@ const PALETTE_MATERIALS: AcousticMaterial[] = [
   // Ventanas
   windowStandard,
   windowDoubleGlazed,
+  windowLaminated,
+  windowAcoustic,
+  windowTripleGlazed,
   // Puertas
   doorStandard,
   doorDouble,
@@ -215,16 +218,16 @@ export function LayerPanel({
                       );
                       return (
                         <AccordionItem key={group} value={group}>
-                          <AccordionTrigger className="bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded text-blue-700 font-semibold text-[15px] mb-2">
+                          <AccordionTrigger className="bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded text-black font-semibold text-[15px] mb-2">
                             {group}
                           </AccordionTrigger>
                           <AccordionContent>
                             <div className="
-  grid
-  grid-cols-2
-  gap-4
-  mb-4
-">
+      grid
+      grid-cols-2
+      gap-4
+      mb-4
+    ">
                               {filteredMaterials.map((material) => (
                                 <div
                                   key={material.descriptor}
@@ -241,14 +244,13 @@ export function LayerPanel({
                                     handleOpeningDragEnd(setDraggedItem);
                                   }}
                                   className={`flex flex-col border border-gray-200 rounded-2xl shadow-md bg-white p-5 transition-all
-        ${
-          draggedItem?.descriptor === material.descriptor
-            ? "cursor-grabbing"
-            : "cursor-grab"
-        }
-        w-full min-w-0
-        hover:shadow-lg
-        `}
+            ${draggedItem?.descriptor === material.descriptor
+              ? "cursor-grabbing"
+              : "cursor-grab"
+            }
+            w-full min-w-0
+            hover:shadow-lg
+          `}
                                   style={{
                                     minHeight: "150px",
                                     margin: "0",
@@ -266,15 +268,15 @@ export function LayerPanel({
                                     <span className="text-2xl">
                                       {material.imageRef || "🧱"}
                                     </span>
-                                    <span className="font-semibold text-gray-800 text-[14px] truncate">
+                                    <span className="font-semibold text-black text-[14px] truncate">
                                       {material.descriptor}
                                     </span>
                                   </div>
-                                  <div className="text-[12px] text-gray-600 mb-1">
+                                  <div className="text-[12px] text-gray-800 mb-1">
                                     <span className="font-medium">Tipo:</span>{" "}
                                     {material.type}
                                   </div>
-                                  <div className="text-[11px] text-gray-500 mb-1">
+                                  <div className="text-[11px] text-gray-600 mb-1">
                                     <span className="font-medium">
                                       Espesor:
                                     </span>{" "}
@@ -284,7 +286,7 @@ export function LayerPanel({
                                     </span>{" "}
                                     {material.mass_kg_m2} kg/m²
                                   </div>
-                                  <div className="text-[11px] text-blue-700 mb-1">
+                                  <div className="text-[11px] text-black mb-1">
                                     <span className="font-medium">Rw:</span>{" "}
                                     {material.weightedIndex?.Rw} dB
                                   </div>
