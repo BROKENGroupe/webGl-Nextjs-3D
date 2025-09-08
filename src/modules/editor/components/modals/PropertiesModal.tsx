@@ -88,7 +88,15 @@ export default function PropertiesModal({
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent 
+      className="w-[70vw]"
+        style={{
+          maxHeight: "95vh",
+          minHeight: "600px",
+          overflowY: "auto",
+          padding: "0",
+        }}
+      >
         <DialogHeader>
           <DialogTitle>
             {elementType === "wall" && "Propiedades de la fachada"}

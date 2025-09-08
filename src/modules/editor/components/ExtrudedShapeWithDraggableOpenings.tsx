@@ -92,8 +92,16 @@ interface ExtrudedShapeWithDraggableOpeningsProps {
   onToggleHeatmap?: () => void;
   onAddFloor?: () => void;
   floors?: any[];
-  onWallContextMenu?: (event: any, facadeName: number, elementType: "wall" | "opening" | "floor" | "ceiling") => void;
-  onOpeningContextMenu?: (event: any, openingId: string, elementType: "wall" | "opening" | "floor" | "ceiling") => void;
+  onWallContextMenu?: (
+    event: any,
+    facadeName: number,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => void;
+  onOpeningContextMenu?: (
+    event: any,
+    openingId: string,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => void;
 }
 
 /**
@@ -757,7 +765,6 @@ export function ExtrudedShapeWithDraggableOpenings({
                   onContextMenu={(e) => {
                     e.stopPropagation();
                     if (onWallContextMenu) {
-                      
                       onWallContextMenu(
                         e.nativeEvent,
                         e.object.userData.wallIndex,
@@ -794,25 +801,34 @@ export function ExtrudedShapeWithDraggableOpenings({
                       nextCoord
                     );
 
+                  // Nuevas variables para altura y centrado
+                  const openingHeight = opening.height ?? 1.2;
+                  const wallHeight = depth; // Altura de la pared
+
+                  const centeredY =
+                    (wallHeight - openingHeight) / 2 + openingHeight / 2;
+
                   return (
                     <group key={`opening-${index}-${opening.id}`}>
                       {/* ESFERA PRINCIPAL de la abertura */}
                       <mesh
                         position={[
                           displayPosition.x,
-                          displayPosition.y,
+                          centeredY,
                           displayPosition.z,
                         ]}
                         userData={{ opening, type: "opening" }}
                         // Solo drag con click izquierdo
                         onPointerDown={(e) => {
-                          if (e.button === 0) { // Solo botón izquierdo
+                          if (e.button === 0) {
+                            // Solo botón izquierdo
                             e.stopPropagation();
                             handleOpeningPointerDown(opening, e);
                           }
                         }}
                         onPointerUp={(e) => {
-                          if (e.button === 0) { // Solo botón izquierdo
+                          if (e.button === 0) {
+                            // Solo botón izquierdo
                             e.stopPropagation();
                             handleOpeningPointerUp();
                           }
@@ -929,22 +945,20 @@ export function ExtrudedShapeWithDraggableOpenings({
                           displayPosition.y,
                           displayPosition.z,
                         ]}
+                        //rotation={[0, opening.wallAngle ?? 0, 0]} // <-- Asegúrate de pasar el ángulo correcto
                         userData={{ opening, type: "opening" }}
                         onPointerDown={(e) => {
-                          e.stopPropagation();
-                          handleOpeningPointerDown(opening, e);
+                          if (e.button === 0) {
+                            e.stopPropagation();
+                            handleOpeningPointerDown(opening, e);
+                          }
                         }}
                         onPointerUp={(e) => {
-                          e.stopPropagation();
-                          handleOpeningPointerUp();
+                          if (e.button === 0) {
+                            e.stopPropagation();
+                            handleOpeningPointerUp();
+                          }
                         }}
-                        // onPointerMove={(e) => {
-                        //   e.stopPropagation();
-                        //   if (isBeingDragged) {
-                        //     handleMouseMove(e);
-                        //   }
-                        // }}                      
-                        
                         onContextMenu={(e) => {
                           e.stopPropagation();
                           onOpeningContextMenu &&
@@ -955,8 +969,13 @@ export function ExtrudedShapeWithDraggableOpenings({
                             );
                         }}
                       >
-                        {/* Usa una geometría que cubra el hueco, por ejemplo un box */}
-                        <boxGeometry args={[opening.width ?? 0.8, opening.height ?? 1.2, 0.05]} />
+                        <boxGeometry
+                          args={[
+                            opening.width ?? 0.8,
+                            opening.height ?? 1.2,
+                            0.05,
+                          ]}
+                        />
                         <meshBasicMaterial transparent opacity={0} />
                       </mesh>
                     </group>

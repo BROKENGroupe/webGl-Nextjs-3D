@@ -16,10 +16,9 @@ import {
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
 import { windowStandard, windowDoubleGlazed } from "@/data/acousticWindows";
-
+import { doorAcoustic, doorDouble, doorStandard } from "@/data/acousticDoors";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { useOpeningsStore } from "../../store/openingsStore";
-import { doorAcoustic, doorDouble, doorStandard } from "@/data/acousticDoors";
 
 type ElementType = "wall" | "opening" | "floor" | "ceiling";
 
@@ -41,11 +40,18 @@ const acousticMaterialsData = [
   wallThinBrickPartition,
   windowStandard,
   windowDoubleGlazed,
-  windowStandard,
-  windowDoubleGlazed,
   doorStandard,
   doorDouble,
   doorAcoustic,
+];
+
+const typeOptions = [
+  { value: "all", label: "Todos" },
+  { value: "wall", label: "Paredes" },
+  { value: "door", label: "Puertas" },
+  { value: "window", label: "Ventanas" },
+  { value: "floor", label: "Pisos" },
+  { value: "ceiling", label: "Techos" },
 ];
 
 export default function MaterialModal({
@@ -58,6 +64,7 @@ export default function MaterialModal({
   onClose,
 }: MaterialModalProps) {
   const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const walls = useWallsStore((state) => state.walls);
   const openings = useOpeningsStore((state) => state.openings);
   const floors = useWallsStore((state) => state.floors);
@@ -91,10 +98,29 @@ export default function MaterialModal({
 
   // Filtra los materiales usando useMemo
   const filtered = useMemo(() => {
-    return acousticMaterialsData.filter((material) =>
-      material.descriptor.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [query]);
+    return acousticMaterialsData.filter((material) => {
+      const matchesQuery = material.descriptor
+        .toLowerCase()
+        .includes(query.toLowerCase());
+      const matchesType =
+        typeFilter === "all"
+          ? true
+          : typeFilter === "wall"
+          ? material.type
+              ?.toLowerCase()
+              .includes("wall") || material.type?.toLowerCase().includes("partition")
+          : typeFilter === "door"
+          ? material.type?.toLowerCase().includes("door")
+          : typeFilter === "window"
+          ? material.type?.toLowerCase().includes("window")
+          : typeFilter === "floor"
+          ? material.type?.toLowerCase().includes("floor")
+          : typeFilter === "ceiling"
+          ? material.type?.toLowerCase().includes("ceiling")
+          : true;
+      return matchesQuery && matchesType;
+    });
+  }, [query, typeFilter]);
 
   // Handler para seleccionar material según el tipo de elemento
   const handleSelectMaterial = (material: any) => {
@@ -117,20 +143,20 @@ export default function MaterialModal({
   return (
     <Dialog open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent
-        className="w-[90vw] max-w-full"
+        className="w-[90vw] max-w-[1600px]"
         style={{
-          maxHeight: "90vh",
-          minHeight: "500px",
+          maxHeight: "95vh",
+          minHeight: "600px",
           overflowY: "auto",
           padding: "0",
         }}
       >
-        <DialogHeader className="sticky top-0 bg-white z-10 px-8 pt-8">
+        <DialogHeader className="sticky top-0 bg-white z-10 px-12 pt-10">
           <DialogTitle>
-            <span className="text-lg font-semibold">
+            <span className="text-2xl font-bold">
               Biblioteca de materiales acústicos
             </span>
-            <span className="block text-base text-gray-500 mt-1">
+            <span className="block text-lg text-gray-500 mt-2">
               Selecciona el material para:{" "}
               <span className="text-blue-700 font-bold">
                 {selectedElement?.template?.descriptor ||
@@ -140,24 +166,46 @@ export default function MaterialModal({
             </span>
           </DialogTitle>
         </DialogHeader>
-        <div className="px-8 pt-4 pb-8">
-          <Input
-            placeholder="Buscar material..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="mb-6"
-          />
+        <div className="px-12 pt-6 pb-12">
+          <div className="flex gap-6 mb-8 items-center">
+            <Input
+              placeholder="Buscar material..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-[350px]"
+            />
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="border rounded-lg px-4 py-2 text-base bg-white shadow"
+            >
+              {typeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div
-            className="flex flex-wrap gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
             style={{ paddingBottom: "16px" }}
           >
             {filtered.map((material, idx) => (
               <div
                 key={material.descriptor + idx}
-                className="min-w-[280px] max-w-[320px] border rounded-xl p-6 bg-white shadow-lg hover:shadow-xl transition flex flex-col justify-between"
+                className="bg-white rounded-2xl shadow-lg border flex flex-col justify-between p-6"
+                style={{
+                  minWidth: "320px",
+                  maxWidth: "380px",
+                  minHeight: "320px",
+                  margin: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "16px",
+                }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="font-semibold text-base truncate">
+                  <div className="font-semibold text-lg truncate">
                     {material.descriptor}
                   </div>
                   <Button
@@ -168,33 +216,29 @@ export default function MaterialModal({
                     Seleccionar
                   </Button>
                 </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700 mb-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-base text-gray-700 mb-2">
                   <div>
                     <span className="font-medium">Tipo:</span> {material.type}
                   </div>
                   <div>
-                    <span className="font-medium">Subtipo:</span>{" "}
-                    {material.subtype}
+                    <span className="font-medium">Subtipo:</span> {material.subtype}
                   </div>
                   <div>
-                    <span className="font-medium">Espesor:</span>{" "}
-                    {material.thickness_mm} mm
+                    <span className="font-medium">Espesor:</span> {material.thickness_mm} mm
                   </div>
                   <div>
-                    <span className="font-medium">Masa:</span>{" "}
-                    {material.mass_kg_m2} kg/m²
+                    <span className="font-medium">Masa:</span> {material.mass_kg_m2} kg/m²
                   </div>
                   <div>
-                    <span className="font-medium">Rw:</span>{" "}
-                    {material.weightedIndex?.Rw} dB
+                    <span className="font-medium">Rw:</span> {material.weightedIndex?.Rw} dB
                   </div>
                   <div>
                     <span className="font-medium">Color:</span> {material.color}
                   </div>
                 </div>
-                <div className="mt-1">
+                <div>
                   <span className="font-medium">Capas:</span>
-                  <ul className="list-disc ml-4 text-xs text-gray-600">
+                  <ul className="list-disc ml-4 text-sm text-gray-600">
                     {material.layers.map((layer: any, idx: number) => (
                       <li key={idx}>
                         {layer.name} ({layer.thickness_mm} mm)
@@ -206,7 +250,7 @@ export default function MaterialModal({
             ))}
           </div>
         </div>
-        <DialogFooter className="px-8 pb-8">
+        <DialogFooter className="px-12 pb-12">
           <Button onClick={onClose} variant="secondary">
             Cerrar
           </Button>
