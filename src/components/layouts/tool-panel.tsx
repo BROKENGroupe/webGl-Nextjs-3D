@@ -31,7 +31,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/ui/collapsible"
-import { DraggableOpeningsPalette } from "@/modules/editor/components/DraggableOpeningsPalette"
+
 import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial"
 
 interface ToolPanelProps {
@@ -160,15 +160,15 @@ export function ToolPanel({
               </Button>
               
               {/* ✅ PALETA INTEGRADA EN EL PANEL */}
-              {showOpeningsPalette && onStartDrag && (
-                <div className="border border-border rounded-md p-2 bg-muted/50">
-                  <DraggableOpeningsPalette
-                    isVisible={showOpeningsPalette}
-                    onToggle={onToggleOpeningsPalette || (() => {})}
-                    onStartDrag={onStartDrag}
-                  />
-                </div>
-              )}
+              {/* {showOpeningsPalette && onStartDrag && (
+                // <div className="border border-border rounded-md p-2 bg-muted/50">
+                //   <DraggableOpeningsPalette
+                //     isVisible={showOpeningsPalette}
+                //     onToggle={onToggleOpeningsPalette || (() => {})}
+                //     onStartDrag={onStartDrag}
+                //   />
+                // </div>
+              )} */}
             </CollapsibleContent>
           </Collapsible>
 
