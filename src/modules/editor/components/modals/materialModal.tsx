@@ -1,5 +1,11 @@
 import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import React, { useMemo, useState } from "react";
 import {
@@ -9,36 +15,104 @@ import {
   wallLightWoodPanel,
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
+import { windowStandard, windowDoubleGlazed } from "@/data/acousticWindows";
+
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
+import { useOpeningsStore } from "../../store/openingsStore";
+import { doorAcoustic, doorDouble, doorStandard } from "@/data/acousticDoors";
+
+type ElementType = "wall" | "opening" | "floor" | "ceiling";
 
 interface MaterialModalProps {
   visible: boolean;
-  wallIndex: number;
+  wallIndex?: number;
+  openingId?: string;
+  floorId?: string;
+  ceilingId?: string;
+  elementType: ElementType;
   onClose: () => void;
 }
 
-const acousticWallsData = [
+const acousticMaterialsData = [
   wallCeramicBrick,
   wallConcreteBlock,
   wallGypsumBoard,
   wallLightWoodPanel,
-  wallThinBrickPartition
+  wallThinBrickPartition,
+  windowStandard,
+  windowDoubleGlazed,
+  windowStandard,
+  windowDoubleGlazed,
+  doorStandard,
+  doorDouble,
+  doorAcoustic,
 ];
 
-export default function MaterialModal({ visible, wallIndex, onClose }: MaterialModalProps) {
+export default function MaterialModal({
+  visible,
+  wallIndex,
+  openingId,
+  floorId,
+  ceilingId,
+  elementType,
+  onClose,
+}: MaterialModalProps) {
   const [query, setQuery] = useState("");
   const walls = useWallsStore((state) => state.walls);
+  const openings = useOpeningsStore((state) => state.openings);
+  const floors = useWallsStore((state) => state.floors);
+  const ceilings = useWallsStore((state) => state.ceilings);
   const updateWallByIndex = useWallsStore((state) => state.updateWallByIndex);
+  const updateOpeningMaterial = useOpeningsStore(
+    (state) => state.updateOpening
+  );
+  const updateFloorMaterial = useWallsStore((state) => state.addFloor);
+  const updateCeilingMaterial = useWallsStore((state) => state.addCeiling);
 
-  // Busca la pared seleccionada por wallIndex
-  const selectedWall = walls.find(w => w.wallIndex === wallIndex);
+  // Busca el elemento seleccionado según el tipo
+  let selectedElement: any = null;
+  if (elementType === "wall" && wallIndex !== undefined) {
+    selectedElement = walls.find((w) => w.wallIndex === wallIndex);
+  } else if (
+    elementType === "opening" &&
+    wallIndex !== undefined &&
+    openingId !== undefined
+  ) {
+    const wall = walls.find((w) => w.wallIndex === wallIndex);
+    selectedElement =
+      wall && "openings" in wall && Array.isArray((wall as any).openings)
+        ? (wall as any).openings.find((o: any) => o.id === openingId)
+        : null;
+  } else if (elementType === "floor" && floorId) {
+    selectedElement = floors.find((f: any) => f.id === floorId);
+  } else if (elementType === "ceiling" && ceilingId) {
+    selectedElement = ceilings.find((c: any) => c.id === ceilingId);
+  }
 
   // Filtra los materiales usando useMemo
   const filtered = useMemo(() => {
-    return acousticWallsData.filter(wall =>
-      wall.descriptor.toLowerCase().includes(query.toLowerCase())
+    return acousticMaterialsData.filter((material) =>
+      material.descriptor.toLowerCase().includes(query.toLowerCase())
     );
   }, [query]);
+
+  // Handler para seleccionar material según el tipo de elemento
+  const handleSelectMaterial = (material: any) => {
+    if (elementType === "wall" && wallIndex !== undefined) {
+      updateWallByIndex(wallIndex, { template: material });
+    } else if (
+      elementType === "opening" &&
+      wallIndex !== undefined &&
+      openingId !== undefined
+    ) {
+      updateOpeningMaterial(openingId, { template: material });
+    } else if (elementType === "floor" && floorId) {
+      updateFloorMaterial(Number(floorId), material);
+    } else if (elementType === "ceiling" && ceilingId) {
+      updateCeilingMaterial(Number(ceilingId), material);
+    }
+    onClose();
+  };
 
   return (
     <Dialog open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
@@ -53,9 +127,16 @@ export default function MaterialModal({ visible, wallIndex, onClose }: MaterialM
       >
         <DialogHeader className="sticky top-0 bg-white z-10 px-8 pt-8">
           <DialogTitle>
-            <span className="text-lg font-semibold">Biblioteca de materiales acústicos</span>
+            <span className="text-lg font-semibold">
+              Biblioteca de materiales acústicos
+            </span>
             <span className="block text-base text-gray-500 mt-1">
-              Selecciona el material para: <span className="text-blue-700 font-bold">{selectedWall?.template.descriptor}</span>
+              Selecciona el material para:{" "}
+              <span className="text-blue-700 font-bold">
+                {selectedElement?.template?.descriptor ||
+                  selectedElement?.descriptor ||
+                  "Elemento"}
+              </span>
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -63,7 +144,7 @@ export default function MaterialModal({ visible, wallIndex, onClose }: MaterialM
           <Input
             placeholder="Buscar material..."
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             className="mb-6"
           />
           <div
@@ -76,16 +157,13 @@ export default function MaterialModal({ visible, wallIndex, onClose }: MaterialM
                 className="min-w-[280px] max-w-[320px] border rounded-xl p-6 bg-white shadow-lg hover:shadow-xl transition flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="font-semibold text-base truncate">{material.descriptor}</div>
+                  <div className="font-semibold text-base truncate">
+                    {material.descriptor}
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      if (selectedWall) {
-                        updateWallByIndex(wallIndex, { template: material });
-                      }
-                      onClose();
-                    }}
+                    onClick={() => handleSelectMaterial(material)}
                   >
                     Seleccionar
                   </Button>
@@ -95,16 +173,20 @@ export default function MaterialModal({ visible, wallIndex, onClose }: MaterialM
                     <span className="font-medium">Tipo:</span> {material.type}
                   </div>
                   <div>
-                    <span className="font-medium">Subtipo:</span> {material.subtype}
+                    <span className="font-medium">Subtipo:</span>{" "}
+                    {material.subtype}
                   </div>
                   <div>
-                    <span className="font-medium">Espesor:</span> {material.thickness_mm} mm
+                    <span className="font-medium">Espesor:</span>{" "}
+                    {material.thickness_mm} mm
                   </div>
                   <div>
-                    <span className="font-medium">Masa:</span> {material.mass_kg_m2} kg/m²
+                    <span className="font-medium">Masa:</span>{" "}
+                    {material.mass_kg_m2} kg/m²
                   </div>
                   <div>
-                    <span className="font-medium">Rw:</span> {material.weightedIndex?.Rw} dB
+                    <span className="font-medium">Rw:</span>{" "}
+                    {material.weightedIndex?.Rw} dB
                   </div>
                   <div>
                     <span className="font-medium">Color:</span> {material.color}
@@ -125,7 +207,9 @@ export default function MaterialModal({ visible, wallIndex, onClose }: MaterialM
           </div>
         </div>
         <DialogFooter className="px-8 pb-8">
-          <Button onClick={onClose} variant="secondary">Cerrar</Button>
+          <Button onClick={onClose} variant="secondary">
+            Cerrar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

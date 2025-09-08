@@ -31,6 +31,7 @@ import ContextMenu from "./contextMenus/contextMenu";
 import FacadeContextMenu from "./contextMenus/FacadeContextMenu";
 import PropertiesModal from "./modals/PropertiesModal";
 import MaterialModal from "./modals/materialModal";
+import OpeningContextMenu from "./contextMenus/OpeningContextMenu";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -122,11 +123,32 @@ export default function DrawingScene() {
   const { openings, addOpening } = useOpeningsStore();
   const { coordinates } = useCoordinatesStore();
 
-  const handleWallContextMenu = (event: any, facadeName: number) => {
+  const [elementType, setElementType] = useState<
+    "wall" | "opening" | "floor" | "ceiling"
+  >("wall");
+
+  const handleWallContextMenu = (
+    event: any,
+    facadeName: number,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => {
     event.preventDefault();
     setMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedFacadeName(facadeName);
+    setElementType(elementType);
     setMenuVisible(true);
+  };
+
+  const handleOpeningContextMenu = (
+    event: any,
+    openingId: string,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => {
+    event.preventDefault();
+    setOpeningMenuPosition({ x: event.clientX, y: event.clientY });
+    setSelectedOpeningId(openingId);
+    setElementType(elementType);
+    setOpeningMenuVisible(true);
   };
 
   // ✅ NUEVO: Función para calcular Rw (necesaria para el modal)
@@ -501,6 +523,13 @@ export default function DrawingScene() {
   const [selectedFacadeName, setSelectedFacadeName] = useState<number | null>(
     null
   );
+
+  const [openingMenuVisible, setOpeningMenuVisible] = useState(false);
+  const [openingMenuPosition, setOpeningMenuPosition] = useState({
+    x: 0,
+    y: 0,
+  });
+  const [selectedOpeningId, setSelectedOpeningId] = useState<string>("");
   // State for MaterialModal visibility
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   // State for selected wall index for MaterialModal
@@ -575,15 +604,16 @@ export default function DrawingScene() {
         {/* MODO 3D - Renderizar con funcionalidad de drag & drop */}
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           <ExtrudedShapeWithDraggableOpenings
-            planeCoordinates={[]} 
+            planeCoordinates={[]}
             onDropOpening={handleDropOpening}
             isDragActive={isDragActive}
             draggedTemplate={draggedTemplate}
-            showHeatmap={showHeatmap} 
-            onToggleHeatmap={handleToggleHeatmap} 
+            showHeatmap={showHeatmap}
+            onToggleHeatmap={handleToggleHeatmap}
             onAddFloor={handleAddFloor}
             floors={floors}
-            onWallContextMenu={handleWallContextMenu} 
+            onWallContextMenu={handleWallContextMenu}
+            onOpeningContextMenu={handleOpeningContextMenu}
           />
         )}
       </Canvas>
@@ -613,6 +643,16 @@ export default function DrawingScene() {
         onProperties={handleProperties}
         onChangeMaterial={handleChangeMaterial}
         onClose={() => setMenuVisible(false)}
+      />
+
+      <OpeningContextMenu
+        x={openingMenuPosition.x}
+        y={openingMenuPosition.y}
+        visible={openingMenuVisible}
+        openingId={selectedOpeningId ?? ""}
+        onProperties={handleProperties}
+        onChangeMaterial={handleChangeMaterial}
+        onClose={() => setOpeningMenuVisible(false)}
       />
 
       {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
@@ -675,13 +715,17 @@ export default function DrawingScene() {
 
       <PropertiesModal
         visible={showPropertiesModal}
+        elementType={elementType}
         wallIndex={selectedFacadeName ?? 0}
+        openingId={selectedOpeningId ?? ""}
         onClose={() => setShowPropertiesModal(false)}
       />
 
       <MaterialModal
         visible={showMaterialModal}
         wallIndex={selectedFacadeName ?? 0}
+        openingId={selectedOpeningId ?? ""}
+        elementType={elementType}
         onClose={() => setShowMaterialModal(false)}
       />
     </div>
