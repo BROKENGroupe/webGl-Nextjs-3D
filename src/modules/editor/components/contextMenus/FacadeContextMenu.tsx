@@ -75,7 +75,7 @@ export default function FacadeContextMenu({
           }}
         >
           Propiedades
-        </button>
+        </button>       
       </PopoverContent>
     </Popover>
   );

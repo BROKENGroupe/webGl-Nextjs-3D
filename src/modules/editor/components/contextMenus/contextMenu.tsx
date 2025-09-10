@@ -34,6 +34,7 @@ export default function ContextMenu({
       }}
       onContextMenu={e => e.preventDefault()}
     >
+       <button onClick={onChangeMaterial}>Eliminar</button>
       <button onClick={onChangeMaterial}>Cambiar material</button>
       {/* <button onClick={onClose}>Cerrar</button> */}
       <button onClick={onProperties}>Propiedades</button>

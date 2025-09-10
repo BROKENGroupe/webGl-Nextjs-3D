@@ -46,25 +46,20 @@ type Layer = {
 };
 
 const PALETTE_MATERIALS: AcousticMaterial[] = [
-  // Fachadas (paredes)
   wallCeramicBrick,
   wallConcreteBlock,
   wallGypsumBoard,
   wallLightWoodPanel,
   wallThinBrickPartition,
-  // Ventanas
   windowStandard,
   windowDoubleGlazed,
   windowLaminated,
   windowAcoustic,
-  windowTripleGlazed,
-  // Puertas
+  windowTripleGlazed,  
   doorStandard,
   doorDouble,
   doorAcoustic,
-  // Pisos
   floorConcreteSlab,
-  // Techos
   ceilingConcreteSlab,
 ];
 

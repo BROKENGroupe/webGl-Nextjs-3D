@@ -44,6 +44,22 @@ export default function OpeningContextMenu({
         <div style={{ padding: "8px 16px", fontWeight: "bold", borderBottom: "1px solid #eee" }}>
           {openingId}
         </div>
+         <button
+          style={{
+            width: "100%",
+            padding: "10px 16px",
+            border: "none",
+            background: "none",
+            textAlign: "left",
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            onProperties();
+            onClose();
+          }}
+        >
+          Eliminar
+        </button>
         <button
           style={{
             width: "100%",
@@ -75,7 +91,7 @@ export default function OpeningContextMenu({
           }}
         >
           Propiedades
-        </button>
+        </button>        
       </PopoverContent>
     </Popover>
   );

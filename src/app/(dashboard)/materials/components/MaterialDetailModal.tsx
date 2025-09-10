@@ -6,7 +6,7 @@ import { MaterialDetail } from '../types/materials';
 import { getMaterialName } from '../utils/materials';
 
 interface MaterialDetailModalProps {
-  material: MaterialDetail | null;
+  material: any;
   onClose: () => void;
 }
 
@@ -34,7 +34,7 @@ export const MaterialDetailModal: React.FC<MaterialDetailModalProps> = ({
   if (!material) return null;
 
   // Preparar datos para el gráfico de líneas
-  const chartData = material.acoustic_indices.map(index => ({
+  const chartData = material.acoustic_indices.map((index:any) => ({
     frequency: index.frequency,
     value_R: index.value_R,
     frequencyLabel: `${index.frequency} Hz`
