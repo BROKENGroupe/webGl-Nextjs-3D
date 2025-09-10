@@ -26,7 +26,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
   material
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<FormData>({});
+  const [formData, setFormData] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -36,8 +36,8 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
         name: material.name,
         description: material.description,
         category: material.category,
-        density: material.density,
-        rw: material.rw,
+        // density: material.density, // Removed because 'density' does not exist on MaterialResponse
+        // rw: material.rw, // Removed because 'rw' does not exist on MaterialResponse
         acoustic_indices: material.acoustic_indices,
         is_active: material.is_active,
       });
@@ -64,9 +64,9 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
   };
 
   const updateFormData = (field: keyof FormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev: FormData) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev: Record<string, string>) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -74,7 +74,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
     if (!formData.acoustic_indices) return;
     const newIndices = [...formData.acoustic_indices];
     newIndices[index].value_R = value;
-    setFormData(prev => ({ ...prev, acoustic_indices: newIndices }));
+    setFormData((prev: FormData) => ({ ...prev, acoustic_indices: newIndices }));
   };
 
   const validateStep = (step: number): boolean => {
@@ -90,7 +90,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
         if (formData.rw && formData.rw <= 0) newErrors.rw = 'El valor Rw debe ser mayor a 0';
         break;
       case 2:
-        const hasInvalidIndices = formData.acoustic_indices?.some(index => index.value_R < 0);
+        const hasInvalidIndices = formData.acoustic_indices?.some((index: { value_R: number }) => index.value_R < 0);
         if (hasInvalidIndices) newErrors.acoustic_indices = 'Los valores no pueden ser negativos';
         break;
     }
@@ -194,12 +194,17 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
           {currentStep === 2 && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {formData.acoustic_indices?.map((index, i) => (
-                  <div key={i} className="flex items-center space-x-3">
-                    <label className="text-sm text-gray-600 w-16">{index.frequency} Hz</label>
-                    <input type="number" value={index.value_R} onChange={(e) => updateAcousticIndex(i, Number(e.target.value))} step="0.01" min="0" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
-                  </div>
-                ))}
+                {formData.acoustic_indices?.map(
+                  (
+                    index: { frequency: number; value_R: number },
+                    i: number
+                  ) => (
+                    <div key={i} className="flex items-center space-x-3">
+                      <label className="text-sm text-gray-600 w-16">{index.frequency} Hz</label>
+                      <input type="number" value={index.value_R} onChange={(e) => updateAcousticIndex(i, Number(e.target.value))} step="0.01" min="0" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                    </div>
+                  )
+                )}
               </div>
               {errors.acoustic_indices && <p className="text-red-500 text-xs mt-2">{errors.acoustic_indices}</p>}
             </div>

@@ -1,7 +1,7 @@
 // services/materialsService.ts
+import { MaterialCategory, MaterialProperties } from '@/app/(dashboard)/materials/types/materials';
 import { apiClient, ApiResponse } from '../core/api/client';
 import { API_CONFIG } from '../core/config/config';
-import { MaterialProperties, MaterialCategory } from '../app/materials/types/materials';
 
 export interface CreateMaterialRequest {
   reference: string;
