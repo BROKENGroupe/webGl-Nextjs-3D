@@ -44,9 +44,16 @@ export default function LoginPage() {
       {/* Columna Izquierda: Formulario */}
       <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          <Image
+            src="/assets/images/logo/insonor.png"
+            alt="Logo"
+            width={200}
+            height={100}
+            className="mb-8"
+          />
+          {/* <h1 className="text-3xl font-bold text-gray-900 mb-8">
             Welcome Back
-          </h1>
+          </h1> */}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -93,7 +100,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-4 rounded-md transition-colors"
+              className="w-full bg-black hover:bg-green-800 text-white font-semibold py-3 px-4 rounded-md transition-colors"
             >
               Sign in
             </button>
@@ -167,7 +174,7 @@ export default function LoginPage() {
       {/* Columna Derecha: Imagen */}
       <div className="hidden relative md:block top-0 left-0 w-full h-full">
         <Image
-          src="https://images.unsplash.com/photo-1755127761414-c4f552bb3549?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src="/assets/images/backgrounds/login-wall.png"
           alt="Close-up of a monstera plant leaf"
           layout="fill"
           objectFit="cover"
