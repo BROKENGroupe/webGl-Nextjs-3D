@@ -15,10 +15,17 @@ import {
   wallLightWoodPanel,
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
+import { windowStandard, windowDoubleGlazed, windowLaminated, windowAcoustic, windowTripleGlazed } from "@/data/acousticWindows";
+import { useOpeningsStore } from "../../store/openingsStore";
+import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 
 interface PropertiesModalProps {
   visible: boolean;
-  wallIndex: number;
+  wallIndex?: number;
+  openingId?: string;
+  floorId?: string;
+  ceilingId?: string;
+  elementType: "wall" | "opening" | "floor" | "ceiling";
   onClose: () => void;
 }
 
@@ -29,41 +36,84 @@ async function fetchAcousticWalls() {
     wallGypsumBoard,
     wallLightWoodPanel,
     wallThinBrickPartition,
+    windowStandard,
+    windowTripleGlazed,
+    windowAcoustic,
+    windowLaminated,
+    windowDoubleGlazed,
+    doorStandard,
+    doorDouble,
+    doorAcoustic
   ];
 }
 
 export default function PropertiesModal({
   visible,
   wallIndex,
+  openingId,
+  floorId,
+  ceilingId,
+  elementType,
   onClose,
 }: PropertiesModalProps) {
   const [wallsData, setWallsData] = useState<any[]>([]);
   const walls = useWallsStore((state) => state.walls);
+  const openings = useOpeningsStore((state) => state.openings);
+  const floors = useWallsStore((state) => state.floors);
+  const ceilings = useWallsStore((state) => state.ceilings);
 
   useEffect(() => {
     fetchAcousticWalls().then(setWallsData);
   }, []);
 
-  // Busca la pared seleccionada por índice
-  const selectedWall = walls.find((w) => w.wallIndex === wallIndex);
+  console.log("Walls Data:", openings);
 
-  // Obtiene el template acústico de la pared seleccionada
-  const acoustic = selectedWall?.template;
+  // Busca la pared seleccionada por índice
+  let selectedElement: any = null;
+  if (elementType === "wall" && wallIndex !== undefined) {
+    selectedElement = walls.find((w) => w.wallIndex === wallIndex);
+  } else if (
+    elementType === "opening" &&
+    wallIndex !== undefined &&
+    openingId !== undefined
+  ) {
+    selectedElement = openings.find((w) => w.id === openingId);
+  } else if (elementType === "floor" && floorId) {
+    selectedElement = floors.find((f: any) => f.id === floorId);
+  } else if (elementType === "ceiling" && ceilingId) {
+    selectedElement = ceilings.find((c: any) => c.id === ceilingId);
+  }
+
+  // Obtiene el template acústico del elemento seleccionado
+  const acoustic = selectedElement?.template;
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent 
+      className="w-[70vw]"
+        style={{
+          maxHeight: "95vh",
+          minHeight: "600px",
+          overflowY: "auto",
+          padding: "0",
+        }}
+      >
         <DialogHeader>
-          <DialogTitle>Propiedades de la fachada</DialogTitle>
+          <DialogTitle>
+            {elementType === "wall" && "Propiedades de la fachada"}
+            {elementType === "opening" && "Propiedades de la abertura"}
+            {elementType === "floor" && "Propiedades del piso"}
+            {elementType === "ceiling" && "Propiedades del techo"}
+          </DialogTitle>
         </DialogHeader>
-        {selectedWall ? (
+        {selectedElement ? (
           <div className="mb-4 space-y-2">
             <div>
               <span className="font-semibold">Nombre:</span>{" "}
-              {selectedWall.template?.descriptor || "Sin asignar"}
+              {acoustic?.descriptor || "Sin asignar"}
             </div>
             <div>
-              <span className="font-semibold">ID:</span> {selectedWall.id}
+              <span className="font-semibold">ID:</span> {selectedElement.id}
             </div>
             {acoustic && (
               <div className="border rounded-lg p-4 bg-gray-50 mt-2">
@@ -117,7 +167,7 @@ export default function PropertiesModal({
           </div>
         ) : (
           <div className="text-gray-500">
-            No se encontró la fachada seleccionada.
+            No se encontró el elemento seleccionado.
           </div>
         )}
         <DialogFooter>

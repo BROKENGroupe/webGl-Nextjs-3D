@@ -17,13 +17,13 @@ interface WallsStore {
   walls: Wall[];
   floors: FloorCeiling[];
   ceilings: FloorCeiling[];
-  wallHeight: number; // <-- NUEVO
-  setWallHeight: (height: number) => void; // <-- NUEVO
+  wallHeight: number;
+  setWallHeight: (height: number) => void;
   addWall: (wallIndex: number, area: number, template?: AcousticMaterial) => void;
   addFloor: (area: number, template?: AcousticMaterial) => void;
   addCeiling: (area: number, template?: AcousticMaterial) => void;
   updateWall: (wallId: string, updates: Partial<Wall>) => void;
-  updateWallByIndex: (wallIndex: number, updates: Partial<Wall>) => void; // <-- NUEVO
+  updateWallByIndex: (wallIndex: number, updates: Partial<Wall>) => void;
   deleteWall: (wallId: string) => void;
   clearWalls: () => void;
   clearFloors: () => void;
@@ -43,7 +43,7 @@ export const useWallsStore = create<WallsStore>()(
       walls: [],
       floors: [],
       ceilings: [],
-      wallHeight: 3.0, // valor inicial por defecto
+      wallHeight: 3.0,
 
       setWallHeight: (height: number) => set({ wallHeight: height }),
 
@@ -117,7 +117,6 @@ export const useWallsStore = create<WallsStore>()(
         set((state) => ({
           walls: state.walls.map(wall => {
             if (wall.wallIndex === wallIndex) {
-              debugger
               const updatedWall = { ...wall, ...updates };
               return {
                 ...updatedWall,

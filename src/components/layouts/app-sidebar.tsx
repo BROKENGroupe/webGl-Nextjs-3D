@@ -43,7 +43,7 @@ const data = {
   },
   teams: [
     {
-      name: "WebGL 3D Builder",
+      name: "insonor",
       logo: Home,
       plan: "Professional",
     },

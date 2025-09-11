@@ -50,13 +50,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 w-full min-h-screen">
-      {/* Columna Izquierda: Formulario */}
-      <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white">
+    <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">
+      {/* Columna Izquierda: Formulario (ahora ocupa 2/5) */}
+      <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white md:col-span-2">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          <Image
+            src="/assets/images/logo/insonor.png"
+            alt="Logo"
+            width={200}
+            height={80}
+            className="mb-8"
+          />
+          {/* <h1 className="text-3xl font-bold text-gray-900 mb-8">
             Welcome Back
-          </h1>
+          </h1> */}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -103,7 +110,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-4 rounded-md transition-colors"
+              className="w-full bg-black hover:bg-green-800 text-white font-semibold py-3 px-4 rounded-md transition-colors"
             >
               Sign in
             </button>

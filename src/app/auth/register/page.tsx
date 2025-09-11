@@ -34,9 +34,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 w-full min-h-screen">
+    <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">
       {/* Columna Izquierda: Formulario */}
-      <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white">
+      <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white md:col-span-2">
         <div className="w-full max-w-md">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">
             Get Started Now
@@ -260,13 +260,13 @@ export default function RegisterPage() {
       </div>
 
       {/* Columna Derecha: Imagen */}
-      <div className="hidden md:block relative">
-        {/* <Image
+      <div className="hidden relative md:block top-0 left-0 w-full h-full md:col-span-3">
+        <Image
           src="https://images.unsplash.com/photo-1755127761414-c4f552bb3549?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Close-up of a monstera plant leaf"
           layout="fill"
           objectFit="cover"
-        /> */}
+        />
       </div>
     </div>
   );

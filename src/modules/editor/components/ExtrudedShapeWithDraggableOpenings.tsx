@@ -41,8 +41,6 @@ import { InteractionEngine } from "@/modules/editor/core/engine/InteractionEngin
 import { MaterialService } from "@/modules/editor/core/engine/MaterialService";
 import { Opening } from "../types/openings";
 import { AcousticHeatmapShader } from "./heatmaps/AcousticHeatmapShader";
-import ContextMenu from "./contextMenus/contextMenu";
-import { getMaterialColor } from "@/data/acousticWalls";
 
 /**
  * @interface ExtrudedShapeWithDraggableOpeningsProps
@@ -94,7 +92,16 @@ interface ExtrudedShapeWithDraggableOpeningsProps {
   onToggleHeatmap?: () => void;
   onAddFloor?: () => void;
   floors?: any[];
-  onWallContextMenu?: (event: any, facadeName: number) => void;
+  onWallContextMenu?: (
+    event: any,
+    facadeName: number,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => void;
+  onOpeningContextMenu?: (
+    event: any,
+    openingId: string,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => void;
 }
 
 /**
@@ -202,6 +209,7 @@ export function ExtrudedShapeWithDraggableOpenings({
   onToggleHeatmap,
   onAddFloor,
   onWallContextMenu,
+  onOpeningContextMenu,
   floors = [],
 }: ExtrudedShapeWithDraggableOpeningsProps) {
   const [contextMenu, setContextMenu] = useState({
@@ -755,17 +763,19 @@ export function ExtrudedShapeWithDraggableOpenings({
                     handleWallClick(index, e);
                   }}
                   onContextMenu={(e) => {
+                    e.stopPropagation();
                     if (onWallContextMenu) {
                       onWallContextMenu(
                         e.nativeEvent,
-                        e.object.userData.wallIndex
+                        e.object.userData.wallIndex,
+                        "wall"
                       );
                     }
                   }}
                 >
                   {/* Material dinámico según estado de interacción */}
                   <primitive
-                    object={MaterialService.getWallMaterial({                      
+                    object={MaterialService.getWallMaterial({
                       isHovered:
                         (hoveredWall === index &&
                           (isDragActive || isDraggingOpening)) ||
@@ -791,27 +801,41 @@ export function ExtrudedShapeWithDraggableOpenings({
                       nextCoord
                     );
 
+                  // Nuevas variables para altura y centrado
+                  const openingHeight = opening.height ?? 1.2;
+                  const wallHeight = depth; // Altura de la pared
+
+                  const centeredY =
+                    (wallHeight - openingHeight) / 2 + openingHeight / 2;
+
                   return (
                     <group key={`opening-${index}-${opening.id}`}>
                       {/* ESFERA PRINCIPAL de la abertura */}
                       <mesh
                         position={[
                           displayPosition.x,
-                          displayPosition.y,
+                          centeredY,
                           displayPosition.z,
                         ]}
                         userData={{ opening, type: "opening" }}
+                        // Solo drag con click izquierdo
                         onPointerDown={(e) => {
-                          e.stopPropagation();
-                          handleOpeningPointerDown(opening, e);
+                          if (e.button === 0) {
+                            // Solo botón izquierdo
+                            e.stopPropagation();
+                            handleOpeningPointerDown(opening, e);
+                          }
                         }}
                         onPointerUp={(e) => {
-                          e.stopPropagation();
-                          handleOpeningPointerUp();
+                          if (e.button === 0) {
+                            // Solo botón izquierdo
+                            e.stopPropagation();
+                            handleOpeningPointerUp();
+                          }
                         }}
                         onPointerMove={(e) => {
-                          e.stopPropagation();
                           if (isBeingDragged) {
+                            e.stopPropagation();
                             handleMouseMove(e);
                           }
                         }}
@@ -825,14 +849,6 @@ export function ExtrudedShapeWithDraggableOpenings({
                           e.stopPropagation();
                           if (!isDraggingOpening) {
                             document.body.style.cursor = "default";
-                          }
-                        }}
-                        onContextMenu={(e) => {
-                          if (onWallContextMenu) {
-                            onWallContextMenu(
-                              e.nativeEvent,
-                              Number(e.object.userData.wallIndex + 1)
-                            );
                           }
                         }}
                       >
@@ -921,6 +937,47 @@ export function ExtrudedShapeWithDraggableOpenings({
                           </mesh>
                         </group>
                       )}
+
+                      {/* CAPA INTERACTIVA SOBRE EL HUECO DE LA ABERTURA */}
+                      <mesh
+                        position={[
+                          displayPosition.x,
+                          displayPosition.y,
+                          displayPosition.z,
+                        ]}
+                        //rotation={[0, opening.wallAngle ?? 0, 0]} // <-- Asegúrate de pasar el ángulo correcto
+                        userData={{ opening, type: "opening" }}
+                        onPointerDown={(e) => {
+                          if (e.button === 0) {
+                            e.stopPropagation();
+                            handleOpeningPointerDown(opening, e);
+                          }
+                        }}
+                        onPointerUp={(e) => {
+                          if (e.button === 0) {
+                            e.stopPropagation();
+                            handleOpeningPointerUp();
+                          }
+                        }}
+                        onContextMenu={(e) => {
+                          e.stopPropagation();
+                          onOpeningContextMenu &&
+                            onOpeningContextMenu(
+                              e.nativeEvent,
+                              e.object.userData.opening.id,
+                              "opening"
+                            );
+                        }}
+                      >
+                        <boxGeometry
+                          args={[
+                            opening.width ?? 0.8,
+                            opening.height ?? 1.2,
+                            0.05,
+                          ]}
+                        />
+                        <meshBasicMaterial transparent opacity={0} />
+                      </mesh>
                     </group>
                   );
                 })}
