@@ -145,7 +145,17 @@ export const EXTRUDE_SETTINGS = {
 };
 
 /**
- * @deprecated Use GEOMETRY_CONFIG.WALL.EXTRUDE_DEPTH instead
- * @description Constante legacy para compatibilidad hacia atrás
+ * @namespace LINE_COLORS
+ * @description Paleta de colores para líneas y contornos en el editor 2D/3D
  */
-export const EXTRUDE_DEPTH = GEOMETRY_CONFIG.WALL.EXTRUDE_DEPTH;
+export const LINE_COLORS = {
+  line: "#4DA6FF",              // Color principal de línea
+  lineHover: "#3399FF",         // Color de línea en hover
+  lineOutline: "#B3D9FF",       // Color de contorno de línea
+  lineOutlineHover: "#E6F3FF",  // Color de contorno en hover
+  vertex: "#3399FF",            // Color principal de vértice
+  vertexHover: "#FFD700",       // Color de vértice en hover
+  vertexDragged: "#00ff00",     // Color de vértice arrastrado
+  vertexOutline: "#1A66CC",     // Color de contorno de vértice
+  vertexOutlineHover: "#004080" // Color de contorno de vértice en hover
+};

@@ -20,6 +20,8 @@
 import * as THREE from 'three';
 import { LineEventHandler } from '../../core/engine/LineEventHandler';
 import { LineGeometryEngine } from '../../core/engine/LineGeometryEngine';
+import { Line } from './line';
+import { Vertex } from './vertex';
 
 /**
  * @interface LineRendererProps
@@ -219,8 +221,9 @@ export function LineRenderer({
   draggedIndex,
   isShiftMode,
   eventHandler,
-  onLineClick // <-- NUEVO
-}: LineRendererProps) {
+  onLineClick,
+  is2DActive = false // <-- Añade esta prop si no existe
+}: LineRendererProps & { is2DActive?: boolean }) {
   // Variables internas para renderizado de líneas internas y paredes
   // Puedes reemplazar estos valores por props si necesitas control externo
   const isDrawingInternal = false; // Cambia a true cuando estés dibujando una línea interna
@@ -229,7 +232,7 @@ export function LineRenderer({
   const internalWalls: { start: THREE.Vector3; end: THREE.Vector3 }[] = [];
 
   return (
-    <>
+    <group rotation={is2DActive ? [-Math.PI / 2, 0, 0] : [0, 0, 0]}>
       {/* 
         SISTEMA DE RENDERIZADO DE LÍNEAS
         Renderiza todas las conexiones entre vértices consecutivos
@@ -256,48 +259,14 @@ export function LineRenderer({
         };
 
         return (
-          <group key={`line-group-${index}`}>
-            {/* 
-              LÍNEA PRINCIPAL
-              Cuerpo sólido de la línea con transformación calculada
-            */}
-            <mesh
-              position={[transform.midPoint.x, transform.midPoint.y + 0.005, transform.midPoint.z]}
-              quaternion={[transform.quaternion.x, transform.quaternion.y, transform.quaternion.z, transform.quaternion.w]}
-              {...lineHandlers}
-            >
-              <boxGeometry args={[dimensions.width, transform.distance, dimensions.depth]} />
-              <meshBasicMaterial
-                color={hoveredLineIndex === index 
-                  ? new THREE.Color("#4DA6FF").multiplyScalar(1.3)  // 30% más brillante en hover
-                  : "#4DA6FF"
-                }
-                transparent={false}
-                side={THREE.DoubleSide}
-              />
-            </mesh>
-            
-            {/* 
-              CONTORNO DE LÍNEA
-              Borde que proporciona mejor definición visual
-            */}
-            <mesh
-              position={[transform.midPoint.x, transform.midPoint.y + 0.006, transform.midPoint.z]}
-              quaternion={[transform.quaternion.x, transform.quaternion.y, transform.quaternion.z, transform.quaternion.w]}
-            >
-              <boxGeometry args={[
-                dimensions.outlineWidth,      // Ligeramente más ancho
-                transform.distance + 0.015,   // Ligeramente más largo
-                0.004                         // Muy fino para definición
-              ]} />
-              <meshBasicMaterial
-                color={hoveredLineIndex === index ? "#E6F3FF" : "#B3D9FF"}
-                transparent={true}
-                opacity={0.6}
-                side={THREE.DoubleSide}
-              />
-            </mesh>
-          </group>
+          <Line
+            key={`line-${index}`}
+            start={start}
+            end={end}
+            hovered={hoveredLineIndex === index}
+            eventHandler={lineHandlers}
+            color={color}
+          />
         );
       })}
 
@@ -305,146 +274,17 @@ export function LineRenderer({
         SISTEMA DE RENDERIZADO DE VÉRTICES
         Renderiza cada punto como elemento interactivo independiente
       */}
-      {points.map((point, index) => {
-        // Estados calculados para el vértice actual
-        const isHovered = hoveredVertexIndex === index;
-        const isDragged = draggedIndex === index;
-        
-        /**
-         * @calculation scale
-         * @description Escala dinámica del vértice según estado
-         * 
-         * Delega al GeometryEngine el cálculo de escala apropiada
-         * basada en los estados de hover y drag activos.
-         */
-        const scale = LineGeometryEngine.calculateVertexScale(isHovered, isDragged);
-        
-        /**
-         * @function vertexHandlers
-         * @description Event handlers especializados para vértices
-         * 
-         * Crea manejadores específicos para eventos de vértices como
-         * drag start/end, hover enter/leave, click, etc.
-         */
-        const vertexHandlers = eventHandler.createVertexHandlers(index);
-        
-        /**
-         * @section Colores dinámicos del vértice
-         * @description Sistema de colores basado en estado y modo
-         * 
-         * ## Lógica de colores:
-         * - **Drag + Shift**: Naranja (#ff6600) - Operación especial
-         * - **Drag normal**: Verde (#00ff00) - Movimiento estándar
-         * - **Hover**: Azul claro (#66B3FF) - Bajo cursor
-         * - **Normal**: Azul (#3399FF) - Estado base
-         * 
-         * ## Contornos:
-         * - **Drag**: Blanco (#ffffff) - Máximo contraste
-         * - **Hover**: Azul oscuro (#004080) - Definición clara
-         * - **Normal**: Azul medio (#1A66CC) - Sutil pero visible
-         */
-        const baseColor = isDragged 
-          ? (isShiftMode ? "#ff6600" : "#00ff00")  // Naranja para Shift, verde para normal
-          : isHovered ? "#66B3FF" : "#3399FF";     // Azul claro para hover, azul para normal
-        
-        const outlineColor = isDragged 
-          ? "#ffffff"                              // Blanco para drag
-          : isHovered ? "#004080" : "#1A66CC";     // Azul oscuro para hover, medio para normal
-        
-        return (
-          <group key={`vertex-group-${index}`}>
-            {/* 
-              VÉRTICE PRINCIPAL
-              Elemento base cuadrado que representa el punto
-            */}
-            <mesh
-              position={[point.x, point.y + 0.008, point.z]}
-              rotation={[-Math.PI / 2, 0, 0]}    // Rotación para que sea horizontal
-              scale={[scale, scale, 1]}
-              {...vertexHandlers}
-            >
-              <planeGeometry args={[0.16, 0.16]} />
-              <meshBasicMaterial 
-                color={baseColor}
-                transparent={false}
-                side={THREE.DoubleSide}
-              />
-            </mesh>
-            
-            {/* 
-              CONTORNO DEL VÉRTICE
-              Ring geometry que proporciona borde definido
-            */}
-            <mesh
-              position={[point.x, point.y + 0.009, point.z]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              scale={[scale * 1.05, scale * 1.05, 1]}  // 5% más grande para visibilidad
-            >
-              <ringGeometry args={[0.08, 0.086, 4]} />  // Ring con 4 segmentos (cuadrado)
-              <meshBasicMaterial
-                color={outlineColor}
-                transparent={false}
-                side={THREE.DoubleSide}
-              />
-            </mesh>
-            
-            {/* 
-              PUNTO CENTRAL
-              Círculo pequeño en el centro para indicar posición exacta
-            */}
-            <mesh
-              position={[point.x, point.y + 0.01, point.z]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              scale={[scale * 0.3, scale * 0.3, 1]}  // 30% del tamaño principal
-            >
-              <circleGeometry args={[0.025, 8]} />
-              <meshBasicMaterial
-                color={isDragged ? "#000000" : "#ffffff"}  // Negro para drag, blanco para normal
-                transparent={false}
-                side={THREE.DoubleSide}
-              />
-            </mesh>
-            
-            {/* 
-              CRUZ DE SELECCIÓN
-              Indicador visual que aparece solo en estados activos (hover/drag)
-            */}
-            {(isHovered || isDragged) && (
-              <>
-                {/* Línea horizontal de la cruz */}
-                <mesh
-                  position={[point.x, point.y + 0.011, point.z]}
-                  rotation={[-Math.PI / 2, 0, 0]}
-                  scale={[scale * 1.4, scale * 0.1, 1]}  // Ancha y fina
-                >
-                  <planeGeometry args={[0.2, 0.015]} />
-                  <meshBasicMaterial
-                    color="#ffffff"
-                    transparent={true}
-                    opacity={0.8}
-                    side={THREE.DoubleSide}
-                  />
-                </mesh>
-                
-                {/* Línea vertical de la cruz */}
-                <mesh
-                  position={[point.x, point.y + 0.011, point.z]}
-                  rotation={[-Math.PI / 2, 0, 0]}
-                  scale={[scale * 0.1, scale * 1.4, 1]}  // Fina y alta
-                >
-                  <planeGeometry args={[0.015, 0.2]} />
-                  <meshBasicMaterial
-                    color="#ffffff"
-                    transparent={true}
-                    opacity={0.8}
-                    side={THREE.DoubleSide}
-                  />
-                </mesh>
-              </>
-            )}
-          </group>
-        );
-      })}
+      {points.map((point, index) => (
+        <Vertex
+          key={`vertex-${index}`}
+          point={point}
+          hovered={hoveredVertexIndex === index}
+          dragged={draggedIndex === index}
+          isShiftMode={isShiftMode}
+          eventHandler={eventHandler.createVertexHandlers(index)}
+          index={index}
+        />
+      ))}
 
       {/* 
         RENDERIZADO INTERNO (NUEVO)
@@ -471,7 +311,6 @@ export function LineRenderer({
           <lineBasicMaterial attach="material" color="red" linewidth={2} />
         </line>
       ))}
-    </>
+    </group>
   );
 }
-
