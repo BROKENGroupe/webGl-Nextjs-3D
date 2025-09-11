@@ -1,6 +1,7 @@
+"use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function HomePage() {

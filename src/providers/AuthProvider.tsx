@@ -33,17 +33,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log(
         "AuthProvider: Intentando obtener perfil con el nuevo token..."
-      ); // LOG 3
+      );
       const profileResponse = await getProfile(accessToken);
 
-      // 👇 ESTE ES EL LOG MÁS IMPORTANTE
       console.log(
         "AuthProvider: Perfil recibido del backend:",
         profileResponse.data
-      ); // LOG 4
+      );
 
       setUser(profileResponse.data);
-      console.log('AuthProvider: Estado "user" actualizado.'); // LOG 5
+      console.log('AuthProvider: Estado "user" actualizado.');
     } catch (error) {
       console.error("No se pudo obtener el perfil después del login", error);
       logout();
