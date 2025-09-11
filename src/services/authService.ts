@@ -1,43 +1,32 @@
 import { User } from "@/app/auth/types";
-import axios, { AxiosResponse } from "axios";
+import { CreateUserDto } from "@/app/auth/types/user";
+import api from "@/_lib/axios";
+import { LoginDto } from "@/app/auth/types/login";
 
-type LoginCredentials = Pick<User, "email"> & { password: string };
-type RegisterData = Pick<User, "username" | "email"> & { password: string };
-
-interface AuthResponse {
-  user: User;
-  token: string;
-}
-
-const apiClient = axios.create({
-  baseURL: "", // TODO
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-export const loginUser = (
-  credentials: LoginCredentials
-): Promise<AxiosResponse<AuthResponse>> => {
-  return apiClient.post("/auth/login", credentials);
+type LoginResponse = {
+  accessToken: string;
 };
 
-export const registerUser = (
-  userData: RegisterData
-): Promise<AxiosResponse<void>> => {
-  return apiClient.post("/auth/register", userData);
+export const loginUser = (credentials: LoginDto) => {
+  return api.post<LoginResponse>("/auth/login", credentials);
 };
 
-export const forgotPassword = (email: string): Promise<AxiosResponse<void>> => {
-  return apiClient.post("/auth/forgot-password", { email });
+export const registerUser = (userData: CreateUserDto) => {
+  return api.post<User>("/auth/register", userData);
+};
+export const getProfile = (token?: string) => {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  return api.get<User>("/auth/profile", { headers });
 };
 
-export const resetPassword = (
-  token: string,
-  password: string
-): Promise<AxiosResponse<void>> => {
-  return apiClient.post(`/auth/reset-password/${token}`, { password });
+export const forgotPassword = (email: string) => {
+  return api.post("/auth/forgot-password", { email });
 };
+
+export const resetPassword = (token: string, password: string) => {
+  return api.post(`/auth/reset-password/${token}`, { password });
+};
+
 export const getGoogleAuthUrl = (): string => {
-  return "https://api.tu-backend.com/auth/google";
+  return "http://localhost:3001/auth/google";
 };

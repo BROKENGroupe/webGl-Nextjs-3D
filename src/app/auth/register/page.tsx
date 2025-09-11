@@ -1,31 +1,28 @@
 "use client";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { registerUser } from "@/services/authService";
+import { loginUser, registerUser } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { User } from "../types";
-
-type RegisterFormData = Pick<User, "username" | "email"> & { password: string };
+import { CreateUserDto } from "../types/user";
 
 export default function RegisterPage() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormData>();
+  } = useForm<CreateUserDto>();
   const router = useRouter();
 
-  const onSubmit: SubmitHandler<RegisterFormData> = async (data) => {
+  const onSubmit: SubmitHandler<CreateUserDto> = async (data) => {
     try {
       await registerUser(data);
       alert("¡Registro exitoso! Serás redirigido para iniciar sesión.");
-      router.push("/auth/login");
+      await loginUser({ email: data.email, password: data.password });
+      router.push("/");
     } catch (error: any) {
-      alert(
-        "Error en el registro: " +
-          (error.response?.data?.message || error.message)
-      );
+      const errorMessages = error.response?.data?.message || [error.message];
+      alert("Error en el registro: " + [].concat(errorMessages).join("\n"));
     }
   };
 
@@ -48,21 +45,42 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label
-                htmlFor="username"
+                htmlFor="name"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Name
               </label>
               <input
-                id="username"
+                id="name"
                 type="text"
-                {...register("username", { required: "Name is required" })}
+                {...register("name", { required: "Name is required" })}
                 placeholder="Enter your name"
                 className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
               />
-              {errors.username && (
+              {errors.name && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.username.message}
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="surname"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Surname
+              </label>
+              <input
+                id="surname"
+                type="text"
+                {...register("surname", { required: "Surname is required" })}
+                placeholder="Enter your surname"
+                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
+              {errors.surname && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.surname.message}
                 </p>
               )}
             </div>
@@ -90,6 +108,49 @@ export default function RegisterPage() {
 
             <div>
               <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Phone
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                {...register("phone", { required: "Phone is required" })}
+                placeholder="Enter your phone number"
+                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.phone.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="birthdaydate"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Birthday Date
+              </label>
+              <input
+                id="birthdaydate"
+                type="date"
+                {...register("birthdaydate", {
+                  required: "Birthday date is required",
+                })}
+                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
+              {errors.birthdaydate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.birthdaydate.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
@@ -98,7 +159,10 @@ export default function RegisterPage() {
               <input
                 id="password"
                 type="password"
-                {...register("password", { required: "Password is required" })}
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: 8,
+                })}
                 placeholder="Enter your password"
                 className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
               />
@@ -143,7 +207,6 @@ export default function RegisterPage() {
               onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
             >
-              {/* Google SVG Icon */}
               <svg
                 className="w-5 h-5"
                 viewBox="0 0 48 48"
@@ -172,7 +235,6 @@ export default function RegisterPage() {
               onClick={handleAppleLogin}
               className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
             >
-              {/* Apple SVG Icon */}
               <svg
                 className="w-5 h-5"
                 viewBox="0 0 24 24"
@@ -199,12 +261,12 @@ export default function RegisterPage() {
 
       {/* Columna Derecha: Imagen */}
       <div className="hidden md:block relative">
-        <Image
+        {/* <Image
           src="https://images.unsplash.com/photo-1755127761414-c4f552bb3549?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Close-up of a monstera plant leaf"
           layout="fill"
           objectFit="cover"
-        />
+        /> */}
       </div>
     </div>
   );
