@@ -1,13 +1,18 @@
 "use client";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { loginUser, getGoogleAuthUrl } from "@/services/authService";
-import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  loginUser,
+  getProfile,
+  getGoogleAuthUrl,
+} from "@/services/authService";
 import Image from "next/image";
-import { User } from "../types";
+import { useAuth } from "../../../../hooks/useAuth";
+import { LoginDto } from "../types/login";
+import api from "@/_lib/axios";
 
-type LoginFormData = Pick<User, "email"> & { password: string };
+type LoginFormData = Pick<LoginDto, "email"> & { password: string };
 
 export default function LoginPage() {
   const {
@@ -16,18 +21,23 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>();
   const router = useRouter();
-  //const { login, devLogin } = useAuth();
+  const { login } = useAuth();
 
   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
     try {
-      const response = await loginUser(data);
-      const { user, token } = response.data;
-     // login(user, token);
-      router.push("/dashboard");
+      const loginResponse = await loginUser(data);
+      const { accessToken } = loginResponse.data;
+
+      console.log("LoginPage: Login API exitoso. AccessToken:", accessToken); // LOG 1
+
+      await login(accessToken);
+
+      console.log("LoginPage: auth.login() ejecutado. Redirigiendo..."); // LOG 2
+      router.push("/");
     } catch (error: any) {
       alert(
-        "Error al iniciar sesión: " +
-          (error.response?.data?.message || error.message)
+        "Error: " +
+          (error.response?.data?.message || "Credenciales incorrectas.")
       );
     }
   };
@@ -171,14 +181,14 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Columna Derecha: Imagen (ahora ocupa 3/5) */}
-      <div className="hidden relative md:block top-0 left-0 w-full h-full md:col-span-3">
-        <Image
-          src="/assets/images/backgrounds/login-wall.png"
+      {/* Columna Derecha: Imagen */}
+      <div className="hidden relative md:block top-0 left-0 w-full h-full">
+        {/* <Image
+          src="https://images.unsplash.com/photo-1755127761414-c4f552bb3549?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Close-up of a monstera plant leaf"
           layout="fill"
           objectFit="cover"
-        />
+        /> */}
       </div>
     </div>
   );

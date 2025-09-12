@@ -1,7 +1,7 @@
 // components/EditMaterialModal.tsx
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Save, Waves, Settings, Info } from 'lucide-react';
-import { MaterialCategory } from '../types/materials';
+import { MaterialCategory, THIRD_OCTAVE_BANDS, ThirdOctave } from '../types/materials';
 import { UpdateMaterialRequest, MaterialResponse } from '@/services/materialsService';
 
 interface EditMaterialModalProps {
@@ -26,7 +26,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
   material
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<Partial<FormData>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -36,9 +36,9 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
         name: material.name,
         description: material.description,
         category: material.category,
-        // density: material.density, // Removed because 'density' does not exist on MaterialResponse
-        // rw: material.rw, // Removed because 'rw' does not exist on MaterialResponse
-        acoustic_indices: material.acoustic_indices,
+        density: material.density,
+        rw: material.rw,
+        thirdOctaveBands: material.thirdOctaveBands,
         is_active: material.is_active,
       });
     } else {
@@ -64,17 +64,26 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
   };
 
   const updateFormData = (field: keyof FormData, value: any) => {
-    setFormData((prev: FormData) => ({ ...prev, [field]: value }));
+    setFormData((prev: Partial<FormData>) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev: Record<string, string>) => ({ ...prev, [field]: '' }));
     }
   };
 
-  const updateAcousticIndex = (index: number, value: number) => {
-    if (!formData.acoustic_indices) return;
-    const newIndices = [...formData.acoustic_indices];
-    newIndices[index].value_R = value;
-    setFormData((prev: FormData) => ({ ...prev, acoustic_indices: newIndices }));
+  const updateThirdOctaveBandValue = (frequency: ThirdOctave, value: number) => {
+    if (!formData.thirdOctaveBands) return;
+    setFormData((prev: Partial<FormData>) => ({
+      ...prev,
+      thirdOctaveBands: {
+        ...THIRD_OCTAVE_BANDS.reduce((acc, band) => {
+          acc[band] = prev.thirdOctaveBands && typeof prev.thirdOctaveBands[band] === 'number'
+            ? prev.thirdOctaveBands[band]
+            : 0;
+          return acc;
+        }, {} as Record<ThirdOctave, number>),
+        [frequency]: value,
+      },
+    }));
   };
 
   const validateStep = (step: number): boolean => {
@@ -90,8 +99,8 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
         if (formData.rw && formData.rw <= 0) newErrors.rw = 'El valor Rw debe ser mayor a 0';
         break;
       case 2:
-        const hasInvalidIndices = formData.acoustic_indices?.some((index: { value_R: number }) => index.value_R < 0);
-        if (hasInvalidIndices) newErrors.acoustic_indices = 'Los valores no pueden ser negativos';
+        const hasInvalidValues = formData.thirdOctaveBands && Object.values(formData.thirdOctaveBands).some(value => value < 0);
+        if (hasInvalidValues) newErrors.thirdOctaveBands = 'Los valores no pueden ser negativos';
         break;
     }
     setErrors(newErrors);
@@ -111,7 +120,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
   const handleSave = async () => {
     if (!material) return;
     if (validateStep(0) && validateStep(1) && validateStep(2)) {
-      await onSave(material._id, formData);
+      await onSave(material._id, formData as UpdateMaterialRequest);
     }
   };
 
@@ -122,15 +131,15 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-40 backdrop-blur-sm"
+      className="fixed inset-0 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-teal-50">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-teal-50">
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                        <Icon className="text-green-600" size={24} />
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                        <Icon className="text-blue-600" size={24} />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">Editar Material</h2>
@@ -141,7 +150,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
                     <X size={20} />
                 </button>
             </div>
-            <div className="mt-6"><div className="bg-gray-200 rounded-full h-2"><div className="bg-green-500 h-2 rounded-full transition-all duration-300" style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}/></div></div>
+            <div className="mt-6"><div className="bg-gray-200 rounded-full h-2"><div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}/></div></div>
         </div>
 
         <div className="p-6 overflow-y-auto flex-grow">
@@ -150,24 +159,24 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Referencia *</label>
-                  <input type="text" value={formData.reference || ''} onChange={(e) => updateFormData('reference', e.target.value.toUpperCase())} placeholder="ej. MURO_HORMIGON_01" className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${errors.reference ? 'border-red-500' : 'border-gray-300'}`} />
+                  <input type="text" value={formData.reference || ''} onChange={(e) => updateFormData('reference', e.target.value.toUpperCase())} placeholder="ej. MURO_HORMIGON_01" className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.reference ? 'border-red-500' : 'border-gray-300'}`} />
                   {errors.reference && <p className="text-red-500 text-xs mt-1">{errors.reference}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del Material *</label>
-                  <input type="text" value={formData.name || ''} onChange={(e) => updateFormData('name', e.target.value)} placeholder="ej. Pared de Concreto Nueva" className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${errors.name ? 'border-red-500' : 'border-gray-300'}`} />
+                  <input type="text" value={formData.name || ''} onChange={(e) => updateFormData('name', e.target.value)} placeholder="ej. Pared de Concreto Nueva" className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? 'border-red-500' : 'border-gray-300'}`} />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Descripción *</label>
-                <textarea value={formData.description || ''} onChange={(e) => updateFormData('description', e.target.value)} placeholder="Describe el material..." rows={3} className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${errors.description ? 'border-red-500' : 'border-gray-300'}`} />
+                <textarea value={formData.description || ''} onChange={(e) => updateFormData('description', e.target.value)} placeholder="Describe el material..." rows={3} className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.description ? 'border-red-500' : 'border-gray-300'}`} />
                 {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
-                  <select value={formData.category || ''} onChange={(e) => updateFormData('category', e.target.value as MaterialCategory)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                  <select value={formData.category || ''} onChange={(e) => updateFormData('category', e.target.value as MaterialCategory)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="WALLS">Paredes</option>
                     <option value="FLOORS">Suelos</option>
                     <option value="DOORS">Puertas</option>
@@ -176,7 +185,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Densidad (kg/m³) *</label>
-                  <input type="number" value={formData.density || 0} onChange={(e) => updateFormData('density', Number(e.target.value))} min="0" className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${errors.density ? 'border-red-500' : 'border-gray-300'}`} />
+                  <input type="number" value={formData.density || 0} onChange={(e) => updateFormData('density', Number(e.target.value))} min="0" className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.density ? 'border-red-500' : 'border-gray-300'}`} />
                   {errors.density && <p className="text-red-500 text-xs mt-1">{errors.density}</p>}
                 </div>
               </div>
@@ -186,7 +195,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
              <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Rw - Índice de Reducción Acústica (dB) *</label>
-                <input type="number" value={formData.rw || 0} onChange={(e) => updateFormData('rw', Number(e.target.value))} min="0" className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${errors.rw ? 'border-red-500' : 'border-gray-300'}`} />
+                <input type="number" value={formData.rw || 0} onChange={(e) => updateFormData('rw', Number(e.target.value))} min="0" className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.rw ? 'border-red-500' : 'border-gray-300'}`} />
                 {errors.rw && <p className="text-red-500 text-xs mt-1">{errors.rw}</p>}
               </div>
             </div>
@@ -194,19 +203,21 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
           {currentStep === 2 && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {formData.acoustic_indices?.map(
-                  (
-                    index: { frequency: number; value_R: number },
-                    i: number
-                  ) => (
-                    <div key={i} className="flex items-center space-x-3">
-                      <label className="text-sm text-gray-600 w-16">{index.frequency} Hz</label>
-                      <input type="number" value={index.value_R} onChange={(e) => updateAcousticIndex(i, Number(e.target.value))} step="0.01" min="0" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" />
-                    </div>
-                  )
-                )}
+                {THIRD_OCTAVE_BANDS.map((freq) => (
+                  <div key={freq} className="flex items-center space-x-3">
+                    <label className="text-sm text-gray-600 w-16">{freq} Hz</label>
+                    <input
+                      type="number"
+                      value={formData.thirdOctaveBands ? formData.thirdOctaveBands[freq] : 0}
+                      onChange={(e) => updateThirdOctaveBandValue(freq, Number(e.target.value))}
+                      step="0.1"
+                      min="0"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                ))}
               </div>
-              {errors.acoustic_indices && <p className="text-red-500 text-xs mt-2">{errors.acoustic_indices}</p>}
+              {errors.thirdOctaveBands && <p className="text-red-500 text-xs mt-2">{errors.thirdOctaveBands}</p>}
             </div>
           )}
         </div>
@@ -218,11 +229,11 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({
           <div className="flex space-x-3">
             <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancelar</button>
             {currentStep < STEPS.length - 1 ? (
-              <button onClick={nextStep} className="flex items-center px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-sm">
+              <button onClick={nextStep} className="flex items-center px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                 Siguiente <ChevronRight size={16} className="ml-1" />
               </button>
             ) : (
-              <button onClick={handleSave} className="flex items-center px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-sm">
+              <button onClick={handleSave} className="flex items-center px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                 <Save size={16} className="mr-2" /> Guardar Cambios
               </button>
             )}

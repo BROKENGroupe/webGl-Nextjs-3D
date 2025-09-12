@@ -2,19 +2,19 @@
 
 import React from 'react';
 // Components
-import { PageHeader } from './components/PageHeader';
-import { MaterialsFilters } from './components/MaterialsFilters';
-import { MaterialCard } from './components/MaterialCard';
-import { MaterialsTable } from './components/MaterialsTable';
-import { MaterialDetailModal } from './components/MaterialDetailModal';
-import { CreateMaterialModal } from './components/CreateMaterialModal';
-import { EditMaterialModal } from './components/EditMaterialModal';
-import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
-import { EmptyState } from './components/EmptyState';
+import { PageHeader } from '../../../modules/materials/components/PageHeader';
+import { MaterialsFilters } from '../../../modules/materials/components/MaterialsFilters';
+import { MaterialCard } from '../../../modules/materials/components/MaterialCard';
+import { MaterialsTable } from '../../../modules/materials/components/MaterialsTable';
+import { MaterialDetailModal } from '../../../modules/materials/components/MaterialDetailModal';
+import { CreateMaterialModal } from '../../../modules/materials/components/CreateMaterialModal';
+import { EditMaterialModal } from '../../../modules/materials/components/EditMaterialModal';
+import { DeleteConfirmationModal } from '../../../modules/materials/components/DeleteConfirmationModal';
+import { EmptyState } from '../../../modules/materials/components/EmptyState';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 // Hooks
-import { useMaterials } from './hooks/useMaterials';
+import { useMaterials } from '../../../modules/materials/hooks/useMaterials';
 
 const MaterialsViewer = () => {
   const {

@@ -1,38 +1,72 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useEffect } from "react";
 import { AuthContext, AuthContextType } from "@/context/AuthContext";
 import { User } from "@/app/auth/types";
-
-const MOCK_USER: User = {
-  id: "dev-123",
-  username: "Desarrollador",
-  email: "dev@test.com",
-};
+import { getProfile } from "@/services/authService";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (userData: User, token: string) => {
-    setUser(userData);
+  useEffect(() => {
+    const restoreSession = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        try {
+          const response = await getProfile();
+          setUser(response.data);
+        } catch (error) {
+          logout();
+        }
+      }
+      setLoading(false);
+    };
+
+    restoreSession();
+  }, []);
+
+  const login = async (accessToken: string) => {
+    localStorage.setItem("accessToken", accessToken);
+    setCookie("authToken", accessToken, { path: "/" });
+    try {
+      console.log(
+        "AuthProvider: Intentando obtener perfil con el nuevo token..."
+      );
+      const profileResponse = await getProfile(accessToken);
+
+      console.log(
+        "AuthProvider: Perfil recibido del backend:",
+        profileResponse.data
+      );
+
+      setUser(profileResponse.data);
+      console.log('AuthProvider: Estado "user" actualizado.');
+    } catch (error) {
+      console.error("No se pudo obtener el perfil después del login", error);
+      logout();
+      throw error;
+    }
   };
 
+  // El logout tampoco necesita borrar el refreshToken de localStorage
   const logout = () => {
     setUser(null);
-  };
-
-  const devLogin = () => {
-    console.log("Modo desarrollador: Iniciando sesión con usuario falso.");
-    setUser(MOCK_USER);
+    localStorage.removeItem("accessToken");
+    deleteCookie("authToken", { path: "/" });
+    // El backend se encarga de invalidar la cookie httpOnly en su endpoint /logout
   };
 
   const authContextValue: AuthContextType = {
     user,
+    loading,
     login,
     logout,
-    devLogin, 
-    isAuthenticated: !user, // -> !!user
+    isAuthenticated: !!user,
   };
+
+  if (loading) return <p>Cargando sesión...</p>;
 
   return (
     <AuthContext.Provider value={authContextValue}>

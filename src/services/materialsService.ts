@@ -1,42 +1,47 @@
 // services/materialsService.ts
-import { MaterialCategory, MaterialProperties } from '@/app/(dashboard)/materials/types/materials';
+import { Material, MaterialCategory, ThirdOctave } from '@/modules/materials/types/materials';
 import { apiClient, ApiResponse } from '../core/api/client';
 import { API_CONFIG } from '../core/config/config';
 
 export interface CreateMaterialRequest {
-  reference: string;
   name: string;
   description: string;
   category: MaterialCategory;
   density: number;
+  reference: string;
+  is_active: boolean;
+  picture: string | null;
   rw: number;
-  acoustic_indices: Array<{
-    frequency: number;
-    value_R: number;
-  }>;
-  is_active?: boolean;
-  picture?: string | null;
-}
-export interface AcousticIndex {
-  frequency: number;
-  value_R: number;
+  descriptor: string;
+  subtype: string;
+  type: string;
+  comments?: string;
+  thickness_mm: number;
+  mass_kg_m2: number;
+  catalog: string;
+  color?: string;
+  doubleLeaf?: boolean;
+  lightweightElement?: boolean;
+  onElasticBands?: boolean;
+  layers: { name: string; thickness_mm: number }[];
+  thirdOctaveBands: Record<ThirdOctave, number>;
+  octaveBands: { range: string; value: string }[];
+  weightedIndex?: { Rw: number; C: number; Ctr: number };
+  imageRef?: string;
+  width: number;
+  height: number;
+  bottomOffset: number;
 }
 
 export interface UpdateMaterialRequest extends Partial<CreateMaterialRequest> {
   id?: string;
 }
 
-export interface MaterialResponse extends MaterialProperties {
+export type MaterialResponse = Material & {
   _id: string;
-  name: string;
-  reference: string;
-  description: string;
-  category: MaterialCategory;
-  acoustic_indices: AcousticIndex[];
   created_at: string;
   updated_at: string;
-  is_active: boolean;
-}
+};
 
 export interface GetMaterialsParams {
   page?: number;
@@ -55,7 +60,7 @@ class MaterialsService {
   async getMaterials(params?: GetMaterialsParams): Promise<ApiResponse<MaterialResponse[]>> {
     try {
       return await apiClient.get<MaterialResponse[]>(
-        API_CONFIG.ENDPOINTS.MATERIALS+ '/all',
+        API_CONFIG.ENDPOINTS.MATERIALS + '/all',
         params
       );
     } catch (error) {
@@ -116,7 +121,7 @@ class MaterialsService {
    */
   async updateMaterial(id: string, data: UpdateMaterialRequest): Promise<ApiResponse<MaterialResponse>> {
     try {
-      if (data.reference || data.acoustic_indices) {
+      if (data.reference || data.thirdOctaveBands) {
         this.validateMaterialData(data as CreateMaterialRequest);
       }
 
@@ -220,40 +225,24 @@ class MaterialsService {
   /**
    * Validar datos del material
    */
-  private validateMaterialData(data: CreateMaterialRequest): void {
+  private validateMaterialData(data: Partial<CreateMaterialRequest>): void {
     const errors: string[] = [];
 
-    if (!data.reference || data.reference.trim().length === 0) {
-      errors.push('Material reference is required');
+    if (!data.name?.trim()) errors.push('Material name is required');
+    if (!data.reference?.trim()) errors.push('Material reference is required');
+    if (!data.description?.trim()) errors.push('Material description is required');
+    if ((data.density ?? 0) <= 0) errors.push('Density must be a positive number');
+    if ((data.rw ?? 0) <= 0) errors.push('Rw value must be a positive number');
+    if ((data.thickness_mm ?? 0) <= 0) errors.push('Thickness must be a positive number');
+    if ((data.mass_kg_m2 ?? 0) <= 0) errors.push('Mass must be a positive number');
+    if (!data.category) errors.push('Category is required');
+    if (!data.type?.trim()) errors.push('Type is required');
+    if (!data.subtype?.trim()) errors.push('Subtype is required');
+    if (!data.descriptor?.trim()) errors.push('Descriptor is required');
+    if (!data.catalog?.trim()) errors.push('Catalog is required');
+    if (!data.thirdOctaveBands || Object.keys(data.thirdOctaveBands).length === 0) {
+      errors.push('Third octave bands are required');
     }
-
-    if (!data.name || data.name.trim().length === 0) {
-      errors.push('Material name is required');
-    }
-
-    if (!data.description || data.description.trim().length === 0) {
-      errors.push('Material description is required');
-    }
-
-    if (!data.density || data.density <= 0) {
-      errors.push('Density must be greater than 0');
-    }
-
-    if (!data.rw || data.rw <= 0) {
-      errors.push('Rw value must be greater than 0');
-    }
-
-    if (!data.acoustic_indices || data.acoustic_indices.length === 0) {
-      errors.push('Acoustic indices are required');
-    } 
-    // else {
-    //   // const invalidIndices = data.acoustic_indices.some(
-    //   //   index => index.value_R < 0 || index.value_R > 1
-    //   // );
-    //   // if (invalidIndices) {
-    //   //   errors.push('Acoustic index values must be between 0 and 1');
-    //   // }
-    // }
 
     if (errors.length > 0) {
       throw new Error(`Validation errors: ${errors.join(', ')}`);
