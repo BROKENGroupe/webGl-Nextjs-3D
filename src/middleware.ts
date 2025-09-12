@@ -12,15 +12,15 @@ export function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
-  if (!isPublicRoute && !authToken) {
-    const loginUrl = new URL("/auth/login", request.url);
-    return NextResponse.redirect(loginUrl);
-  }
+  // if (!isPublicRoute && !authToken) {
+  //   const loginUrl = new URL("/auth/login", request.url);
+  //   return NextResponse.redirect(loginUrl);
+  // }
 
-  if (authToken && isPublicRoute) {
-    const homeUrl = new URL("/", request.url);
-    return NextResponse.redirect(homeUrl);
-  }
+  // if (authToken && isPublicRoute) {
+  //   const homeUrl = new URL("/", request.url);
+  //   return NextResponse.redirect(homeUrl);
+  // }
 
   // if (authToken && request.nextUrl.pathname === "/auth/login") {
   //   const homeUrl = new URL("/", request.url);
