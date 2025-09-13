@@ -32,6 +32,7 @@ import FacadeContextMenu from "./contextMenus/FacadeContextMenu";
 import PropertiesModal from "./modals/PropertiesModal";
 import MaterialModal from "./modals/materialModal";
 import OpeningContextMenu from "./contextMenus/OpeningContextMenu";
+import { ExtrudedShapeWithDraggableOpenings2 } from "./ExtrudedShapeWithDraggableOpenings2";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -601,9 +602,9 @@ export default function DrawingScene() {
           </>
         )}
 
-        {/* MODO 3D - Renderizar con funcionalidad de drag & drop */}
+        //MODO 3D - Renderizar con funcionalidad de drag & drop
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
-          <ExtrudedShapeWithDraggableOpenings
+          <ExtrudedShapeWithDraggableOpenings2
             planeCoordinates={[]}
             onDropOpening={handleDropOpening}
             isDragActive={isDragActive}
@@ -614,8 +615,24 @@ export default function DrawingScene() {
             floors={floors}
             onWallContextMenu={handleWallContextMenu}
             onOpeningContextMenu={handleOpeningContextMenu}
+            openings={openings}
           />
+
         )}
+        {/* {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
+          // <ExtrudedShapeWithDraggableOpenings
+          //   planeCoordinates={[]}
+          //   onDropOpening={handleDropOpening}
+          //   isDragActive={isDragActive}
+          //   draggedTemplate={draggedTemplate}
+          //   showHeatmap={showHeatmap}
+          //   onToggleHeatmap={handleToggleHeatmap}
+          //   onAddFloor={handleAddFloor}
+          //   floors={floors}
+          //   onWallContextMenu={handleWallContextMenu}
+          //   onOpeningContextMenu={handleOpeningContextMenu}
+          // />
+        )} */}
       </Canvas>
 
       {/* Controles de la aplicación */}

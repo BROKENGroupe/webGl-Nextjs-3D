@@ -6,8 +6,8 @@
  * 
  * @module MaterialsConfig
  * @version 2.0.0
- * @author WebGL-NextJS-3D Team
- * @since 2024
+ * @author insonor Team
+ * @since 2025
  */
 
 /**
@@ -15,7 +15,7 @@
  * @description Paleta de colores global del sistema
  */
 export const COLORS = {
-  wall: "#B0B0B0",        // Color unificado para paredes
+  wall: "#404040ff",        // Color unificado para paredes
   wallOpacity: 0.45,      // Transparencia unificada para paredes
   ceiling: "#C7D2FE",     // Color sólido para techo
   ceilingOpacity: 0.95,   // Transparencia para techo
@@ -149,7 +149,7 @@ export const EXTRUDE_SETTINGS = {
  * @description Paleta de colores para líneas y contornos en el editor 2D/3D
  */
 export const LINE_COLORS = {
-  line: "#4DA6FF",              // Color principal de línea
+  line: "#165fa8ff",              // Color principal de línea
   lineHover: "#3399FF",         // Color de línea en hover
   lineOutline: "#B3D9FF",       // Color de contorno de línea
   lineOutlineHover: "#E6F3FF",  // Color de contorno en hover

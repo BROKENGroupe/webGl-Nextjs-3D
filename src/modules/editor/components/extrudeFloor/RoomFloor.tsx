@@ -1,6 +1,5 @@
 import React from "react";
-
-export function RoomCeiling({ geometry, material }: { geometry: any; material: any }) {
+export function RoomFloor({ geometry, material }: { geometry: any; material: any }) {
   return (
     <mesh geometry={geometry}>
       <primitive object={material} />

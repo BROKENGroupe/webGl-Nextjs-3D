@@ -1,12 +1,11 @@
 import { useState, useCallback } from "react";
 import { InteractionEngine } from "../core/engine/InteractionEngine";
-
 interface UseWallInteractionsProps {
   isDragActive: boolean;
   draggedTemplate: any;
   isDraggingOpening: boolean;
   draggedOpening: any;
-  onDropOpening: (...args: any[]) => void;
+  onDropOpening: (wallIndex: number, position: any, template: any) => void;
   coordinatesToUse: any;
   depth: number;
   handleOpeningPointerUp: () => void;
@@ -23,7 +22,6 @@ export function useWallInteractions({
   handleOpeningPointerUp,
 }: UseWallInteractionsProps) {
   const [hoveredWall, setHoveredWall] = useState<number | null>(null);
-
   const handleWallPointerEnter = useCallback(
     (wallIndex: number) => {
       if ((isDragActive && draggedTemplate) || (isDraggingOpening && draggedOpening)) {
@@ -32,11 +30,9 @@ export function useWallInteractions({
     },
     [isDragActive, draggedTemplate, isDraggingOpening, draggedOpening]
   );
-
   const handleWallPointerLeave = useCallback(() => {
     setHoveredWall(null);
   }, []);
-
   const calculatePositionFromMouse = useCallback(
     (event: any) => {
       return InteractionEngine.calculatePositionFromMouse(
@@ -48,7 +44,6 @@ export function useWallInteractions({
     },
     [isDraggingOpening, draggedOpening, coordinatesToUse]
   );
-
   const handleWallClick = useCallback(
     (wallIndex: number, event: any) => {
       if (isDraggingOpening && draggedOpening) {
@@ -79,7 +74,6 @@ export function useWallInteractions({
       depth,
     ]
   );
-
   return {
     hoveredWall,
     setHoveredWall,

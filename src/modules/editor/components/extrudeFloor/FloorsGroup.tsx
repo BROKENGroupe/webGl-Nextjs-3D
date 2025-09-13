@@ -1,5 +1,5 @@
+import { COLORS } from "@/config/materials";
 import React from "react";
-import { COLORS } from "../../../../config/materials";
 import { GeometryEngine } from "../../core/engine/GeometryEngine";
 
 export function FloorsGroup({ floors, depth }: { floors: any[]; depth: number }) {
@@ -24,7 +24,6 @@ export function FloorsGroup({ floors, depth }: { floors: any[]; depth: number })
             />
           </mesh>
         ));
-
         const ceilingMesh = (
           <mesh
             geometry={GeometryEngine.createCeilingGeometry(
@@ -40,7 +39,6 @@ export function FloorsGroup({ floors, depth }: { floors: any[]; depth: number })
             />
           </mesh>
         );
-
         const floorMesh = (
           <mesh geometry={GeometryEngine.createFloorGeometry(floor.coordinates)}>
             <meshStandardMaterial
@@ -50,7 +48,6 @@ export function FloorsGroup({ floors, depth }: { floors: any[]; depth: number })
             />
           </mesh>
         );
-
         return (
           <group key={floor.id} position={[0, floor.baseHeight, 0]}>
             {floorMesh}

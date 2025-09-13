@@ -1,11 +1,19 @@
 import { AcousticMaterial } from "../modules/editor/types/AcousticMaterial";
 
+enum WindowSubtypes {
+  FloatGlass = "Float Glass",
+  ArgonFilled = "Argon Filled", 
+  LaminatedSafetyGlass = "Laminated Safety Glass",
+  TripleGlassArgon = "Triple Glass Argon",
+  SpecialAcousticGlass = "Special Acoustic Glass"
+}
+
 // Ventana simple (window-standard)
 export const windowStandard: AcousticMaterial = {
   id: "window-standard",
   descriptor: "Single Glazing Window",
-  subtype: "Float Glass",
-  type: "Window",
+  subtype: WindowSubtypes.FloatGlass,
+  type: "window",
   thickness_mm: 6,
   mass_kg_m2: 15,
   catalog: "SON Catalog",
@@ -23,17 +31,17 @@ export const windowStandard: AcousticMaterial = {
     { range: "125-4000", value: "26(-2;-4)" }
   ],
   weightedIndex: { Rw: 26, C: -2, Ctr: -4 },
-  height: 0.1,
-  width: 0.9,
-  bottomOffset: 0.2
+  height: 1,
+  width: 1,
+  bottomOffset: 1.0
 };
 
 // Ventana doble vidrio (window-double-glazed)
 export const windowDoubleGlazed: AcousticMaterial = {
   id: "window-double-glazed",
   descriptor: "Double Glazing Window",
-  subtype: "Argon Filled",
-  type: "Window",
+  subtype: WindowSubtypes.ArgonFilled,
+  type: "window",
   thickness_mm: 24,
   mass_kg_m2: 18,
   catalog: "insonor Catalog",
@@ -54,17 +62,17 @@ export const windowDoubleGlazed: AcousticMaterial = {
     { range: "125-4000", value: "35(-1;-3)" }
   ],
   weightedIndex: { Rw: 35, C: -1, Ctr: -3 },
-  height: 0.1,
-  width: 0.9,
-  bottomOffset: 0.2
+  height: 1,
+  width: 1,
+  bottomOffset: 1
 };
 
 // Ventana laminada (window-laminated)
 export const windowLaminated: AcousticMaterial = {
   id: "window-laminated",
   descriptor: "Laminated Glass Window",
-  subtype: "Laminated Safety Glass",
-  type: "Window",
+  subtype: WindowSubtypes.LaminatedSafetyGlass,
+  type: "window",
   thickness_mm: 8,
   mass_kg_m2: 17,
   catalog: "SON Catalog",
@@ -82,17 +90,17 @@ export const windowLaminated: AcousticMaterial = {
     { range: "125-4000", value: "28(-2;-5)" }
   ],
   weightedIndex: { Rw: 28, C: -2, Ctr: -5 },
-  height: 0.1,
-  width: 0.9,
-  bottomOffset: 0.2
+  height: 1,
+  width: 1,
+  bottomOffset: 1
 };
 
 // Ventana triple vidrio (window-triple-glazed)
 export const windowTripleGlazed: AcousticMaterial = {
   id: "window-triple-glazed",
   descriptor: "Triple Glazing Window",
-  subtype: "Triple Glass Argon",
-  type: "Window",
+  subtype: WindowSubtypes.TripleGlassArgon,
+  type: "window",
   thickness_mm: 36,
   mass_kg_m2: 22,
   catalog: "insonor Catalog",
@@ -115,17 +123,17 @@ export const windowTripleGlazed: AcousticMaterial = {
     { range: "125-4000", value: "39(-1;-3)" }
   ],
   weightedIndex: { Rw: 39, C: -1, Ctr: -3 },
-  height: 0.1,
-  width: 0.9,
-  bottomOffset: 0.2
+  height: 1,
+  width: 1,
+  bottomOffset: 1
 };
 
 // Ventana acústica (window-acoustic)
 export const windowAcoustic: AcousticMaterial = {
   id: "window-acoustic",
   descriptor: "Acoustic Window",
-  subtype: "Special Acoustic Glass",
-  type: "Window",
+  subtype: WindowSubtypes.SpecialAcousticGlass,
+  type: "window",
   thickness_mm: 12,
   mass_kg_m2: 25,
   catalog: "insonor Catalog",
@@ -142,8 +150,8 @@ export const windowAcoustic: AcousticMaterial = {
   octaveBands: [
     { range: "125-4000", value: "36(-1;-3)" }
   ],
-  weightedIndex: { Rw: 36, C: -1, Ctr: -3 },
-  height: 0.1,
-  width: 0.9,
-  bottomOffset: 0.2
+  weightedIndex: { Rw: 43, C: -1, Ctr: -3 },
+  height: 1,
+  width: 1,
+  bottomOffset: 1
 };
