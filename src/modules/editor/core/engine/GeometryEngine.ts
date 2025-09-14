@@ -1,4 +1,3 @@
-
 import * as THREE from 'three';
 import { Opening, Point2D } from '../../types/openings';
 
@@ -257,6 +256,7 @@ export class GeometryEngine {
     depth: number,
     wallOpenings: Opening[]
   ): THREE.BufferGeometry {
+    debugger
     const wallLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.z - p1.z) ** 2);
     const wallGeometry = new THREE.BufferGeometry();
 
@@ -299,23 +299,29 @@ export class GeometryEngine {
         let segmentVertices: number[];
 
         if (segment.startY !== undefined && segment.endY !== undefined) {
+            console.log('Segmento antepecho detectado:', segment);
           // ===== SEGMENTO DINTEL (encima de abertura) =====
-          /**
-           * Segmento rectangular suspendido entre startY y endY
-           * Usado para el espacio encima de ventanas y puertas que no llegan al techo
-           */
           segmentVertices = [
             p1.x + (segment.startX / wallLength) * (p2.x - p1.x), segment.startY, p1.z + (segment.startX / wallLength) * (p2.z - p1.z),
             p1.x + (segment.endX / wallLength) * (p2.x - p1.x), segment.startY, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
             p1.x + (segment.endX / wallLength) * (p2.x - p1.x), segment.endY, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
             p1.x + (segment.startX / wallLength) * (p2.x - p1.x), segment.endY, p1.z + (segment.startX / wallLength) * (p2.z - p1.z)
           ];
+        } else if (
+          segment.height > 0.1 && // Solo si hay altura de antepecho
+          segment.height < depth // Solo si no llega al techo
+        ) {
+        
+          // ===== SEGMENTO ANTEPECHO (debajo de ventana) =====
+          // Este segmento va desde Y=0 hasta Y=bottomOffset (segment.height)
+          segmentVertices = [
+            p1.x + (segment.startX / wallLength) * (p2.x - p1.x), 0, p1.z + (segment.startX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.endX / wallLength) * (p2.x - p1.x), 0, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.endX / wallLength) * (p2.x - p1.x), segment.height, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
+            p1.x + (segment.startX / wallLength) * (p2.x - p1.x), segment.height, p1.z + (segment.startX / wallLength) * (p2.z - p1.z)
+          ];
         } else {
           // ===== SEGMENTO NORMAL (de suelo a techo) =====
-          /**
-           * Segmento rectangular estándar desde Y=0 hasta height
-           * Usado para secciones de pared sin aberturas
-           */
           segmentVertices = [
             p1.x + (segment.startX / wallLength) * (p2.x - p1.x), 0, p1.z + (segment.startX / wallLength) * (p2.z - p1.z),
             p1.x + (segment.endX / wallLength) * (p2.x - p1.x), 0, p1.z + (segment.endX / wallLength) * (p2.z - p1.z),
@@ -444,6 +450,7 @@ export class GeometryEngine {
        * - Es una ventana (las puertas típicamente llegan al techo), O
        * - La abertura no llega al techo (bottomOffset + height < wallHeight)
        */
+      debugger
       if (opening.type === 'window' || (opening.bottomOffset + opening.height < wallHeight)) {
         const segmentStartY = opening.bottomOffset + opening.height; // Top de la abertura
         const segmentEndY = wallHeight; // Techo

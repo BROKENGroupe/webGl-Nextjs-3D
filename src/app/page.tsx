@@ -5,18 +5,18 @@ import { use, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
-  const router = useRouter();
+  // const { isAuthenticated } = useAuth();
+  // const router = useRouter();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/auth/login");
-    }
-  }, [isAuthenticated, router]);
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     router.push("/auth/login");
+  //   }
+  // }, [isAuthenticated, router]);
 
-  if (!isAuthenticated) {
-    return <p>Redirigiendo...</p>;
-  }
+  // if (!isAuthenticated) {
+  //   return <p>Redirigiendo...</p>;
+  // }
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

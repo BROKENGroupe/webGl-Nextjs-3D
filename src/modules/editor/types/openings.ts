@@ -11,7 +11,7 @@ export interface Point2D {
 }
 
 export interface Opening {
-  id: string;
+  id?: string;
   type: OpeningType;
   wallIndex: number;
   relativePosition: number;
