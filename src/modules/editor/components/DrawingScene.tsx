@@ -8,8 +8,6 @@ import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
 import { LineBuilder } from "@/modules/editor/components/2d/LineBuilder";
 
 import React, { useState } from "react";
-import { ExtrudedShapeWithDraggableOpenings } from "@/modules/editor/components/ExtrudedShapeWithDraggableOpenings";
-
 import { AcousticAnalysisModal } from "@/modules/analytics/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
 
 import { AppControls } from "@/modules/editor/components/AppControls";
