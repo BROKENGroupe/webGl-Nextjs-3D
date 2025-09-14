@@ -376,7 +376,7 @@ export class AcousticAnalysisEngine {
       //const intensity = Math.max(0.4, Math.min(1, (100 - avgLpOut) / 60));
       const intensity = Math.max(0, Math.min(1, avgLpOut / Lp_in));
       points.push({
-        id: opening.id,
+        id: opening.id ?? '',
         type: 'opening',
         coordinates,
         intensity,
