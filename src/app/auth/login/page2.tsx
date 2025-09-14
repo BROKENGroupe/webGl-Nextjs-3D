@@ -1,75 +1,46 @@
 "use client";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  loginUser,
+  getProfile,
   getGoogleAuthUrl,
 } from "@/services/authService";
 import Image from "next/image";
-import { signIn } from "next-auth/react";
-import toast from "react-hot-toast";
-import { z } from "zod";
-import React from "react";
-import { Button } from "@/shared/ui/button";
-import { Loader2 } from "lucide-react";
+import { useAuth } from "../../../../hooks/useAuth";
+import { LoginDto } from "../types/login";
+import api from "@/_lib/axios";
 
-const schema = z.object({
-  email: z.string().email({ message: "Your email is invalid." }),
-  password: z.string().min(4),
-});
+type LoginFormData = Pick<LoginDto, "email"> & { password: string };
 
 export default function LoginPage() {
-  const [isPending, startTransition] = React.useTransition();
-
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(schema),
-    mode: "all",
-    defaultValues: {
-      email: "dashtail@codeshaper.net",
-      password: "password",
-    },
-  });
+  } = useForm<LoginFormData>();
+  const router = useRouter();
+  const { login } = useAuth();
 
-  const onSubmit = (data: any) => {
-    startTransition(async () => {
-      let response = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-      if (response?.ok) {
-        toast.success("Login Successful login 2");
-        window.location.assign("/dashboard");
-        reset();
-      } else if (response?.error) {
-        toast.error(response?.error);
-      }
-    });
+  const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
+    try {
+      const loginResponse = await loginUser(data);
+      const { accessToken } = loginResponse.data;
+
+      console.log("LoginPage: Login API exitoso. AccessToken:", accessToken); // LOG 1
+
+      await login(accessToken);
+
+      console.log("LoginPage: auth.login() ejecutado. Redirigiendo..."); // LOG 2
+      router.push("/");
+    } catch (error: any) {
+      alert(
+        "Error: " +
+          (error.response?.data?.message || "Credenciales incorrectas.")
+      );
+    }
   };
-
-  //   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
-  //     try {
-  //       const loginResponse = await loginUser(data);
-  //       const { accessToken } = loginResponse.data;
-
-  //       console.log("LoginPage: Login API exitoso. AccessToken:", accessToken); // LOG 1
-
-  //       await login(accessToken);
-
-  //       console.log("LoginPage: auth.login() ejecutado. Redirigiendo..."); // LOG 2
-  //       router.push("/");
-  //     } catch (error: any) {
-  //       alert(
-  //         "Error: " +
-  //           (error.response?.data?.message || "Credenciales incorrectas.")
-  //       );
-  //     }
-  //   };
 
   const handleGoogleLogin = () => {
     window.location.href = getGoogleAuthUrl();
@@ -80,7 +51,7 @@ export default function LoginPage() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">
-      {/* Columna Izquierda: Formulario */}
+      {/* Columna Izquierda: Formulario (ahora ocupa 2/5) */}
       <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white md:col-span-2">
         <div className="w-full max-w-md">
           <Image
@@ -137,10 +108,12 @@ export default function LoginPage() {
               )}
             </div>
 
-            <Button className="w-full" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isPending ? "Loading..." : "Sign In"}
-            </Button>
+            <button
+              type="submit"
+              className="w-full bg-black hover:bg-green-800 text-white font-semibold py-3 px-4 rounded-md transition-colors"
+            >
+              Sign in
+            </button>
           </form>
 
           <div className="relative flex items-center my-6">
@@ -209,14 +182,13 @@ export default function LoginPage() {
       </div>
 
       {/* Columna Derecha: Imagen */}
-      <div className="hidden md:flex md:col-span-3 relative h-full">
-        <Image
-          src="/assets/images/backgrounds/login-wall.png"
+      <div className="hidden relative md:block top-0 left-0 w-full h-full">
+        {/* <Image
+          src="https://images.unsplash.com/photo-1755127761414-c4f552bb3549?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Close-up of a monstera plant leaf"
-          fill
-          style={{ objectFit: "cover" }}
-          priority
-        />
+          layout="fill"
+          objectFit="cover"
+        /> */}
       </div>
     </div>
   );

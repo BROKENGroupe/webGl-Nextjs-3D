@@ -1,5 +1,6 @@
+import AuthProvider from "@/providers/auth.provider";
 import "./globals.css";
-import { AuthProvider } from "@/providers/AuthProvider";
+
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
