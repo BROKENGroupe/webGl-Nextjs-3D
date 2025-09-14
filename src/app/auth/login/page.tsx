@@ -44,7 +44,7 @@ export default function LoginPage() {
       });
       if (response?.ok) {
         toast.success("Login Successful login 2");
-        window.location.assign("/dashboard");
+        window.location.assign("/home");
         reset();
       } else if (response?.error) {
         toast.error(response?.error);
