@@ -1,5 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import React from "react";
+import { toast } from "sonner";
 
 
 interface FacadeContextMenuProps {
@@ -55,7 +56,7 @@ export default function FacadeContextMenu({
           }}
           onClick={() => {
             onChangeMaterial();
-            onClose();
+            onClose();            
           }}
         >
           Cambiar material

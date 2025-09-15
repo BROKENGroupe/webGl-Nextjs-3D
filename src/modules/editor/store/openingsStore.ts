@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useWallsStore } from './wallsStore';
 import { Opening } from '../types/openings';
+import { toast } from 'sonner';
 
 interface OpeningsState {
   openings: Opening[];
@@ -52,6 +53,7 @@ export const useOpeningsStore = create<OpeningsState>()(
             opening.id === id ? { ...opening, ...updates } : opening
           )
         }));
+        toast.success("Abertura actualizada" + (updates.template ? ": " + updates.template.descriptor : ''));
 
         const { recalculateAllWallsWithOpenings } = useWallsStore.getState();
         setTimeout(() => {

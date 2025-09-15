@@ -155,17 +155,17 @@ export default function DrawingScene() {
     setOpeningMenuVisible(true);
   };
 
-    const handleCeilingContextMenu = (
-      event: any,
-      facadeName: string,
-      elementType: "wall" | "opening" | "floor" | "ceiling"
-    ) => {
-      event.preventDefault();
-      setCeilingMenuPosition({ x: event.clientX, y: event.clientY });
-      setSelectedCeilingId(facadeName);
-      setElementType(elementType);
-      setCeilingMenuVisible(true);
-    };
+  const handleCeilingContextMenu = (
+    event: any,
+    facadeName: string,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => {
+    event.preventDefault();
+    setCeilingMenuPosition({ x: event.clientX, y: event.clientY });
+    setSelectedCeilingId(facadeName);
+    setElementType(elementType);
+    setCeilingMenuVisible(true);
+  };
 
   const handleFloorContextMenu = (
     event: any,
@@ -490,7 +490,9 @@ export default function DrawingScene() {
     // Tu lógica para crear la nueva planta
     const depth = 3;
     const lastHeight =
-      floors2.length > 0 ? floors2[floors2.length - 1].baseHeight + depth : depth;
+      floors2.length > 0
+        ? floors2[floors2.length - 1].baseHeight + depth
+        : depth;
 
     const coords =
       planeXZCoordinates.length >= 3
@@ -564,7 +566,7 @@ export default function DrawingScene() {
   });
   const [floorMenuPosition, setFloorMenuPosition] = useState({ x: 0, y: 0 });
   const [floorMenuVisible, setFloorMenuVisible] = useState(false);
-  const [selectedCeilingId, setSelectedCeilingId] = useState<string>('');
+  const [selectedCeilingId, setSelectedCeilingId] = useState<string>("");
   const [selectedOpeningId, setSelectedOpeningId] = useState<string>("");
   const [selectedFloorId, setSelectedFloorId] = useState<string>("");
   // State for MaterialModal visibility
@@ -615,12 +617,9 @@ export default function DrawingScene() {
         <ambientLight intensity={0.8} />
         <directionalLight position={[10, 15, 10]} intensity={0.6} />
         <OrbitControls enabled={!isDragging && !isDragActive} />
-
         {/* ✅ YA ESTÁ COMENTADO - SIN CUADRÍCULA */}
         {/* <gridHelper args={[50, 50, "#888", "#ccc"]} /> */}
-
         <DrawingSurface onClick3D={handleClick3D} />
-
         {/* MODO 2D - Solo renderizar cuando NO está extruido Y hay puntos válidos */}
         {!isExtruded && (
           <>
@@ -637,7 +636,6 @@ export default function DrawingScene() {
             )}
           </>
         )}
-
         //MODO 3D - Renderizar con funcionalidad de drag & drop
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           <ExtrudedShapeWithDraggableOpenings2
@@ -656,7 +654,6 @@ export default function DrawingScene() {
             openings={openings}
             ceilings={ceilings}
           />
-
         )}
         {/* {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           // <ExtrudedShapeWithDraggableOpenings
@@ -715,7 +712,7 @@ export default function DrawingScene() {
         x={ceilingMenuPosition.x}
         y={ceilingMenuPosition.y}
         visible={ceilingMenuVisible}
-        facadeName={selectedCeilingId ?? ''}
+        facadeName={selectedCeilingId ?? ""}
         onProperties={handleProperties}
         onChangeMaterial={handleChangeMaterial}
         onClose={() => setCeilingMenuVisible(false)}
@@ -725,7 +722,7 @@ export default function DrawingScene() {
         x={floorMenuPosition.x}
         y={floorMenuPosition.y}
         visible={floorMenuVisible}
-        facadeName={selectedFloorId ?? ''}
+        facadeName={selectedFloorId ?? ""}
         onProperties={handleProperties}
         onChangeMaterial={handleChangeMaterial}
         onClose={() => setFloorMenuVisible(false)}
@@ -783,8 +780,8 @@ export default function DrawingScene() {
         elementType={elementType}
         wallIndex={selectedFacadeName ?? 0}
         openingId={selectedOpeningId ?? ""}
-        ceilingId={selectedCeilingId ?? ''}
-        floorId={selectedFloorId ?? ''}
+        ceilingId={selectedCeilingId ?? ""}
+        floorId={selectedFloorId ?? ""}
         onClose={() => setShowPropertiesModal(false)}
       />
 
@@ -792,8 +789,8 @@ export default function DrawingScene() {
         visible={showMaterialModal}
         wallIndex={selectedFacadeName ?? 0}
         openingId={selectedOpeningId ?? ""}
-        ceilingId={selectedCeilingId ?? ''}
-        floorId={selectedFloorId ?? ''}
+        ceilingId={selectedCeilingId ?? ""}
+        floorId={selectedFloorId ?? ""}
         elementType={elementType}
         onClose={() => setShowMaterialModal(false)}
       />

@@ -6,6 +6,7 @@ import { AcousticMaterial, ThirdOctave } from '@/modules/editor/types/AcousticMa
 import { floorConcreteSlab } from "@/data/floors";
 import { Opening } from '../types/openings';
 import { ceilingConcreteSlab } from '@/data/acousticCeilings';
+import { toast } from 'sonner';
 
 // Tipos para piso y techo (más genéricos)
 interface FloorCeiling {
@@ -104,6 +105,7 @@ export const useWallsStore = create<WallsStore>()(
         set((state) => ({
           ceilings: state.ceilings.map(ceiling => {
             if (ceiling.id === ceilingId) {
+              toast.success("Material actualizado: " + (updates.template?.descriptor || ceiling.template.descriptor));
               return { ...ceiling, ...updates };
             }
             return ceiling;
@@ -115,7 +117,9 @@ export const useWallsStore = create<WallsStore>()(
         set((state) => ({
           floors: state.floors.map(floor => {
             if (floor.id === floorId) {
-              return { ...floor, ...updates };
+              const updatedFloor = { ...floor, ...updates };
+              toast.success("Material actualizado: " + updatedFloor.template.descriptor);
+              return updatedFloor;
             }
             return floor;
           })
@@ -143,11 +147,13 @@ export const useWallsStore = create<WallsStore>()(
           walls: state.walls.map(wall => {
             if (wall.wallIndex === wallIndex) {
               const updatedWall = { ...wall, ...updates };
+              toast.success("Material actualizado: " + updatedWall.template.descriptor);
               return {
                 ...updatedWall,
                 acousticRating: calculateWallAcousticRating(updatedWall)
               };
             }
+
             return wall;
           })
         }));
@@ -358,6 +364,7 @@ export const useWallsStore = create<WallsStore>()(
 
         // Piso y techo igual
         const { floors, ceilings } = get();
+
         if (floors.length === 0) {
           get().addFloor(totalFloorArea, floorConcreteSlab);
         }
