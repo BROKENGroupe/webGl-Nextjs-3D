@@ -18,6 +18,7 @@ import {
 import { windowStandard, windowDoubleGlazed, windowLaminated, windowAcoustic, windowTripleGlazed } from "@/data/acousticWindows";
 import { useOpeningsStore } from "../../store/openingsStore";
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
+import { ElementType } from "../../types/walls";
 
 interface PropertiesModalProps {
   visible: boolean;
@@ -25,7 +26,7 @@ interface PropertiesModalProps {
   openingId?: string;
   floorId?: string;
   ceilingId?: string;
-  elementType: "wall" | "opening" | "floor" | "ceiling";
+  elementType: ElementType;
   onClose: () => void;
 }
 
@@ -66,21 +67,19 @@ export default function PropertiesModal({
     fetchAcousticWalls().then(setWallsData);
   }, []);
 
-  console.log("Walls Data:", openings);
-
   // Busca la pared seleccionada por índice
   let selectedElement: any = null;
-  if (elementType === "wall" && wallIndex !== undefined) {
+  if (elementType === ElementType.Wall && wallIndex !== undefined) {
     selectedElement = walls.find((w) => w.wallIndex === wallIndex);
   } else if (
-    elementType === "opening" &&
+    (elementType === ElementType.Door || elementType === ElementType.Window) &&
     wallIndex !== undefined &&
     openingId !== undefined
   ) {
     selectedElement = openings.find((w) => w.id === openingId);
-  } else if (elementType === "floor" && floorId) {
+  } else if (elementType === ElementType.Floor && floorId) {
     selectedElement = floors.find((f: any) => f.id === floorId);
-  } else if (elementType === "ceiling" && ceilingId) {    
+  } else if (elementType === ElementType.Ceiling && ceilingId) {
     selectedElement = ceilings.find((c: any) => c.id === ceilingId);
   }
   
@@ -100,10 +99,11 @@ export default function PropertiesModal({
       >
         <DialogHeader>
           <DialogTitle>
-            {elementType === "wall" && "Propiedades de la fachada"}
-            {elementType === "opening" && "Propiedades de la abertura"}
-            {elementType === "floor" && "Propiedades del piso"}
-            {elementType === "ceiling" && "Propiedades del techo"}
+            {elementType === ElementType.Wall && "Propiedades de la fachada"}
+            {elementType === ElementType.Window && "Propiedades de la ventana"}
+            {elementType === ElementType.Door && "Propiedades de la puerta"}
+            {elementType === ElementType.Floor && "Propiedades del piso"}
+            {elementType === ElementType.Ceiling && "Propiedades del techo"}
           </DialogTitle>
         </DialogHeader>
         {selectedElement ? (

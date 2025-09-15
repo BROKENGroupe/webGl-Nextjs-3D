@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Opening, Point2D } from '../../types/openings';
+import { ElementType } from '../../types/walls';
 
 /**
  * =====================================================================================
@@ -447,8 +448,8 @@ export class GeometryEngine {
        * Solo crear dintel si:
        * - Es una ventana (las puertas típicamente llegan al techo), O
        * - La abertura no llega al techo (bottomOffset + height < wallHeight)
-       */      
-      if (opening.type === 'window' || (opening.bottomOffset + opening.height < wallHeight)) {
+       */
+      if (opening.type === ElementType.Window || (opening.bottomOffset + opening.height < wallHeight)) {
         const segmentStartY = opening.bottomOffset + opening.height; // Top de la abertura
         const segmentEndY = wallHeight; // Techo
 
@@ -469,7 +470,7 @@ export class GeometryEngine {
        * Solo para ventanas que no empiezan en el suelo
        * Las puertas típicamente tienen bottomOffset = 0
        */
-      if (opening.type === 'window' && opening.bottomOffset > 0.1) {
+      if (opening.type === ElementType.Window && opening.bottomOffset > 0.1) {
         segments.push({
           startX: openingStartX,
           endX: openingEndX,

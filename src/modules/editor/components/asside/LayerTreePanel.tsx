@@ -17,9 +17,10 @@ import {
   DropdownMenuItem,
 } from "@/shared/ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { ElementType } from "../../types/walls";
 
 interface LayerTreePanelProps {
-  onSelect?: (obj: any) => void;
+  onSelect?: (obj: any, edit: boolean) => void;
   onVisibilityChange?: (
     type: "wall" | "opening" | "floor" | "ceiling",
     id: string,
@@ -52,9 +53,9 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
     return Object.fromEntries(allOpenings.map((id) => [id, true]));
   });
 
-  const handleSelected = (obj: any) => {
+  const handleSelected = (obj: any, edit: boolean) => {
     console.log("Selected object:", obj);
-    onSelect?.(obj);
+    onSelect?.(obj, edit);
   };
 
   // Estado para switches de piso y techo
@@ -211,17 +212,13 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       className="text-[12px]"
-                      onClick={() => handleSelected(ceiling)}
+                      onClick={() => handleSelected(ceiling, true)}
                     >
                       Cambiar material
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-[12px]"
-                      onClick={() =>
-                        alert(
-                          `Propiedades de Techo ${ceiling.template?.descriptor}`
-                        )
-                      }
+                      onClick={() => handleSelected(ceiling, false)}
                     >
                       Propiedades
                     </DropdownMenuItem>
@@ -271,17 +268,13 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       className="text-[12px]"
-                      onClick={() => handleSelected(floor)}
+                      onClick={() => handleSelected(floor, true)}
                     >
                       Cambiar material
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-[12px]"
-                      onClick={() =>
-                        alert(
-                          `Propiedades de Piso ${floor.template?.descriptor}`
-                        )
-                      }
+                      onClick={() => handleSelected(floor, false)}
                     >
                       Propiedades
                     </DropdownMenuItem>
@@ -334,15 +327,13 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           className="text-[12px]"
-                          onClick={() => handleSelected(wall)}
+                          onClick={() => handleSelected(wall, true)}
                         >
                           Cambiar material
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-[12px]"
-                          onClick={() =>
-                            alert(`Propiedades de Fachada ${idx + 1}`)
-                          }
+                          onClick={() => handleSelected(wall, false)}
                         >
                           Propiedades
                         </DropdownMenuItem>
@@ -355,7 +346,7 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                     {wallOpenings.length > 0 ? (
                       wallOpenings.map((opening: any, oidx: number) => {
                         const openingId = opening.id || `opening-${oidx}`;
-                        const isWindow = opening.type === "window";
+                        const isWindow = opening.type === ElementType.Window;
                         return (
                           <div
                             key={openingId}
@@ -393,18 +384,16 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem
                                     className="text-[12px]"
-                                    onClick={() => handleSelected(opening)}
+                                    onClick={() =>
+                                      handleSelected(opening, true)
+                                    }
                                   >
                                     Cambiar material
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="text-[12px]"
                                     onClick={() =>
-                                      alert(
-                                        `Propiedades de ${
-                                          isWindow ? "Ventana" : "Puerta"
-                                        } ${oidx + 1}`
-                                      )
+                                      handleSelected(opening, false)
                                     }
                                   >
                                     Propiedades

@@ -5,6 +5,16 @@ import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilin
 
 export type WallCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged';
 
+export enum ElementType {
+  Wall = "wall",
+  Floor = "floor",
+  Ceiling = "ceiling",
+  Door = "door",
+  Window = "window",
+  Opening = "opening"
+}  
+
+
 export interface WallTemplate {
   id: string;
   name: string;

@@ -35,6 +35,8 @@ import { WallsToast } from "./extrudeToast";
 import OpenCellingContextMenu from "./contextMenus/openCellingContextMenu";
 import OpenFloorContextMenu from "./contextMenus/openFloorContextMenu";
 
+import { ElementType } from "@/modules/editor/types/walls";
+
 export default function DrawingScene() {
   // Usar Zustand para el estado global
   const {
@@ -109,24 +111,30 @@ export default function DrawingScene() {
     undefined
   );
 
-  const onSelectLayer = (key: any) => {   
-    if (!key) return; 
+  const onSelectLayer = (key: any, edit: boolean) => {
+    if (!key) return;
     setSelectedLayer(key);
-    if (key.type === "wall" && key.id) {
-      setSelectedWallIndex(key.id);
-      setElementType("wall");
-    } else if (key.type === "opening" && key.id) {
+    if (key.template.type === ElementType.Wall) {
+      setSelectedFacadeName(key.wallIndex);
+      setElementType(key.template.type);
+    } else if (key.template.type === ElementType.Window) {
       setSelectedOpeningId(key.id);
-      setElementType("opening");
-    } else if (key.type === "ceiling" && key.id) {
+      setElementType(key.template.type);
+    } else if (key.template.type === ElementType.Door) {
+      setSelectedOpeningId(key.id);
+      setElementType(key.template.type);
+    } else if (key.template.type === ElementType.Ceiling) {
       setSelectedCeilingId(key.id);
-      setElementType("ceiling");
-    } else if (key.type === "floor" && key.id) {
+      setElementType(key.template.type);
+    } else if (key.template.type === ElementType.Floor) {
       setSelectedFloorId(key.id);
-      setElementType("floor");
+      setElementType(key.template.type);
     }
-
-    setShowMaterialModal(true);
+    if (!edit) {
+      setShowPropertiesModal(true);
+    } else {
+      setShowMaterialModal(true);
+    }
   };
 
   // Estados para el menú contextual
@@ -148,14 +156,12 @@ export default function DrawingScene() {
   const { floors, addFloor } = useWallsStore();
   const { coordinates } = useCoordinatesStore();
 
-  const [elementType, setElementType] = useState<
-    "wall" | "opening" | "floor" | "ceiling"
-  >("wall");
+  const [elementType, setElementType] = useState<ElementType>(ElementType.Wall);
 
   const handleWallContextMenu = (
     event: any,
     facadeName: number,
-    elementType: "wall" | "opening" | "floor" | "ceiling"
+    elementType: ElementType
   ) => {
     event.preventDefault();
     setMenuPosition({ x: event.clientX, y: event.clientY });
@@ -167,7 +173,7 @@ export default function DrawingScene() {
   const handleOpeningContextMenu = (
     event: any,
     openingId: string,
-    elementType: "wall" | "opening" | "floor" | "ceiling"
+    elementType: ElementType
   ) => {
     event.preventDefault();
     setOpeningMenuPosition({ x: event.clientX, y: event.clientY });
@@ -179,7 +185,7 @@ export default function DrawingScene() {
   const handleCeilingContextMenu = (
     event: any,
     facadeName: string,
-    elementType: "wall" | "opening" | "floor" | "ceiling"
+    elementType: ElementType
   ) => {
     event.preventDefault();
     setCeilingMenuPosition({ x: event.clientX, y: event.clientY });
@@ -191,7 +197,7 @@ export default function DrawingScene() {
   const handleFloorContextMenu = (
     event: any,
     facadeName: string,
-    elementType: "wall" | "opening" | "floor" | "ceiling"
+    elementType: ElementType
   ) => {
     event.preventDefault();
     setFloorMenuPosition({ x: event.clientX, y: event.clientY });

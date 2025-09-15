@@ -13,6 +13,7 @@ import { OpeningMesh } from "./extrudeFloor/OpeningMesh";
 import { RoomCeiling } from "./extrudeFloor/RoomCeiling";
 import { RoomFloor } from "./extrudeFloor/RoomFloor";
 import { RoomWall } from "./extrudeFloor/RoomWall";
+import { ElementType } from "../types/walls";
 
 // Props interface
 interface ExtrudedShapeWithDraggableOpenings2Props {
@@ -27,24 +28,24 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
   onWallContextMenu?: (
     event: any,
     facadeName: number,
-    elementType: "wall" | "opening" | "floor" | "ceiling"
+    elementType: ElementType
   ) => void;
   onOpeningContextMenu?: (
     event: any,
     openingId: any,
-    elementType: "wall" | "opening" | "floor" | "ceiling"
+    elementType: ElementType
   ) => void;
   openings: any[];
   ceilings: any[];
   onCeilingContextMenu?: (
     event: any,
     facadeName: string,
-    elementType: "wall" | "opening" | "floor" | "ceiling"
+    elementType: ElementType
   ) => void;
   onFloorContextMenu?: (
     event: any,
     facadeName: string,
-    elementType: "wall" | "opening" | "floor" | "ceiling"
+    elementType: ElementType
   ) => void;
 }
 
@@ -60,7 +61,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
   onFloorContextMenu,
   floors = [],
   openings,
-  ceilings
+  ceilings,
 }: ExtrudedShapeWithDraggableOpenings2Props) {
   // Altura de la habitación (puedes recibirla por props o definirla aquí)
   const depth = 3;
@@ -133,22 +134,21 @@ export function ExtrudedShapeWithDraggableOpenings2({
   // Renderizado
   return (
     <group>
-       {floors.map((floor, index) => (
-      <RoomFloor
-      key={`floor-${index}`}
-        geometry={floorGeometry}
-        material={MaterialService.getFloorMaterial()}
-        floorId={floor.id}
+      {floors.map((floor, index) => (
+        <RoomFloor
+          key={`floor-${index}`}
+          geometry={floorGeometry}
+          material={MaterialService.getFloorMaterial()}
+          floorId={floor.id}
           eventHandlers={{
-          onContextMenu: (e: any) => {
-            if (onFloorContextMenu) {
-              onFloorContextMenu(e.nativeEvent, floor.id, "floor");
-            }
-          },
-        }}
-      />
- ))}
-
+            onContextMenu: (e: any) => {
+              if (onFloorContextMenu) {
+                onFloorContextMenu(e.nativeEvent, floor.id, ElementType.Floor);
+              }
+            },
+          }}
+        />
+      ))}
 
       {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
@@ -181,7 +181,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
               onClick: (e: any) => wallInteractions.handleWallClick(index, e),
               onContextMenu: (e: any) => {
                 if (onWallContextMenu) {
-                  onWallContextMenu(e.nativeEvent, index, "wall");
+                  onWallContextMenu(e.nativeEvent, index, ElementType.Wall);
                 }
               },
             }}
@@ -216,7 +216,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
                       onOpeningContextMenu(
                         e.nativeEvent,
                         opening.id,
-                        "opening"
+                        ElementType.Opening
                       );
                     }
                   },
@@ -233,13 +233,17 @@ export function ExtrudedShapeWithDraggableOpenings2({
           material={MaterialService.getCeilingMaterial()}
           ceilingId={ceiling.id}
           eventHandlers={{
-          onContextMenu: (e: any) => {
-            if (onCeilingContextMenu) {
-              onCeilingContextMenu(e.nativeEvent, ceiling.id, "ceiling");
-            }
-          },
-        }}
-      />
+            onContextMenu: (e: any) => {
+              if (onCeilingContextMenu) {
+                onCeilingContextMenu(
+                  e.nativeEvent,
+                  ceiling.id,
+                  ElementType.Ceiling
+                );
+              }
+            },
+          }}
+        />
       ))}
 
       <AcousticHeatmapShader
@@ -250,5 +254,4 @@ export function ExtrudedShapeWithDraggableOpenings2({
       {/* <FloorsGroup floors={floors} depth={depth} /> */}
     </group>
   );
-  
 }

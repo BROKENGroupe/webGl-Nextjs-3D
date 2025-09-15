@@ -27,8 +27,7 @@ import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { useOpeningsStore } from "../../store/openingsStore";
 import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilings";
-
-type ElementType = "wall" | "opening" | "floor" | "ceiling";
+import { ElementType } from "../../types/walls";
 
 interface MaterialModalProps {
   visible: boolean;
@@ -120,16 +119,16 @@ export default function MaterialModal({
       const matchesType =
         typeFilter === "all"
           ? true
-          : typeFilter === "wall"
+          : typeFilter === ElementType.Wall
           ? material.type?.toLowerCase().includes("wall") ||
             material.type?.toLowerCase().includes("partition")
-          : typeFilter === "door"
+          : typeFilter === ElementType.Door
           ? material.type?.toLowerCase().includes("door")
-          : typeFilter === "window"
+          : typeFilter === ElementType.Window
           ? material.type?.toLowerCase().includes("window")
-          : typeFilter === "floor"
+          : typeFilter === ElementType.Floor
           ? material.type?.toLowerCase().includes("floor")
-          : typeFilter === "ceiling"
+          : typeFilter === ElementType.Ceiling
           ? material.type?.toLowerCase().includes("ceiling")
           : true;
       return matchesQuery && matchesType;
@@ -138,18 +137,18 @@ export default function MaterialModal({
 
   // Handler para seleccionar material según el tipo de elemento
   const handleSelectMaterial = (material: any) => {
-    if (elementType === "wall" && wallIndex !== undefined) {
+    if (elementType === ElementType.Wall && wallIndex !== undefined) {
       updateWallByIndex(wallIndex, { template: material });
     } else if (
-      elementType === "opening" &&
+      (elementType === ElementType.Door || elementType === ElementType.Window) &&
       wallIndex !== undefined &&
       openingId !== undefined
     ) {
       updateOpeningMaterial(openingId, { template: material });
-    } else if (elementType === "floor" && floorId) {
-      updateFloorMaterial(floorId, {template: material});
-    } else if (elementType === "ceiling" && ceilingId) {
-      updateCeilingMaterial(ceilingId, {template: material});
+    } else if (elementType === ElementType.Floor && floorId) {
+      updateFloorMaterial(floorId, { template: material });
+    } else if (elementType === ElementType.Ceiling && ceilingId) {
+      updateCeilingMaterial(ceilingId, { template: material });
     }
     onClose();
   };

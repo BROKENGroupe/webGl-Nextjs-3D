@@ -152,7 +152,7 @@ export function LayerPanel({
   visibility: LayerVisibility;
   onChange: (v: LayerVisibility) => void;
   selected?: string;
-  onSelect?: (key: any) => void;
+  onSelect?: (key: any, edit: boolean) => void;
   onStartDrag?: (template: AcousticMaterial) => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -165,8 +165,8 @@ export function LayerPanel({
   const [materialFilter, setMaterialFilter] = useState("");
 
   // Simulación de selección de capa
-  const handleSelect = (key: string) => {
-    onSelect?.(key);
+  const handleSelect = (key: string, edit: boolean) => {
+    onSelect?.(key, edit);
   };
 
   return (
@@ -265,7 +265,7 @@ export function LayerPanel({
                                   tabIndex={0}
                                   aria-label={`Arrastrar ${material.type} - ${material.descriptor}`}
                                   onClick={() =>
-                                    handleSelect(material.descriptor)
+                                    handleSelect(material.descriptor, false)
                                   }
                                   onMouseDown={() => setDraggedItem(material)}
                                   onMouseUp={() => setDraggedItem(null)}
