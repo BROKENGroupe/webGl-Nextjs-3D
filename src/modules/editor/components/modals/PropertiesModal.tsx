@@ -15,7 +15,13 @@ import {
   wallLightWoodPanel,
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
-import { windowStandard, windowDoubleGlazed, windowLaminated, windowAcoustic, windowTripleGlazed } from "@/data/acousticWindows";
+import {
+  windowStandard,
+  windowDoubleGlazed,
+  windowLaminated,
+  windowAcoustic,
+  windowTripleGlazed,
+} from "@/data/acousticWindows";
 import { useOpeningsStore } from "../../store/openingsStore";
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 import { ElementType } from "../../types/walls";
@@ -44,7 +50,7 @@ async function fetchAcousticWalls() {
     windowDoubleGlazed,
     doorStandard,
     doorDouble,
-    doorAcoustic
+    doorAcoustic,
   ];
 }
 
@@ -66,14 +72,15 @@ export default function PropertiesModal({
   useEffect(() => {
     fetchAcousticWalls().then(setWallsData);
   }, []);
-
+  debugger;
   // Busca la pared seleccionada por índice
   let selectedElement: any = null;
   if (elementType === ElementType.Wall && wallIndex !== undefined) {
     selectedElement = walls.find((w) => w.wallIndex === wallIndex);
   } else if (
-    (elementType === ElementType.Door || elementType === ElementType.Window) &&
-    wallIndex !== undefined &&
+    (elementType === ElementType.Opening ||
+      elementType === ElementType.Window ||
+      elementType === ElementType.Door) &&
     openingId !== undefined
   ) {
     selectedElement = openings.find((w) => w.id === openingId);
@@ -82,14 +89,14 @@ export default function PropertiesModal({
   } else if (elementType === ElementType.Ceiling && ceilingId) {
     selectedElement = ceilings.find((c: any) => c.id === ceilingId);
   }
-  
+
   // Obtiene el template acústico del elemento seleccionado
   const acoustic = selectedElement?.template;
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent 
-      className="w-[70vw]"
+      <DialogContent
+        className="w-[70vw]"
         style={{
           maxHeight: "95vh",
           minHeight: "600px",
