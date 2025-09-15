@@ -108,6 +108,27 @@ export default function DrawingScene() {
   const [selectedLayer, setSelectedLayer] = useState<string | undefined>(
     undefined
   );
+
+  const onSelectLayer = (key: any) => {   
+    if (!key) return; 
+    setSelectedLayer(key);
+    if (key.type === "wall" && key.id) {
+      setSelectedWallIndex(key.id);
+      setElementType("wall");
+    } else if (key.type === "opening" && key.id) {
+      setSelectedOpeningId(key.id);
+      setElementType("opening");
+    } else if (key.type === "ceiling" && key.id) {
+      setSelectedCeilingId(key.id);
+      setElementType("ceiling");
+    } else if (key.type === "floor" && key.id) {
+      setSelectedFloorId(key.id);
+      setElementType("floor");
+    }
+
+    setShowMaterialModal(true);
+  };
+
   // Estados para el menú contextual
   const [contextMenu, setContextMenu] = useState({
     visible: false,
@@ -764,7 +785,7 @@ export default function DrawingScene() {
         <LayerPanel
           visibility={layerVisibility}
           onChange={setLayerVisibility}
-          onSelect={setSelectedLayer}
+          onSelect={onSelectLayer}
           onStartDrag={handleStartDrag}
         />
       </CollapsibleAside>

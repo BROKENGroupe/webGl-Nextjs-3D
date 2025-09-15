@@ -14,7 +14,7 @@ export function WallsToast({ isExtruded, walls }: { isExtruded: boolean; walls: 
           duration: 5000,
           icon: <CheckCircle className="text-green-500 w-5 h-5" />,
           className: "bg-white text-gray-800 rounded-xl shadow-lg border border-gray-200",
-        }
+        }, 
       )
     }
   }, [isExtruded, walls])

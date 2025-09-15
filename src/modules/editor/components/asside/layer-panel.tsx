@@ -22,7 +22,13 @@ import {
   wallLightWoodPanel,
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
-import { windowStandard, windowDoubleGlazed, windowAcoustic, windowLaminated, windowTripleGlazed } from "@/data/acousticWindows";
+import {
+  windowStandard,
+  windowDoubleGlazed,
+  windowAcoustic,
+  windowLaminated,
+  windowTripleGlazed,
+} from "@/data/acousticWindows";
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 
@@ -36,7 +42,10 @@ import {
   GearIcon,
   MagicWandIcon,
 } from "@radix-ui/react-icons";
-import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilings";
+import {
+  ceilingAcousticPanel,
+  ceilingConcreteSlab,
+} from "@/data/acousticCeilings";
 
 type Layer = {
   key: string;
@@ -56,14 +65,14 @@ const PALETTE_MATERIALS: AcousticMaterial[] = [
   windowDoubleGlazed,
   windowLaminated,
   windowAcoustic,
-  windowTripleGlazed,  
+  windowTripleGlazed,
   doorStandard,
   doorDouble,
   doorAcoustic,
   floorConcreteSlab,
   floorAcousticPanel,
   ceilingConcreteSlab,
-  ceilingAcousticPanel
+  ceilingAcousticPanel,
 ];
 
 const PALETTE_TEMPLATES: AcousticMaterial[] = Object.values(OPENING_TEMPLATES);
@@ -143,7 +152,7 @@ export function LayerPanel({
   visibility: LayerVisibility;
   onChange: (v: LayerVisibility) => void;
   selected?: string;
-  onSelect?: (key: string) => void;
+  onSelect?: (key: any) => void;
   onStartDrag?: (template: AcousticMaterial) => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -163,9 +172,9 @@ export function LayerPanel({
   return (
     <div className="w-96 border-gray-200 bg-white">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-semibold">
+        {/* <CardTitle className="text-lg font-semibold">
           Panel de propiedades
-        </CardTitle>
+        </CardTitle> */}
       </CardHeader>
       <CardContent className="p-0">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
@@ -176,9 +185,12 @@ export function LayerPanel({
           <TabsContent value="materials">
             <div className="p-0">
               <div className="flex items-center justify-between mb-4">
-                <Button variant="default" size="sm" aria-label="Crear material">
+                {/* <Button variant="default" size="sm" aria-label="Crear material">
                   <MagicWandIcon className="mr-1" /> Crear material
-                </Button>
+                </Button> */}
+                <h4 className="text-lg font-semibold">
+                  Materiales disponibles
+                </h4>
                 <div className="relative">
                   <Button
                     variant="outline"
@@ -220,12 +232,7 @@ export function LayerPanel({
                             {group}
                           </AccordionTrigger>
                           <AccordionContent>
-                            <div className="
-      grid
-      grid-cols-2
-      gap-4
-      mb-4
-    ">
+                            <div className="grid grid-cols-2 gap-4 mb-4">
                               {filteredMaterials.map((material) => (
                                 <div
                                   key={material.descriptor}
@@ -242,9 +249,10 @@ export function LayerPanel({
                                     handleOpeningDragEnd(setDraggedItem);
                                   }}
                                   className={`flex flex-col border border-gray-200 rounded-2xl shadow-md bg-white p-5 transition-all
-            ${draggedItem?.descriptor === material.descriptor
-              ? "cursor-grabbing"
-              : "cursor-grab"
+            ${
+              draggedItem?.descriptor === material.descriptor
+                ? "cursor-grabbing"
+                : "cursor-grab"
             }
             w-full min-w-0
             hover:shadow-lg
