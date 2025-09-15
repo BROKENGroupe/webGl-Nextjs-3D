@@ -13,7 +13,11 @@ export function RoomWall({
   children?: React.ReactNode;
 }) {
   return (
-    <mesh geometry={geometry} {...eventHandlers} userData={{ wallIndex, type: "wall" }}>
+    <mesh
+      geometry={geometry}
+      {...eventHandlers}
+      userData={{ wallIndex, type: "wall" }}
+    >
       <primitive object={material} />
       {children}
     </mesh>
