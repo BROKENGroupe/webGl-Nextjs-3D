@@ -25,6 +25,8 @@ import {
 import { doorAcoustic, doorDouble, doorStandard } from "@/data/acousticDoors";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { useOpeningsStore } from "../../store/openingsStore";
+import { floorConcreteSlab } from "@/data/floors";
+import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilings";
 
 type ElementType = "wall" | "opening" | "floor" | "ceiling";
 
@@ -52,6 +54,9 @@ const acousticMaterialsData = [
   doorStandard,
   doorDouble,
   doorAcoustic,
+  floorConcreteSlab,
+  ceilingConcreteSlab,
+  ceilingAcousticPanel
 ];
 
 const typeOptions = [
@@ -82,8 +87,8 @@ export default function MaterialModal({
   const updateOpeningMaterial = useOpeningsStore(
     (state) => state.updateOpening
   );
-  const updateFloorMaterial = useWallsStore((state) => state.addFloor);
-  const updateCeilingMaterial = useWallsStore((state) => state.addCeiling);
+  const updateFloorMaterial = useWallsStore((state) => state.updateFloor);
+  const updateCeilingMaterial = useWallsStore((state) => state.updateCeiling);
 
   // Busca el elemento seleccionado según el tipo
   let selectedElement: any = null;
@@ -141,9 +146,9 @@ export default function MaterialModal({
     ) {
       updateOpeningMaterial(openingId, { template: material });
     } else if (elementType === "floor" && floorId) {
-      updateFloorMaterial(Number(floorId), material);
+      updateFloorMaterial(floorId, {template: material});
     } else if (elementType === "ceiling" && ceilingId) {
-      updateCeilingMaterial(Number(ceilingId), material);
+      updateCeilingMaterial(ceilingId, {template: material});
     }
     onClose();
   };

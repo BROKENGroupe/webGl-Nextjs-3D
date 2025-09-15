@@ -32,6 +32,7 @@ import MaterialModal from "./modals/materialModal";
 import OpeningContextMenu from "./contextMenus/OpeningContextMenu";
 import { ExtrudedShapeWithDraggableOpenings2 } from "./ExtrudedShapeWithDraggableOpenings2";
 import { WallsToast } from "./extrudeToast";
+import OpenCellingContextMenu from "./contextMenus/openCellingContextMenu";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -121,6 +122,7 @@ export default function DrawingScene() {
   const [draggedTemplate, setDraggedTemplate] =
     useState<AcousticMaterial | null>(null);
   const { openings, addOpening } = useOpeningsStore();
+  const { ceilings, addCeiling } = useWallsStore();
   const { coordinates } = useCoordinatesStore();
 
   const [elementType, setElementType] = useState<
@@ -149,6 +151,18 @@ export default function DrawingScene() {
     setSelectedOpeningId(openingId);
     setElementType(elementType);
     setOpeningMenuVisible(true);
+  };
+
+  const handleCeilingContextMenu = (
+    event: any,
+    facadeName: string,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => {
+    event.preventDefault();
+    setCeilingMenuPosition({ x: event.clientX, y: event.clientY });
+    setSelectedCeilingId(facadeName);
+    setElementType(elementType);
+    setCeilingMenuVisible(true);
   };
 
   // ✅ NUEVO: Función para calcular Rw (necesaria para el modal)
@@ -529,6 +543,12 @@ export default function DrawingScene() {
     x: 0,
     y: 0,
   });
+  const [ceilingMenuVisible, setCeilingMenuVisible] = useState(false);
+  const [ceilingMenuPosition, setCeilingMenuPosition] = useState({
+    x: 0,
+    y: 0,
+  });
+  const [selectedCeilingId, setSelectedCeilingId] = useState<string>('');
   const [selectedOpeningId, setSelectedOpeningId] = useState<string>("");
   // State for MaterialModal visibility
   const [showMaterialModal, setShowMaterialModal] = useState(false);
@@ -614,7 +634,9 @@ export default function DrawingScene() {
             floors={floors}
             onWallContextMenu={handleWallContextMenu}
             onOpeningContextMenu={handleOpeningContextMenu}
+            onCeilingContextMenu={handleCeilingContextMenu}
             openings={openings}
+            ceilings={ceilings}
           />
 
         )}
@@ -671,6 +693,16 @@ export default function DrawingScene() {
         onClose={() => setOpeningMenuVisible(false)}
       />
 
+      <OpenCellingContextMenu
+        x={ceilingMenuPosition.x}
+        y={ceilingMenuPosition.y}
+        visible={ceilingMenuVisible}
+        facadeName={selectedCeilingId ?? ''}
+        onProperties={handleProperties}
+        onChangeMaterial={handleChangeMaterial}
+        onClose={() => setCeilingMenuVisible(false)}
+      />
+
       {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
       {/* <DraggableOpeningsPalette
         isVisible={showOpeningsPalette}
@@ -723,6 +755,7 @@ export default function DrawingScene() {
         elementType={elementType}
         wallIndex={selectedFacadeName ?? 0}
         openingId={selectedOpeningId ?? ""}
+        ceilingId={selectedCeilingId ?? ''}
         onClose={() => setShowPropertiesModal(false)}
       />
 
@@ -730,6 +763,7 @@ export default function DrawingScene() {
         visible={showMaterialModal}
         wallIndex={selectedFacadeName ?? 0}
         openingId={selectedOpeningId ?? ""}
+        ceilingId={selectedCeilingId ?? ''}
         elementType={elementType}
         onClose={() => setShowMaterialModal(false)}
       />

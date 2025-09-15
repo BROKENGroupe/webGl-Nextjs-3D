@@ -1,6 +1,7 @@
 import { wallCeramicBrick, wallConcreteBlock, wallGypsumBoard } from "@/data/acousticWalls";
 import { AcousticMaterial, ThirdOctave } from "./AcousticMaterial";
-import { ceilingConcreteSlab, floorConcreteSlab } from "@/data/floors";
+import { floorConcreteSlab } from "@/data/floors";
+import { ceilingConcreteSlab } from "@/data/acousticCeilings";
 
 export type WallCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged';
 

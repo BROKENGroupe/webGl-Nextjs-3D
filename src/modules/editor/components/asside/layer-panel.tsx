@@ -24,7 +24,7 @@ import {
 } from "@/data/acousticWalls";
 import { windowStandard, windowDoubleGlazed, windowAcoustic, windowLaminated, windowTripleGlazed } from "@/data/acousticWindows";
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
-import { ceilingConcreteSlab, floorConcreteSlab } from "@/data/floors";
+import { floorConcreteSlab } from "@/data/floors";
 
 import { useState } from "react";
 import { LayerTreePanel } from "./LayerTreePanel";
@@ -36,6 +36,7 @@ import {
   GearIcon,
   MagicWandIcon,
 } from "@radix-ui/react-icons";
+import { ceilingConcreteSlab } from "@/data/acousticCeilings";
 
 type Layer = {
   key: string;

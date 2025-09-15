@@ -3,8 +3,9 @@ import { persist } from 'zustand/middleware';
 import { calculateWallAcousticRating, CEILING_TEMPLATES, FLOOR_TEMPLATES, Wall, WALL_TEMPLATES } from '@/modules/editor/types/walls';
 
 import { AcousticMaterial, ThirdOctave } from '@/modules/editor/types/AcousticMaterial';
-import { floorConcreteSlab, ceilingConcreteSlab } from "@/data/floors";
+import { floorConcreteSlab } from "@/data/floors";
 import { Opening } from '../types/openings';
+import { ceilingConcreteSlab } from '@/data/acousticCeilings';
 
 // Tipos para piso y techo (más genéricos)
 interface FloorCeiling {
@@ -23,6 +24,8 @@ interface WallsStore {
   addFloor: (area: number, template?: AcousticMaterial) => void;
   addCeiling: (area: number, template?: AcousticMaterial) => void;
   updateWall: (wallId: string, updates: Partial<Wall>) => void;
+  updateCeiling: (ceilingId: string, updates: Partial<FloorCeiling>) => void;
+  updateFloor: (floorId: string, updates: Partial<FloorCeiling>) => void;
   updateWallByIndex: (wallIndex: number, updates: Partial<Wall>) => void;
   deleteWall: (wallId: string) => void;
   clearWalls: () => void;
@@ -95,6 +98,28 @@ export const useWallsStore = create<WallsStore>()(
           ceilings: [...state.ceilings, newCeiling]
         }));
         console.log('⬛ Techo agregado:', newCeiling);
+      },
+
+      updateCeiling: (ceilingId: string, updates: Partial<FloorCeiling>) => {
+        set((state) => ({
+          ceilings: state.ceilings.map(ceiling => {
+            if (ceiling.id === ceilingId) {
+              return { ...ceiling, ...updates };
+            }
+            return ceiling;
+          })
+        }));
+      },
+
+      updateFloor: (floorId: string, updates: Partial<FloorCeiling>) => {
+        set((state) => ({
+          floors: state.floors.map(floor => {
+            if (floor.id === floorId) {
+              return { ...floor, ...updates };
+            }
+            return floor;
+          })
+        }));
       },
 
       updateWall: (wallId, updates) => {

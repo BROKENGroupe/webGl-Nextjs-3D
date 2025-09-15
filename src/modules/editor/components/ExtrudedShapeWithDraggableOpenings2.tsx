@@ -35,18 +35,26 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
     elementType: "wall" | "opening" | "floor" | "ceiling"
   ) => void;
   openings: any[];
+  ceilings: any[];
+  onCeilingContextMenu?: (
+    event: any,
+    facadeName: string,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => void;
 }
 
 // Componente principal
-export function ExtrudedShapeWithDraggableOpenings2({  
+export function ExtrudedShapeWithDraggableOpenings2({
   onDropOpening,
   isDragActive,
   draggedTemplate,
   showHeatmap = false,
   onWallContextMenu,
   onOpeningContextMenu,
+  onCeilingContextMenu,
   floors = [],
   openings,
+  ceilings
 }: ExtrudedShapeWithDraggableOpenings2Props) {
   // Altura de la habitación (puedes recibirla por props o definirla aquí)
   const depth = 3;
@@ -193,16 +201,28 @@ export function ExtrudedShapeWithDraggableOpenings2({
                       );
                     }
                   },
-                }}               
+                }}
               />
             ))}
           </RoomWall>
         );
       })}
-      <RoomCeiling
-        geometry={ceilingGeometry}
-        material={MaterialService.getCeilingMaterial()}
+      {ceilings.map((ceiling, index) => (
+        <RoomCeiling
+          key={`ceiling-${index}`}
+          geometry={ceilingGeometry}
+          material={MaterialService.getCeilingMaterial()}
+          ceilingId={ceiling.id}
+          eventHandlers={{
+          onContextMenu: (e: any) => {
+            if (onCeilingContextMenu) {
+              onCeilingContextMenu(e.nativeEvent, ceiling.id, "ceiling");
+            }
+          },
+        }}
       />
+      ))}
+
       <AcousticHeatmapShader
         wallCoordinates={coordinatesToUse}
         isVisible={showHeatmap}
@@ -211,4 +231,5 @@ export function ExtrudedShapeWithDraggableOpenings2({
       <FloorsGroup floors={floors} depth={depth} />
     </group>
   );
+  
 }

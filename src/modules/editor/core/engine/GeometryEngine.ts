@@ -256,7 +256,6 @@ export class GeometryEngine {
     depth: number,
     wallOpenings: Opening[]
   ): THREE.BufferGeometry {
-    debugger
     const wallLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.z - p1.z) ** 2);
     const wallGeometry = new THREE.BufferGeometry();
 
@@ -298,8 +297,7 @@ export class GeometryEngine {
       segments.forEach(segment => {
         let segmentVertices: number[];
 
-        if (segment.startY !== undefined && segment.endY !== undefined) {
-            console.log('Segmento antepecho detectado:', segment);
+        if (segment.startY !== undefined && segment.endY !== undefined) {            
           // ===== SEGMENTO DINTEL (encima de abertura) =====
           segmentVertices = [
             p1.x + (segment.startX / wallLength) * (p2.x - p1.x), segment.startY, p1.z + (segment.startX / wallLength) * (p2.z - p1.z),
@@ -449,8 +447,7 @@ export class GeometryEngine {
        * Solo crear dintel si:
        * - Es una ventana (las puertas típicamente llegan al techo), O
        * - La abertura no llega al techo (bottomOffset + height < wallHeight)
-       */
-      debugger
+       */      
       if (opening.type === 'window' || (opening.bottomOffset + opening.height < wallHeight)) {
         const segmentStartY = opening.bottomOffset + opening.height; // Top de la abertura
         const segmentEndY = wallHeight; // Techo

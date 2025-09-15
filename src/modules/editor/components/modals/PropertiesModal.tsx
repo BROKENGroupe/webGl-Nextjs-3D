@@ -80,10 +80,10 @@ export default function PropertiesModal({
     selectedElement = openings.find((w) => w.id === openingId);
   } else if (elementType === "floor" && floorId) {
     selectedElement = floors.find((f: any) => f.id === floorId);
-  } else if (elementType === "ceiling" && ceilingId) {
+  } else if (elementType === "ceiling" && ceilingId) {    
     selectedElement = ceilings.find((c: any) => c.id === ceilingId);
   }
-
+  
   // Obtiene el template acústico del elemento seleccionado
   const acoustic = selectedElement?.template;
 
