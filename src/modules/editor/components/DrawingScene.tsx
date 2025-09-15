@@ -31,6 +31,7 @@ import PropertiesModal from "./modals/PropertiesModal";
 import MaterialModal from "./modals/materialModal";
 import OpeningContextMenu from "./contextMenus/OpeningContextMenu";
 import { ExtrudedShapeWithDraggableOpenings2 } from "./ExtrudedShapeWithDraggableOpenings2";
+import { WallsToast } from "./extrudeToast";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -698,18 +699,7 @@ export default function DrawingScene() {
 
       {/* ✅ NUEVO: Indicador de estado de análisis acústico */}
       {isExtruded && walls.length > 0 && (
-        <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-gray-700 font-medium">
-              {walls.length} pared{walls.length !== 1 ? "es" : ""} lista
-              {walls.length !== 1 ? "s" : ""} para análisis
-            </span>
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            Haz clic en "📊 Análisis Acústico" para ver resultados detallados
-          </div>
-        </div>
+        <WallsToast isExtruded={isExtruded} walls={walls} />
       )}
 
       {/* Aside derecho */}

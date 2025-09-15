@@ -7,7 +7,7 @@ import {
 } from "@/services/authService";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
-import toast from "react-hot-toast";
+import {toast} from "sonner";
 import { z } from "zod";
 import React from "react";
 import { Button } from "@/shared/ui/button";
