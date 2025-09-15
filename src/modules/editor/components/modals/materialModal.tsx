@@ -25,7 +25,7 @@ import {
 import { doorAcoustic, doorDouble, doorStandard } from "@/data/acousticDoors";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { useOpeningsStore } from "../../store/openingsStore";
-import { floorConcreteSlab } from "@/data/floors";
+import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilings";
 
 type ElementType = "wall" | "opening" | "floor" | "ceiling";
@@ -55,6 +55,7 @@ const acousticMaterialsData = [
   doorDouble,
   doorAcoustic,
   floorConcreteSlab,
+  floorAcousticPanel,
   ceilingConcreteSlab,
   ceilingAcousticPanel
 ];

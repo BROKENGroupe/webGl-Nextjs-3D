@@ -33,6 +33,7 @@ import OpeningContextMenu from "./contextMenus/OpeningContextMenu";
 import { ExtrudedShapeWithDraggableOpenings2 } from "./ExtrudedShapeWithDraggableOpenings2";
 import { WallsToast } from "./extrudeToast";
 import OpenCellingContextMenu from "./contextMenus/openCellingContextMenu";
+import OpenFloorContextMenu from "./contextMenus/openFloorContextMenu";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -123,6 +124,7 @@ export default function DrawingScene() {
     useState<AcousticMaterial | null>(null);
   const { openings, addOpening } = useOpeningsStore();
   const { ceilings, addCeiling } = useWallsStore();
+  const { floors, addFloor } = useWallsStore();
   const { coordinates } = useCoordinatesStore();
 
   const [elementType, setElementType] = useState<
@@ -153,16 +155,28 @@ export default function DrawingScene() {
     setOpeningMenuVisible(true);
   };
 
-  const handleCeilingContextMenu = (
+    const handleCeilingContextMenu = (
+      event: any,
+      facadeName: string,
+      elementType: "wall" | "opening" | "floor" | "ceiling"
+    ) => {
+      event.preventDefault();
+      setCeilingMenuPosition({ x: event.clientX, y: event.clientY });
+      setSelectedCeilingId(facadeName);
+      setElementType(elementType);
+      setCeilingMenuVisible(true);
+    };
+
+  const handleFloorContextMenu = (
     event: any,
     facadeName: string,
     elementType: "wall" | "opening" | "floor" | "ceiling"
   ) => {
     event.preventDefault();
-    setCeilingMenuPosition({ x: event.clientX, y: event.clientY });
-    setSelectedCeilingId(facadeName);
+    setFloorMenuPosition({ x: event.clientX, y: event.clientY });
+    setSelectedFloorId(facadeName);
     setElementType(elementType);
-    setCeilingMenuVisible(true);
+    setFloorMenuVisible(true);
   };
 
   // ✅ NUEVO: Función para calcular Rw (necesaria para el modal)
@@ -470,13 +484,13 @@ export default function DrawingScene() {
 
   // Estado para mostrar/ocultar el mapa de calor
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [floors, setFloors] = useState<any[]>([]);
+  const [floors2, setFloors] = useState<any[]>([]);
 
   const handleAddFloor = () => {
     // Tu lógica para crear la nueva planta
     const depth = 3;
     const lastHeight =
-      floors.length > 0 ? floors[floors.length - 1].baseHeight + depth : depth;
+      floors2.length > 0 ? floors2[floors2.length - 1].baseHeight + depth : depth;
 
     const coords =
       planeXZCoordinates.length >= 3
@@ -548,8 +562,11 @@ export default function DrawingScene() {
     x: 0,
     y: 0,
   });
+  const [floorMenuPosition, setFloorMenuPosition] = useState({ x: 0, y: 0 });
+  const [floorMenuVisible, setFloorMenuVisible] = useState(false);
   const [selectedCeilingId, setSelectedCeilingId] = useState<string>('');
   const [selectedOpeningId, setSelectedOpeningId] = useState<string>("");
+  const [selectedFloorId, setSelectedFloorId] = useState<string>("");
   // State for MaterialModal visibility
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   // State for selected wall index for MaterialModal
@@ -635,6 +652,7 @@ export default function DrawingScene() {
             onWallContextMenu={handleWallContextMenu}
             onOpeningContextMenu={handleOpeningContextMenu}
             onCeilingContextMenu={handleCeilingContextMenu}
+            onFloorContextMenu={handleFloorContextMenu}
             openings={openings}
             ceilings={ceilings}
           />
@@ -703,6 +721,16 @@ export default function DrawingScene() {
         onClose={() => setCeilingMenuVisible(false)}
       />
 
+      <OpenFloorContextMenu
+        x={floorMenuPosition.x}
+        y={floorMenuPosition.y}
+        visible={floorMenuVisible}
+        facadeName={selectedFloorId ?? ''}
+        onProperties={handleProperties}
+        onChangeMaterial={handleChangeMaterial}
+        onClose={() => setFloorMenuVisible(false)}
+      />
+
       {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
       {/* <DraggableOpeningsPalette
         isVisible={showOpeningsPalette}
@@ -756,6 +784,7 @@ export default function DrawingScene() {
         wallIndex={selectedFacadeName ?? 0}
         openingId={selectedOpeningId ?? ""}
         ceilingId={selectedCeilingId ?? ''}
+        floorId={selectedFloorId ?? ''}
         onClose={() => setShowPropertiesModal(false)}
       />
 
@@ -764,6 +793,7 @@ export default function DrawingScene() {
         wallIndex={selectedFacadeName ?? 0}
         openingId={selectedOpeningId ?? ""}
         ceilingId={selectedCeilingId ?? ''}
+        floorId={selectedFloorId ?? ''}
         elementType={elementType}
         onClose={() => setShowMaterialModal(false)}
       />

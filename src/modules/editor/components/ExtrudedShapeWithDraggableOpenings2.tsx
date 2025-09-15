@@ -41,6 +41,11 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
     facadeName: string,
     elementType: "wall" | "opening" | "floor" | "ceiling"
   ) => void;
+  onFloorContextMenu?: (
+    event: any,
+    facadeName: string,
+    elementType: "wall" | "opening" | "floor" | "ceiling"
+  ) => void;
 }
 
 // Componente principal
@@ -52,6 +57,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
   onWallContextMenu,
   onOpeningContextMenu,
   onCeilingContextMenu,
+  onFloorContextMenu,
   floors = [],
   openings,
   ceilings
@@ -127,10 +133,23 @@ export function ExtrudedShapeWithDraggableOpenings2({
   // Renderizado
   return (
     <group>
+       {floors.map((floor, index) => (
       <RoomFloor
+      key={`floor-${index}`}
         geometry={floorGeometry}
         material={MaterialService.getFloorMaterial()}
+        floorId={floor.id}
+          eventHandlers={{
+          onContextMenu: (e: any) => {
+            if (onFloorContextMenu) {
+              onFloorContextMenu(e.nativeEvent, floor.id, "floor");
+            }
+          },
+        }}
       />
+ ))}
+
+
       {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
         const nextCoord = coordinatesToUse[nextIndex];
@@ -228,7 +247,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
         isVisible={showHeatmap}
         Lp_in={70}
       />
-      <FloorsGroup floors={floors} depth={depth} />
+      {/* <FloorsGroup floors={floors} depth={depth} /> */}
     </group>
   );
   

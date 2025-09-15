@@ -1,7 +1,7 @@
 import { wallCeramicBrick, wallConcreteBlock, wallGypsumBoard } from "@/data/acousticWalls";
 import { AcousticMaterial, ThirdOctave } from "./AcousticMaterial";
-import { floorConcreteSlab } from "@/data/floors";
-import { ceilingConcreteSlab } from "@/data/acousticCeilings";
+import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
+import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilings";
 
 export type WallCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged';
 
@@ -56,11 +56,13 @@ export const WALL_TEMPLATES: Record<string, AcousticMaterial> = {
 // Define templates para piso y techo igual que para paredes
 export const FLOOR_TEMPLATES: Record<string, AcousticMaterial> = {
   "floor-concrete-slab": floorConcreteSlab,
+  "floor-acoustic-panel": floorAcousticPanel,
   // puedes agregar más tipos aquí
 };
 
 export const CEILING_TEMPLATES: Record<string, AcousticMaterial> = {
   "ceiling-concrete-slab": ceilingConcreteSlab,
+  "ceiling-acoustic-panel": ceilingAcousticPanel,
   // puedes agregar más tipos aquí
 };
 
