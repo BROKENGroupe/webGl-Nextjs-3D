@@ -72,7 +72,7 @@ export default function PropertiesModal({
   useEffect(() => {
     fetchAcousticWalls().then(setWallsData);
   }, []);
-  debugger;
+  
   // Busca la pared seleccionada por índice
   let selectedElement: any = null;
   if (elementType === ElementType.Wall && wallIndex !== undefined) {

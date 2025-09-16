@@ -26,7 +26,10 @@ import { doorAcoustic, doorDouble, doorStandard } from "@/data/acousticDoors";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { useOpeningsStore } from "../../store/openingsStore";
 import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
-import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilings";
+import {
+  ceilingAcousticPanel,
+  ceilingConcreteSlab,
+} from "@/data/acousticCeilings";
 import { ElementType } from "../../types/walls";
 
 interface MaterialModalProps {
@@ -56,7 +59,7 @@ const acousticMaterialsData = [
   floorConcreteSlab,
   floorAcousticPanel,
   ceilingConcreteSlab,
-  ceilingAcousticPanel
+  ceilingAcousticPanel,
 ];
 
 const typeOptions = [
@@ -92,21 +95,23 @@ export default function MaterialModal({
 
   // Busca el elemento seleccionado según el tipo
   let selectedElement: any = null;
-  if (elementType === "wall" && wallIndex !== undefined) {
+  if (elementType === ElementType.Wall && wallIndex !== undefined) {
     selectedElement = walls.find((w) => w.wallIndex === wallIndex);
   } else if (
-    elementType === "opening" &&
+    elementType === ElementType.Opening &&
     wallIndex !== undefined &&
     openingId !== undefined
   ) {
     const wall = walls.find((w) => w.wallIndex === wallIndex);
     selectedElement =
-      wall && "openings" in wall && Array.isArray((wall as any).openings)
+      wall &&
+      ElementType.Opening in wall &&
+      Array.isArray((wall as any).openings)
         ? (wall as any).openings.find((o: any) => o.id === openingId)
         : null;
-  } else if (elementType === "floor" && floorId) {
+  } else if (elementType === ElementType.Floor && floorId) {
     selectedElement = floors.find((f: any) => f.id === floorId);
-  } else if (elementType === "ceiling" && ceilingId) {
+  } else if (elementType === ElementType.Ceiling && ceilingId) {
     selectedElement = ceilings.find((c: any) => c.id === ceilingId);
   }
 
@@ -140,8 +145,9 @@ export default function MaterialModal({
     if (elementType === ElementType.Wall && wallIndex !== undefined) {
       updateWallByIndex(wallIndex, { template: material });
     } else if (
-      (elementType === ElementType.Door || elementType === ElementType.Window) &&
-      wallIndex !== undefined &&
+      (elementType === ElementType.Door ||
+        elementType === ElementType.Window ||
+        elementType === ElementType.Opening) &&
       openingId !== undefined
     ) {
       updateOpeningMaterial(openingId, { template: material });
