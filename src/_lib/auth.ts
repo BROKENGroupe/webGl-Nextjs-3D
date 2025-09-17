@@ -3,11 +3,12 @@ import GoogleProvider from 'next-auth/providers/google';
 import GithubProvider from 'next-auth/providers/github';
 import { NextAuthOptions } from 'next-auth';
 import axios from 'axios';
+import { mapTokenToSession, mapUserToToken } from './auth-mapper';
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_NESTJS_API_URL,
-    withCredentials: true
-  });
+  baseURL: process.env.NEXT_PUBLIC_NESTJS_API_URL,
+  withCredentials: true
+});
 
 const ONE_HOUR = 8 * 60 * 60 * 1000;
 
@@ -35,18 +36,20 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (user && user.accessToken) {
-            console.log('[user auth] Credentials', user)
-            return {
+            console.log('[user auth] Credentials', user);
+            
+            const mapped = mapUserToToken({
               id: user.id,
-              name: user.username,
               email: user.email,
+              name: user.username,
               image: user.image ?? null,
               accessToken: user.accessToken,
               refreshToken: user.refreshToken,
-              permissions: user.permissions ?? null,
-            };
-          }
+              permissions: user.permissions ?? [],
+            });
 
+            return mapped as any;
+          }
           return null;
         } catch (err) {
           console.error('Login failed:', err);
@@ -60,19 +63,57 @@ export const authOptions: NextAuthOptions = {
     maxAge: ONE_HOUR,
   },
   callbacks: {
+
+    async signIn({ user, account, profile }) {
+      try {
+        if (account?.provider === "google") {
+          const { data } = await api.post("/auth/google", {
+            email: profile?.email,
+            name: profile?.name,
+            image: account?.picture,
+            sub: profile?.sub,
+            idToken: account?.id_token,
+          });
+
+          if (data?.accessToken) {
+
+            const mapped = mapUserToToken({
+              id: data.id,
+              email: data.email,
+              name: data.name,
+              image: data.image ?? null,
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
+              permissions: data.permissions ?? [],
+            }, account);
+
+            Object.assign(user, mapped);
+            return true;
+          }
+          return false;
+        }
+
+        return true;
+      } catch (err) {
+        console.error("Google signIn failed:", err);
+        return false;
+      }
+    },
+
     jwt: async ({ token, user }: { token: any; user?: any; }) => {
       try {
-        const accessTokenExpires = Date.now() + ONE_HOUR;       
+        const accessTokenExpires = Date.now() + ONE_HOUR;
         if (user) {
-          return {
-            ...token,
-            id: user.id,
-            accessToken: user.accessToken,
-            refreshToken: user.refreshToken,
-            permissions: user.permissions ?? null,
-            accessTokenExpires,
-            exp: Math.floor(accessTokenExpires / 1000),
-          };
+
+          if (user) {
+            const mapped = mapUserToToken(user, token);
+            return {
+              ...token,
+              ...mapped,
+              accessTokenExpires,
+              exp: Math.floor(accessTokenExpires / 1000),
+            };
+          }
         }
 
         if (Date.now() < token.accessTokenExpires) {
@@ -84,7 +125,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         const newAccessTokenExpires = Date.now() + ONE_HOUR;
-        
+
         return {
           ...token,
           accessToken: data.accessToken,
@@ -101,15 +142,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async session({ session, token }: { session: any; token: any }) {
-      if (token?.id && session.user) {
-        session.user.id = token.id;
-      }
-      session.accessToken = token.accessToken ?? null;
-      session.refreshToken = token.refreshToken ?? null;
-      session.permissions = token.permissions ?? null;
-      session.error = token.error ?? null;     
-      console.log('[user auth] session', session, token)
-      return session;
+      return mapTokenToSession(token, session);
     },
   },
   pages: {

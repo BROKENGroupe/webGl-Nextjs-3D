@@ -2,16 +2,15 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  getGoogleAuthUrl,
-} from "@/services/authService";
+import { getGoogleAuthUrl } from "@/services/authService";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
-import {toast} from "sonner";
+import { toast } from "sonner";
 import { z } from "zod";
 import React from "react";
 import { Button } from "@/shared/ui/button";
 import { Loader2 } from "lucide-react";
+import { sign } from "crypto";
 
 const schema = z.object({
   email: z.string().email({ message: "Your email is invalid." }),
@@ -72,7 +71,8 @@ export default function LoginPage() {
   //   };
 
   const handleGoogleLogin = () => {
-    window.location.href = getGoogleAuthUrl();
+    //window.location.href = getGoogleAuthUrl();
+    signIn("google", { callbackUrl: "/home" });
   };
   const handleAppleLogin = () => {
     alert("Apple login no implementado");
@@ -149,7 +149,7 @@ export default function LoginPage() {
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <button
               onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
@@ -179,11 +179,10 @@ export default function LoginPage() {
               </svg>
               Sign in with Google
             </button>
-            <button
+            {/* <button
               onClick={handleAppleLogin}
               className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
             >
-              {/* Apple SVG Icon */}
               <svg
                 className="w-5 h-5"
                 viewBox="0 0 24 24"
@@ -193,7 +192,7 @@ export default function LoginPage() {
                 <path d="M15.228.002a4.234 4.234 0 00-1.423.273c-1.137.52-2.222 1.624-2.885 2.806-1.284 2.296-1.018 5.438.531 6.828-1.55 1.488-3.693 4.218-3.693 7.857a.38.38 0 00.38.384h.02a.38.38 0 00.378-.365c0-.02-.002-.073.004-.153.05-.595.274-1.163.593-1.685.5-.792 1.2-1.492 2.05-2.025.86-.54 1.81-.884 2.825-.947a.363.363 0 01.37.366c0 1.25-.333 2.44-.94 3.518-.62 1.1-.986 2.373-1.02 3.655a.38.38 0 00.38.385h.02a.38.38 0 00.379-.365c.03-.83.33-1.616.824-2.285.52-.693 1.25-1.22 2.1-1.528.9-.32 1.9-.34 2.88-.06a.377.377 0 00.443-.335c.143-1.218-.184-2.618-.887-3.68-.7-.98-1.74-1.62-2.95-1.8-1.2-.18-2.4.15-3.32.84-.04.03-.09.06-.13.09.02-.03.04-.06.06-.09.84-.96 1.1-2.47.6-3.72-1.25-3.1-4.06-3.46-4.66-3.53a.36.36 0 01-.35-.27zm1.18 1.99a2.38 2.38 0 012.333 1.43c.4 1.02.16 2.25-.56 3.06-.76.83-1.95 1.09-3.03.62a2.44 2.44 0 01-1.5-2.4c.15-1.3.98-2.3 2.1-2.43.23-.02.46-.02.66 0z"></path>
               </svg>
               Sign in with Apple
-            </button>
+            </button> */}
           </div>
 
           <p className="text-center text-sm text-gray-500 mt-8">
