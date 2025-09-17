@@ -6,6 +6,7 @@ declare module "next-auth" {
       id: string;
       role?: string;
       permissions?: string[] | null;
+      image?: { src: string; width?: number; height?: number };
     } & DefaultSession["user"];
     accessToken?: string | null;
     refreshToken?: string | null;

@@ -37,7 +37,7 @@ import {
 
 const data = {
   user: {
-    name: "Arquitecto 3D",
+    name: "Arquitecto 3D ddd",
     email: "admin@webgl3d.com",
     avatar: "/avatars/shadcn.jpg",
   },
