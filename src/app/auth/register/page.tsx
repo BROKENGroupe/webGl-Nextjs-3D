@@ -64,7 +64,7 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <div>
+            {/* <div>
               <label
                 htmlFor="surname"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -83,7 +83,7 @@ export default function RegisterPage() {
                   {errors.surname.message}
                 </p>
               )}
-            </div>
+            </div> */}
 
             <div>
               <label
@@ -106,7 +106,7 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <div>
+            {/* <div>
               <label
                 htmlFor="phone"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -125,9 +125,9 @@ export default function RegisterPage() {
                   {errors.phone.message}
                 </p>
               )}
-            </div>
+            </div> */}
 
-            <div>
+            {/* <div>
               <label
                 htmlFor="birthdaydate"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -147,7 +147,7 @@ export default function RegisterPage() {
                   {errors.birthdaydate.message}
                 </p>
               )}
-            </div>
+            </div> */}
 
             <div>
               <label

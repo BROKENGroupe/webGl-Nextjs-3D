@@ -1,35 +1,32 @@
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const authToken = request.cookies.get("authToken")?.value;
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const { pathname } = req.nextUrl;
 
-  const { pathname } = request.nextUrl;
+    // Si está logueado y entra al login → mandarlo al dashboard
+    if (token && pathname === "/auth/login") {
+      return NextResponse.redirect(new URL("/home", req.url));
+    }
 
-  const publicRoutes = ["/auth/login", "/auth/register"];
+    // Si entra a raíz (/) → decidir según sesión
+    if (pathname === "/") {
+      return NextResponse.redirect(
+        new URL(token ? "/home" : "/auth/login", req.url)
+      );
+    }
 
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  // if (!isPublicRoute && !authToken) {
-  //   const loginUrl = new URL("/auth/login", request.url);
-  //   return NextResponse.redirect(loginUrl);
-  // }
-
-  // if (authToken && isPublicRoute) {
-  //   const homeUrl = new URL("/", request.url);
-  //   return NextResponse.redirect(homeUrl);
-  // }
-
-  // if (authToken && request.nextUrl.pathname === "/auth/login") {
-  //   const homeUrl = new URL("/", request.url);
-  //   return NextResponse.redirect(homeUrl);
-  // }
-
-  return NextResponse.next();
-}
+    return NextResponse.next();
+  },
+  {
+    pages: {
+      signIn: "/auth/login",
+    },
+  }
+);
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
 };
