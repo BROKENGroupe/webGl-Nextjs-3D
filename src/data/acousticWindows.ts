@@ -16,7 +16,7 @@ export const windowStandard: AcousticMaterial = {
   type: "window",
   thickness_mm: 6,
   mass_kg_m2: 15,
-  catalog: "SON Catalog",
+  catalog: "insonor Catalog",
   color: "Transparent",
   doubleLeaf: false,
   lightweightElement: true,
