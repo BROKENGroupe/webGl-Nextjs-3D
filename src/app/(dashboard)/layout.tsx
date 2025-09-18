@@ -49,7 +49,7 @@ export default function DashboardLayout({
             className="flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-lg shadow-sm hover:bg-neutral-800 transition font-medium text-sm mr-4"
             onClick={() => {
               if (isEditor) {
-                router.push("/dashboard/home");
+                router.push("/home");
               } else {
                 router.push("/editor");
               }
