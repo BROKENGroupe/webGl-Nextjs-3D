@@ -37,7 +37,7 @@ export const IsoStudyConfigModal: React.FC<IsoStudyConfigModalProps> = ({
     <>
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>      
       <DialogContent>
-        <div className="space-y-4 mt-2">
+        <div className="space-y-4 mt-2 max-w-md">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Altura del recinto (m)
