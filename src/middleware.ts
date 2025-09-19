@@ -9,7 +9,7 @@ export default withAuth(
     // Excluir imágenes, fuentes, favicons, etc.
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/assets/images") || //
+    pathname.startsWith("/assets") || //
     pathname.startsWith("/favicon.ico")
   ) {
     return NextResponse.next();
