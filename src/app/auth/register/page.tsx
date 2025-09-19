@@ -59,7 +59,7 @@ export default function RegisterPage() {
         });
         if (responseLogin?.ok) {
           toast.success("Login Successful login 2");
-          window.location.assign("/home");
+          window.location.assign("/register-onboarding");
           reset();
         } else if (responseLogin?.error) {
           toast.error(responseLogin?.error);
