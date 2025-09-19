@@ -241,7 +241,7 @@ export default function RegisterOnboardingPage() {
             {/* Columna derecha: Imagen */}
             <div className="w-1/3 min-h-screen relative">
                 <Image
-                    src="/assets/images/register.png"
+                    src="/assets/images/onm.png"
                     alt="Onboarding"
                     fill
                     style={{ objectFit: "cover" }}
