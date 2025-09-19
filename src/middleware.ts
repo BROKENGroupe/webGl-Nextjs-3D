@@ -6,6 +6,15 @@ export default withAuth(
     const token = req.nextauth.token;
     const { pathname } = req.nextUrl;
 
+    // Excluir imágenes, fuentes, favicons, etc.
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/assets/images") || //
+    pathname.startsWith("/favicon.ico")
+  ) {
+    return NextResponse.next();
+  }
+
     // Si está logueado y entra al login → mandarlo al dashboard
     if (token && pathname === "/auth/login") {
       return NextResponse.redirect(new URL("/home", req.url));

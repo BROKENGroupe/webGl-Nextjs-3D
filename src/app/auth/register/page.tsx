@@ -84,7 +84,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           <div className="flex justify-between items-center">
             <Image
-              src="/assets/images/logo/insonor.png"
+              src="/assets/images/insonor.png"
               alt="Logo"
               width={100}
               height={70}
@@ -313,7 +313,7 @@ export default function RegisterPage() {
       {/* Columna Derecha: Imagen */}
       <div className="hidden md:flex md:col-span-3 relative h-full">
         <Image
-          src="/assets/images/backgrounds/login-wall.png"
+          src="/assets/images/login-wall.png"
           alt="Close-up of a monstera plant leaf"
           fill
           style={{ objectFit: "cover" }}
