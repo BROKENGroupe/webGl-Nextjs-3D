@@ -83,16 +83,16 @@ export default function LoginPage() {
       {/* Columna Izquierda: Formulario */}
       <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white md:col-span-2">
         <div className="w-full max-w-md">
-          <Image
-            src="/assets/images/logo/insonor.png"
-            alt="Logo"
-            width={200}
-            height={80}
-            className="mb-8"
-          />
-          {/* <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            Welcome Back
-          </h1> */}
+          <div className="flex justify-between items-center">
+            <Image
+              src="/assets/images/logo/insonor.png"
+              alt="Logo"
+              width={100}
+              height={70}
+              className="mb-8"
+            />
+            <h3 className="text-2xl text-gray-800 mb-8">Iniciar sesión</h3>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -199,7 +199,7 @@ export default function LoginPage() {
             Don't have an account?{" "}
             <Link
               href="/auth/register"
-              className="font-semibold text-green-600 hover:underline"
+              className="font-semibold text-blue-600 hover:underline"
             >
               Sign up
             </Link>

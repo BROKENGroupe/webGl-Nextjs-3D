@@ -1,36 +1,80 @@
 "use client";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { loginUser, registerUser } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { CreateUserDto } from "../types/user";
+import { Button } from "@/shared/ui/button";
+import React from "react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import router from "next/router";
+import { registerUser } from "@/services/userService";
+import { sign } from "crypto";
+import { signIn } from "next-auth/react";
 
+const schema = z.object({
+  username: z
+    .string()
+    .min(3, { message: "Name must be at least 3 characters." }),
+  email: z.string().email({ message: "Your email is invalid." }),
+  password: z.string().min(4),
+});
 export default function RegisterPage() {
+  const [isPending, startTransition] = React.useTransition();
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
-  } = useForm<CreateUserDto>();
-  const router = useRouter();
+  } = useForm({
+    resolver: zodResolver(schema),
+    mode: "all",
+  });
 
-  const onSubmit: SubmitHandler<CreateUserDto> = async (data) => {
-    try {
-      await registerUser(data);
-      alert("¡Registro exitoso! Serás redirigido para iniciar sesión.");
-      await loginUser({ email: data.email, password: data.password });
-      router.push("/");
-    } catch (error: any) {
-      const errorMessages = error.response?.data?.message || [error.message];
-      alert("Error en el registro: " + [].concat(errorMessages).join("\n"));
-    }
+  // const onSubmit: SubmitHandler<CreateUserDto> = async (data) => {
+  //   try {
+  //     await registerUser(data);
+  //     alert("¡Registro exitoso! Serás redirigido para iniciar sesión.");
+  //     await loginUser({ email: data.email, password: data.password });
+  //     router.push("/");
+  //   } catch (error: any) {
+  //     const errorMessages = error.response?.data?.message || [error.message];
+  //     alert("Error en el registro: " + [].concat(errorMessages).join("\n"));
+  //   }
+  // };
+
+  const onSubmit = (data: any) => {
+    startTransition(async () => {
+      let response = await registerUser(data);
+      debugger;
+      if (response != "") {
+        const data = response;
+        let responseLogin = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        });
+        if (responseLogin?.ok) {
+          toast.success("Login Successful login 2");
+          window.location.assign("/home");
+          reset();
+        } else if (responseLogin?.error) {
+          toast.error(responseLogin?.error);
+        }
+      } else {
+        toast.error(response?.message);
+      }
+    });
   };
 
   const handleGoogleLogin = () => {
-    alert("Google login no implementado");
+    signIn("google", { callbackUrl: "/register-onboarding" });
   };
   const handleAppleLogin = () => {
-    alert("Apple login no implementado");
+    signIn("apple", { callbackUrl: "/home" });
   };
 
   return (
@@ -38,9 +82,18 @@ export default function RegisterPage() {
       {/* Columna Izquierda: Formulario */}
       <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white md:col-span-2">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            Get Started Now
-          </h1>
+          <div className="flex justify-between items-center">
+            <Image
+              src="/assets/images/logo/insonor.png"
+              alt="Logo"
+              width={100}
+              height={70}
+              className="mb-8"
+            />
+            <h3 className="text-2xl text-gray-800 mb-8">
+              Crear cuenta
+            </h3>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -53,13 +106,13 @@ export default function RegisterPage() {
               <input
                 id="name"
                 type="text"
-                {...register("name", { required: "Name is required" })}
+                {...register("username", { required: "Name is required" })}
                 placeholder="Enter your name"
                 className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
               />
-              {errors.name && (
+              {errors.username && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.name.message}
+                  {errors.username.message}
                 </p>
               )}
             </div>
@@ -188,12 +241,10 @@ export default function RegisterPage() {
               </label>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 px-4 rounded-md transition-colors"
-            >
-              Signup
-            </button>
+            <Button className="w-full" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending ? "Loading..." : "Sign Up"}
+            </Button>
           </form>
 
           <div className="relative flex items-center my-6">
@@ -202,7 +253,7 @@ export default function RegisterPage() {
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <button
               onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
@@ -229,9 +280,9 @@ export default function RegisterPage() {
                   d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.574l6.19 5.238C39.904 35.638 44 28.718 44 20c0-1.341-.138-2.65-.389-3.917z"
                 ></path>
               </svg>
-              Sign in with Google
+              Sign Up with Google
             </button>
-            <button
+            {/* <button
               onClick={handleAppleLogin}
               className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
             >
@@ -244,14 +295,14 @@ export default function RegisterPage() {
                 <path d="M15.228.002a4.234 4.234 0 00-1.423.273c-1.137.52-2.222 1.624-2.885 2.806-1.284 2.296-1.018 5.438.531 6.828-1.55 1.488-3.693 4.218-3.693 7.857a.38.38 0 00.38.384h.02a.38.38 0 00.378-.365c0-.02-.002-.073.004-.153.05-.595.274-1.163.593-1.685.5-.792 1.2-1.492 2.05-2.025.86-.54 1.81-.884 2.825-.947a.363.363 0 01.37.366c0 1.25-.333 2.44-.94 3.518-.62 1.1-.986 2.373-1.02 3.655a.38.38 0 00.38.385h.02a.38.38 0 00.379-.365c.03-.83.33-1.616.824-2.285.52-.693 1.25-1.22 2.1-1.528.9-.32 1.9-.34 2.88-.06a.377.377 0 00.443-.335c.143-1.218-.184-2.618-.887-3.68-.7-.98-1.74-1.62-2.95-1.8-1.2-.18-2.4.15-3.32.84-.04.03-.09.06-.13.09.02-.03.04-.06.06-.09.84-.96 1.1-2.47.6-3.72-1.25-3.1-4.06-3.46-4.66-3.53a.36.36 0 01-.35-.27zm1.18 1.99a2.38 2.38 0 012.333 1.43c.4 1.02.16 2.25-.56 3.06-.76.83-1.95 1.09-3.03.62a2.44 2.44 0 01-1.5-2.4c.15-1.3.98-2.3 2.1-2.43.23-.02.46-.02.66 0z"></path>
               </svg>
               Sign in with Apple
-            </button>
+            </button> */}
           </div>
 
           <p className="text-center text-sm text-gray-500 mt-8">
             Have an account?{" "}
             <Link
               href="/auth/login"
-              className="font-semibold text-green-600 hover:underline"
+              className="font-semibold text-blue-600 hover:underline"
             >
               Sign in
             </Link>
@@ -260,12 +311,13 @@ export default function RegisterPage() {
       </div>
 
       {/* Columna Derecha: Imagen */}
-      <div className="hidden relative md:block top-0 left-0 w-full h-full md:col-span-3">
+      <div className="hidden md:flex md:col-span-3 relative h-full">
         <Image
-          src="https://images.unsplash.com/photo-1755127761414-c4f552bb3549?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src="/assets/images/backgrounds/login-wall.png"
           alt="Close-up of a monstera plant leaf"
-          layout="fill"
-          objectFit="cover"
+          fill
+          style={{ objectFit: "cover" }}
+          priority
         />
       </div>
     </div>
