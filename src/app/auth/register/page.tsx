@@ -313,7 +313,7 @@ export default function RegisterPage() {
       {/* Columna Derecha: Imagen */}
       <div className="hidden md:flex md:col-span-3 relative h-full">
         <Image
-          src="/assets/images/login-wall.png"
+          src="/assets/images/register.png"
           alt="Close-up of a monstera plant leaf"
           fill
           style={{ objectFit: "cover" }}
