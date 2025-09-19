@@ -16,7 +16,7 @@ import { sign } from "crypto";
 import { signIn } from "next-auth/react";
 
 const schema = z.object({
-  username: z
+  name: z
     .string()
     .min(3, { message: "Name must be at least 3 characters." }),
   email: z.string().email({ message: "Your email is invalid." }),
@@ -72,10 +72,7 @@ export default function RegisterPage() {
 
   const handleGoogleLogin = () => {
     signIn("google", { callbackUrl: "/register-onboarding" });
-  };
-  const handleAppleLogin = () => {
-    signIn("apple", { callbackUrl: "/home" });
-  };
+  }; 
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">
@@ -106,13 +103,13 @@ export default function RegisterPage() {
               <input
                 id="name"
                 type="text"
-                {...register("username", { required: "Name is required" })}
+                {...register("name", { required: "Name is required" })}
                 placeholder="Enter your name"
                 className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
               />
-              {errors.username && (
+              {errors.name && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.username.message}
+                  {errors.name.message}
                 </p>
               )}
             </div>

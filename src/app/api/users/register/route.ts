@@ -18,13 +18,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing action' }, { status: 400 });
     }
 
-    const taskAction = resolveUserAction(action, payload);
+    const userAction = resolveUserAction(action, payload);
 
-    if (!taskAction) {
+    if (!userAction) {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    const { endpoint, method } = taskAction;
+    const { endpoint, method } = userAction;
 
     const res = await fetch(`${process.env.API_BASE_URL}${endpoint}`, {
       method,
