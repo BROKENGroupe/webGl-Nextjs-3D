@@ -87,7 +87,7 @@ export default function LoginPage() {
             <Image
               src="/assets/images/insonor.png"
               alt="Logo"
-              width={100}
+              width={150}
               height={70}
               className="mb-8"
             />
