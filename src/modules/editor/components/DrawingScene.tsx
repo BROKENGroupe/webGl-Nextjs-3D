@@ -152,8 +152,8 @@ export default function DrawingScene() {
   const [draggedTemplate, setDraggedTemplate] =
     useState<AcousticMaterial | null>(null);
   const { openings, addOpening } = useOpeningsStore();
-  const { ceilings, addCeiling } = useWallsStore();
-  const { floors, addFloor } = useWallsStore();
+  const { ceilings, addCeiling, updateWallByIndex } = useWallsStore();
+  const { floors, addFloor, updateCeilingByIndex, updateFloorByIndex } = useWallsStore();
   const { coordinates } = useCoordinatesStore();
 
   const [elementType, setElementType] = useState<ElementType>(ElementType.Wall);
@@ -204,55 +204,6 @@ export default function DrawingScene() {
     setSelectedFloorId(facadeName);
     setElementType(elementType);
     setFloorMenuVisible(true);
-  };
-
-  // ✅ NUEVO: Función para calcular Rw (necesaria para el modal)
-  const calculateRw = (
-    transmissionLoss: any,
-    density: number,
-    thickness: number
-  ) => {
-    const { low, mid, high } = transmissionLoss;
-
-    // Cálculo simplificado del Rw basado en ISO 717-1
-    const massPerArea = density * thickness; // kg/m²
-
-    // Ley de masas: Rw ≈ 20 × log10(massPerArea) - 42
-    let rwBase = 20 * Math.log10(massPerArea) - 42;
-
-    // Corrección por frecuencias (promedio ponderado)
-    const frequencyCorrection = mid * 0.5 + low * 0.3 + high * 0.2 - rwBase;
-    const rwCalculated = rwBase + frequencyCorrection * 0.3;
-
-    // Clasificación según valor Rw
-    let classification = "";
-    let spectrum = "";
-
-    if (rwCalculated >= 60) {
-      classification = "Excelente";
-      spectrum = "C50-5000";
-    } else if (rwCalculated >= 50) {
-      classification = "Muy Bueno";
-      spectrum = "C50-3150";
-    } else if (rwCalculated >= 45) {
-      classification = "Bueno";
-      spectrum = "C50-2500";
-    } else if (rwCalculated >= 40) {
-      classification = "Regular";
-      spectrum = "C50-2000";
-    } else if (rwCalculated >= 35) {
-      classification = "Básico";
-      spectrum = "C50-1600";
-    } else {
-      classification = "Insuficiente";
-      spectrum = "C50-1250";
-    }
-
-    return {
-      value: Math.max(0, rwCalculated),
-      classification,
-      spectrum,
-    };
   };
 
   const handleClick3D = (point: THREE.Vector3) => {
@@ -435,6 +386,7 @@ export default function DrawingScene() {
     position: number,
     template: AcousticMaterial
   ) => {
+    debugger;
     console.log(
       "📍 Drop en pared:",
       wallIndex,
@@ -444,26 +396,91 @@ export default function DrawingScene() {
       template.type
     );
 
-    const newOpening = {
-      id: `opening-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: template.type as OpeningType,
-      wallIndex,
-      position,
-      width: template.width,
-      height: template.height,
-      bottomOffset: template.bottomOffset,
-      template, // ✅ AGREGAR: referencia al template original
-      currentCondition: "closed_sealed" as const, // ✅ CORREGIDO: tipo literal correcto
-      relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
-    };
+    if (
+      template.type === ElementType.Door ||
+      template.type === ElementType.Window
+    ) {
+      const newOpening = {
+        id: `opening-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: template.type as OpeningType,
+        wallIndex,
+        position,
+        width: template.width,
+        height: template.height,
+        bottomOffset: template.bottomOffset,
+        template, // ✅ AGREGAR: referencia al template original
+        currentCondition: "closed_sealed" as const, // ✅ CORREGIDO: tipo literal correcto
+        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
+      };
 
-    addOpening(newOpening);
+      addOpening(newOpening);
 
-    // Resetear estado de drag
-    setIsDragActive(false);
-    setDraggedTemplate(null);
+      // Resetear estado de drag
+      setIsDragActive(false);
+      setDraggedTemplate(null);
 
-    console.log("✅ Abertura creada:", newOpening);
+      console.log("✅ Abertura creada:", newOpening);
+    }
+
+    if (template.type === ElementType.Wall) {
+      const newWall = {
+        id: `wall-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: template.type,
+        wallIndex,
+        position,
+        width: template.width,
+        height: template.height,
+        bottomOffset: template.bottomOffset,
+        template, // ✅ AGREGAR: referencia al template original
+        currentCondition: "default" as import("@/modules/editor/types/walls").WallCondition, // <-- Cast to WallCondition
+        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
+      };
+
+      updateWallByIndex(wallIndex, {template: newWall.template} );
+
+      // Resetear estado de drag
+      setIsDragActive(false);
+    }
+
+    if (template.type === ElementType.Ceiling) {
+      const newCeiling = {
+        id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: template.type,
+        ceilingIndex: wallIndex,
+        position,
+        width: template.width,
+        height: template.height,
+        bottomOffset: template.bottomOffset,
+        template, // ✅ AGREGAR: referencia al template original
+        currentCondition: "default" as import("@/modules/editor/types/walls").WallCondition, // <-- Cast to WallCondition
+        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
+      };
+
+      updateCeilingByIndex(wallIndex, {template: newCeiling.template} );
+
+      // Resetear estado de drag
+      setIsDragActive(false);
+    }
+
+    if (template.type === ElementType.Floor) {
+      const newFloor = {
+        id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: template.type,
+        floorIndex: wallIndex,
+        position,
+        width: template.width,
+        height: template.height,
+        bottomOffset: template.bottomOffset,
+        template, // ✅ AGREGAR: referencia al template original
+        currentCondition: "default" as import("@/modules/editor/types/walls").WallCondition, // <-- Cast to WallCondition
+        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
+      };
+
+      updateFloorByIndex(wallIndex, {template: newFloor.template} );
+
+      // Resetear estado de drag
+      setIsDragActive(false);
+    }
   };
 
   // Manejar fin de drag (sin drop válido)

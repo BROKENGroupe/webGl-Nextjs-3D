@@ -1,8 +1,7 @@
 "use client";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getGoogleAuthUrl } from "@/services/authService";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
@@ -10,7 +9,6 @@ import { z } from "zod";
 import React from "react";
 import { Button } from "@/shared/ui/button";
 import { Loader2 } from "lucide-react";
-import { sign } from "crypto";
 
 const schema = z.object({
   email: z.string().email({ message: "Your email is invalid." }),
@@ -29,8 +27,8 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
     mode: "all",
     defaultValues: {
-      email: "dashtail@codeshaper.net",
-      password: "password",
+      email: "",
+      password: "",
     },
   });
 
@@ -42,11 +40,11 @@ export default function LoginPage() {
         redirect: false,
       });
       if (response?.ok) {
-        toast.success("Login Successful login 2");
+        toast.success("Login Successful");
         window.location.assign("/home");
         reset();
       } else if (response?.error) {
-        toast.error(response?.error);
+        toast.error("Ups algo salió mal!");
       }
     });
   };

@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 // Tipos para piso y techo (más genéricos)
 interface FloorCeiling {
   id: string;
+  floorIndex?: number;
+  ceilingIndex?: number;
   area: number;
   template: AcousticMaterial;
 }
@@ -22,12 +24,14 @@ interface WallsStore {
   wallHeight: number;
   setWallHeight: (height: number) => void;
   addWall: (wallIndex: number, area: number, template?: AcousticMaterial) => void;
-  addFloor: (area: number, template?: AcousticMaterial) => void;
-  addCeiling: (area: number, template?: AcousticMaterial) => void;
+  addFloor: (floorIndex: number, area: number, template?: AcousticMaterial) => void;
+  addCeiling: (ceilingIndex: number, area: number, template?: AcousticMaterial) => void;
   updateWall: (wallId: string, updates: Partial<Wall>) => void;
   updateCeiling: (ceilingId: string, updates: Partial<FloorCeiling>) => void;
   updateFloor: (floorId: string, updates: Partial<FloorCeiling>) => void;
   updateWallByIndex: (wallIndex: number, updates: Partial<Wall>) => void;
+  updateCeilingByIndex: (ceilingIndex: number, updates: Partial<FloorCeiling>) => void;
+  updateFloorByIndex: (floorIndex: number, updates: Partial<FloorCeiling>) => void;
   deleteWall: (wallId: string) => void;
   clearWalls: () => void;
   clearFloors: () => void;
@@ -77,11 +81,12 @@ export const useWallsStore = create<WallsStore>()(
         console.log('🧱 Nueva pared agregada:', newWall);
       },
 
-      addFloor: (area, template = FLOOR_TEMPLATES['floor-concrete-slab']) => {
+      addFloor: (floorIndex, area, template = FLOOR_TEMPLATES['floor-concrete-slab']) => {
         const newFloor: FloorCeiling = {
           id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           area,
-          template
+          template,
+          floorIndex
         };
         set((state) => ({
           floors: [...state.floors, newFloor]
@@ -89,11 +94,12 @@ export const useWallsStore = create<WallsStore>()(
         console.log('🟫 Piso agregado:', newFloor);
       },
 
-      addCeiling: (area, template = CEILING_TEMPLATES['ceiling-concrete-slab']) => {
+      addCeiling: (ceilingIndex, area, template = CEILING_TEMPLATES['ceiling-concrete-slab']) => {
         const newCeiling: FloorCeiling = {
           id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           area,
-          template
+          template,
+          ceilingIndex
         };
         set((state) => ({
           ceilings: [...state.ceilings, newCeiling]
@@ -137,6 +143,37 @@ export const useWallsStore = create<WallsStore>()(
               };
             }
             return wall;
+          })
+        }));
+      },
+
+      updateCeilingByIndex: (ceilingIndex, updates) => {
+        set((state) => ({
+          ceilings: state.ceilings.map(ceiling => {
+            if (ceiling.ceilingIndex === ceilingIndex) {
+              const updatedCeiling = { ...ceiling, ...updates };
+              toast.success("Material actualizado: " + updatedCeiling.template.descriptor);
+              return {
+                ...updatedCeiling                
+              };
+            }
+
+            return ceiling;
+          })
+        }));
+      },
+      updateFloorByIndex: (floorIndex, updates) => {
+        set((state) => ({
+          floors: state.floors.map(floor => {
+            if (floor.floorIndex === floorIndex) {
+              const updatedFloor = { ...floor, ...updates };
+              toast.success("Material actualizado: " + updatedFloor.template.descriptor);
+              return {
+                ...updatedFloor
+              };
+            }
+
+            return floor;
           })
         }));
       },
@@ -366,10 +403,10 @@ export const useWallsStore = create<WallsStore>()(
         const { floors, ceilings } = get();
 
         if (floors.length === 0) {
-          get().addFloor(totalFloorArea, floorConcreteSlab);
+          get().addFloor(0, totalFloorArea, floorConcreteSlab);
         }
         if (ceilings.length === 0) {
-          get().addCeiling(totalFloorArea, ceilingConcreteSlab);
+          get().addCeiling(0, totalFloorArea, ceilingConcreteSlab);
         }
       },
 
