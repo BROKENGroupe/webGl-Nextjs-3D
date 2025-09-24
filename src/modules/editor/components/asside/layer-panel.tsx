@@ -57,22 +57,22 @@ type Layer = {
 
 const PALETTE_MATERIALS: AcousticMaterial[] = [
   wallCeramicBrick,
-  wallConcreteBlock,
-  wallGypsumBoard,
-  wallLightWoodPanel,
-  wallThinBrickPartition,
-  windowStandard,
-  windowDoubleGlazed,
-  windowLaminated,
-  windowAcoustic,
-  windowTripleGlazed,
-  doorStandard,
-  doorDouble,
-  doorAcoustic,
-  floorConcreteSlab,
-  floorAcousticPanel,
-  ceilingConcreteSlab,
-  ceilingAcousticPanel,
+  // wallConcreteBlock,
+  // // wallGypsumBoard,
+  // // wallLightWoodPanel,
+  // // wallThinBrickPartition,
+  // windowStandard,
+  // windowDoubleGlazed,
+  // windowLaminated,
+  // windowAcoustic,
+  // windowTripleGlazed,
+  // doorStandard,
+  // doorDouble,
+  // doorAcoustic,
+  // floorConcreteSlab,
+  // floorAcousticPanel,
+  // ceilingConcreteSlab,
+  // ceilingAcousticPanel,
 ];
 
 const PALETTE_TEMPLATES: AcousticMaterial[] = Object.values(OPENING_TEMPLATES);
@@ -249,11 +249,10 @@ export function LayerPanel({
                                     handleOpeningDragEnd(setDraggedItem);
                                   }}
                                   className={`flex flex-col border border-gray-200 rounded-2xl shadow-md bg-white p-5 transition-all
-            ${
-              draggedItem?.descriptor === material.descriptor
-                ? "cursor-grabbing"
-                : "cursor-grab"
-            }
+            ${draggedItem?.descriptor === material.descriptor
+                                      ? "cursor-grabbing"
+                                      : "cursor-grab"
+                                    }
             w-full min-w-0
             hover:shadow-lg
           `}

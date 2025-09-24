@@ -48,6 +48,7 @@ interface WallsStore {
 export const useWallsStore = create<WallsStore>()(
   persist(
     (set, get) => ({
+
       walls: [],
       floors: [],
       ceilings: [],
@@ -74,7 +75,9 @@ export const useWallsStore = create<WallsStore>()(
             end: { x: 0, z: 0 }
           })
         };
-        newWall.acousticRating = calculateWallAcousticRating(newWall);
+        console.log('🧱 WallsStore initialized'),
+
+          newWall.acousticRating = calculateWallAcousticRating(newWall);
         set((state) => ({
           walls: [...state.walls, newWall]
         }));
@@ -133,6 +136,7 @@ export const useWallsStore = create<WallsStore>()(
       },
 
       updateWall: (wallId, updates) => {
+        console.log('🔧 Actualizando pared:', wallId, updates);
         set((state) => ({
           walls: state.walls.map(wall => {
             if (wall.id === wallId) {
@@ -154,7 +158,7 @@ export const useWallsStore = create<WallsStore>()(
               const updatedCeiling = { ...ceiling, ...updates };
               toast.success("Material actualizado: " + updatedCeiling.template.descriptor);
               return {
-                ...updatedCeiling                
+                ...updatedCeiling
               };
             }
 
@@ -356,6 +360,7 @@ export const useWallsStore = create<WallsStore>()(
 
       generateWallsFromCoordinates: (coordinates) => {
         // Calcular área del polígono (piso/techo) usando la fórmula de Shoelace
+        console.log('🧱 Generando paredes desde coordenadas:', coordinates);
         let totalFloorArea = 0;
         if (coordinates.length > 2) {
           totalFloorArea = Math.abs(

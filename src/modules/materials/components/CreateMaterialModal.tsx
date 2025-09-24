@@ -51,7 +51,7 @@ const initialThirdOctaveBands = THIRD_OCTAVE_BANDS.reduce((acc, freq) => {
 }, {} as Record<ThirdOctave, number>);
 
 const getInitialFormData = (): FormData => ({
-  id: '',
+  _id: '',
   name: '',
   description: '',
   density: 0,

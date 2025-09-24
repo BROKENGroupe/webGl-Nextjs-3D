@@ -40,20 +40,21 @@ interface PropertiesModalProps {
 async function fetchAcousticWalls() {
 
 
+
   return [
     wallCeramicBrick,
-    wallConcreteBlock,
-    wallGypsumBoard,
-    wallLightWoodPanel,
-    wallThinBrickPartition,
-    windowStandard,
-    windowTripleGlazed,
-    windowAcoustic,
-    windowLaminated,
-    windowDoubleGlazed,
-    doorStandard,
-    doorDouble,
-    doorAcoustic,
+    // wallConcreteBlock,
+    // wallGypsumBoard,
+    // wallLightWoodPanel,
+    // wallThinBrickPartition,
+    // windowStandard,
+    // windowTripleGlazed,
+    // windowAcoustic,
+    // windowLaminated,
+    // windowDoubleGlazed,
+    // doorStandard,
+    // doorDouble,
+    // doorAcoustic,
   ];
 }
 

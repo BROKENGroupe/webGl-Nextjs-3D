@@ -1,5 +1,5 @@
 // services/materialsService.ts
-import { Material, MaterialType, ThirdOctave } from '@/modules/materials/types/materials';
+import { Material, MaterialType, CreateMaterial } from '@/modules/materials/types/materials';
 import { apiClient, ApiResponse } from '../core/api/client';
 import { API_CONFIG } from '../core/config/config';
 
@@ -15,6 +15,8 @@ export type MaterialResponse = Material & {
   updated_at: string;
 };
 
+
+
 export interface GetMaterialsParams {
   page?: number;
   limit?: number;
@@ -29,12 +31,18 @@ class MaterialsService {
   /**
    * Obtener todos los materiales con filtros opcionales
    */
-  async getMaterials(params?: GetMaterialsParams): Promise<ApiResponse<MaterialResponse[]>> {
+  async getMaterials(params?: GetMaterialsParams): Promise<Material[]> {
     try {
-      return await apiClient.get<MaterialResponse[]>(
+
+      const response = await apiClient.get<Material[]>(
         API_CONFIG.ENDPOINTS.MATERIALS + '/all',
         // params
       );
+
+      console.log('Materials fetched from API:', response);
+      return response;
+      
+    
     } catch (error) {
       console.error('Error fetching materials:', error);
       throw error;
@@ -44,7 +52,7 @@ class MaterialsService {
   /**
    * Obtener un material por ID
    */
-  async getMaterialById(id: string): Promise<ApiResponse<MaterialResponse>> {
+  async getMaterialById(id: string): Promise<MaterialResponse> {
     try {
       return await apiClient.get<MaterialResponse>(
         API_CONFIG.ENDPOINTS.MATERIAL_BY_ID(id)
@@ -58,7 +66,7 @@ class MaterialsService {
   /**
    * Obtener un material por referencia única
    */
-  async getMaterialByReference(reference: string): Promise<ApiResponse<MaterialResponse>> {
+  async getMaterialByReference(reference: string): Promise<MaterialResponse> {
     try {
       return await apiClient.get<MaterialResponse>(
         `${API_CONFIG.ENDPOINTS.MATERIALS}/reference/${reference}`
@@ -72,14 +80,14 @@ class MaterialsService {
   /**
    * Crear un nuevo material
    */
-  async createMaterial(data: Material): Promise<ApiResponse<MaterialResponse>> {
+  async createMaterial(data: CreateMaterial): Promise<MaterialResponse> {
     try {
       console.log('Creating material with data:', data);
 
       const { picture, ...validationData } = data;
       this.validateMaterialData(validationData);
 
-      let payload: Material | FormData = data;
+      let payload: CreateMaterial | FormData = data;
 
       if (picture && typeof picture !== 'string') {
         const formData = new FormData();
@@ -112,7 +120,7 @@ class MaterialsService {
   /**
    * Actualizar un material existente
    */
-  async updateMaterial(id: string, data: UpdateMaterialRequest): Promise<ApiResponse<MaterialResponse>> {
+  async updateMaterial(id: string, data: UpdateMaterialRequest): Promise<MaterialResponse> {
     try {
       if (data.reference || data.thirdOctaveBands) {
         this.validateMaterialData(data as Material);
@@ -131,7 +139,7 @@ class MaterialsService {
   /**
    * Actualización parcial de un material
    */
-  async patchMaterial(id: string, data: Partial<UpdateMaterialRequest>): Promise<ApiResponse<MaterialResponse>> {
+  async patchMaterial(id: string, data: Partial<UpdateMaterialRequest>): Promise<MaterialResponse> {
     try {
       return await apiClient.patch<MaterialResponse>(
         API_CONFIG.ENDPOINTS.MATERIAL_BY_ID(id),
@@ -146,7 +154,7 @@ class MaterialsService {
   /**
    * Eliminar un material
    */
-  async deleteMaterial(id: string): Promise<ApiResponse<{ deleted: boolean }>> {
+  async deleteMaterial(id: string): Promise<{ deleted: boolean }> {
     try {
       return await apiClient.delete<{ deleted: boolean }>(
         API_CONFIG.ENDPOINTS.MATERIAL_BY_ID(id)
@@ -160,7 +168,7 @@ class MaterialsService {
   /**
    * Activar/desactivar un material
    */
-  async toggleMaterialStatus(id: string, is_active: boolean): Promise<ApiResponse<MaterialResponse>> {
+  async toggleMaterialStatus(id: string, is_active: boolean): Promise<MaterialResponse> {
     try {
       return await apiClient.patch<MaterialResponse>(
         API_CONFIG.ENDPOINTS.MATERIAL_BY_ID(id),
@@ -175,7 +183,7 @@ class MaterialsService {
   /**
    * Obtener categorías disponibles
    */
-  async getCategories(): Promise<ApiResponse<{ value: Material; label: string }[]>> {
+  async getCategories(): Promise<{ value: Material; label: string }[]> {
     try {
       return await apiClient.get<{ value: Material; label: string }[]>(
         API_CONFIG.ENDPOINTS.MATERIAL_CATEGORIES
@@ -189,7 +197,7 @@ class MaterialsService {
   /**
    * Obtener frecuencias estándar
    */
-  async getStandardFrequencies(): Promise<ApiResponse<number[]>> {
+  async getStandardFrequencies(): Promise<number[]> {
     try {
       return await apiClient.get<number[]>(
         API_CONFIG.ENDPOINTS.MATERIAL_FREQUENCIES
@@ -203,7 +211,7 @@ class MaterialsService {
   /**
    * Buscar materiales por texto
    */
-  async searchMaterials(query: string, limit: number = 10): Promise<ApiResponse<MaterialResponse[]>> {
+  async searchMaterials(query: string, limit: number = 10): Promise<MaterialResponse[]> {
     try {
       return await apiClient.get<MaterialResponse[]>(
         `${API_CONFIG.ENDPOINTS.MATERIALS}/search`,

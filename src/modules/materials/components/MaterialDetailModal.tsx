@@ -1,11 +1,11 @@
 // components/MaterialDetailModal.tsx
 import React, { useEffect } from 'react';
-import { Info, Waves, Layers, X, Thermometer, Ruler, Weight, Palette, Flag, BarChart2 } from 'lucide-react';
+import { Info, Waves, Layers, X, Thermometer, Palette, Flag, BarChart2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { MaterialResponse } from '@/services/materialsService';
+import { Material } from '../types/materials';
 
 interface MaterialDetailModalProps {
-  material: MaterialResponse | null;
+  material: Material | null;
   onClose: () => void;
 }
 
@@ -77,12 +77,12 @@ export const MaterialDetailModal: React.FC<MaterialDetailModalProps> = ({
               </h3>
               <div className="space-y-3">
                 <DetailItem label="Descripción" value={material.description} />
-                <DetailItem label="Categoría" value={material.category} />
+                <DetailItem label="Categoría" value={material.type} />
                 <DetailItem label="Tipo" value={material.type} />
                 <DetailItem label="Subtipo" value={material.subtype} />
                 <DetailItem label="Descriptor" value={material.descriptor} />
                 <DetailItem label="Catálogo" value={material.catalog} />
-                <DetailItem label="Comentarios" value={material.comments} />
+                {/* <DetailItem label="Comentarios" value={material.comments} /> */}
               </div>
             </div>
 
@@ -107,7 +107,7 @@ export const MaterialDetailModal: React.FC<MaterialDetailModalProps> = ({
                 Propiedades Acústicas
               </h3>
               <div className="space-y-3">
-                <DetailItem label="Índice de Reducción (Rw)" value={<span className="font-bold text-lg text-blue-600">{material.rw} dB</span>} />
+                {/* <DetailItem label="Índice de Reducción (Rw)" value={<span className="font-bold text-lg text-blue-600">{material.rw} dB</span>} /> */}
                 {material.weightedIndex && (
                   <>
                     <DetailItem label="Adaptador de término C" value={`${material.weightedIndex.C} dB`} />

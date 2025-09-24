@@ -30,7 +30,7 @@ class ApiClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     console.log('Fetching API endpoint:', url);
     
@@ -78,14 +78,14 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     const searchParams = params ? `?${new URLSearchParams(params)}` : '';
     return this.request<T>(`${endpoint}${searchParams}`, {
       method: 'GET',
     });
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+  async post<T>(endpoint: string, data?: any): Promise<T> {
     const isFormData = data instanceof FormData;
     let body = data;
     if (!isFormData && data) {
@@ -97,7 +97,7 @@ class ApiClient {
     });
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+  async put<T>(endpoint: string, data?: any): Promise<T> {
     const isFormData = data instanceof FormData;
     let body = data;
     if (!isFormData && data) {
@@ -109,7 +109,7 @@ class ApiClient {
     });
   }
 
-  async patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+  async patch<T>(endpoint: string, data?: any): Promise<T> {
     const isFormData = data instanceof FormData;
     let body = data;
     if (!isFormData && data) {
@@ -121,7 +121,7 @@ class ApiClient {
     });
   }
 
-  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+  async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'DELETE',
     });

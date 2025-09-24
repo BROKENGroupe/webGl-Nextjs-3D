@@ -1,13 +1,13 @@
 // components/MaterialsFilters.tsx
 import React from 'react';
 import { Search, Filter, Plus } from 'lucide-react';
-import { MaterialCategory, ViewMode } from '../types/materials';
+import { MaterialType, ViewMode } from '../types/materials';
 
 interface MaterialsFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  selectedCategory: MaterialCategory;
-  onCategoryChange: (category: MaterialCategory) => void;
+  selectedCategory: MaterialType;
+  onCategoryChange: (category: MaterialType) => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onCreateMaterial?: () => void;
@@ -43,7 +43,7 @@ export const MaterialsFilters: React.FC<MaterialsFiltersProps> = ({
             <Filter size={20} className="text-gray-400" />
             <select
               value={selectedCategory}
-              onChange={(e) => onCategoryChange(e.target.value as MaterialCategory)}
+              onChange={(e) => onCategoryChange(e.target.value as MaterialType)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="ALL">Todas las categorías</option>

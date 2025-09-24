@@ -3,12 +3,13 @@ import React from 'react';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { MaterialResponse } from '@/services/materialsService';
 import { getCategoryColor } from '../utils/materials';
+import { Material } from '../types/materials';
 
 interface MaterialCardProps {
-  material: MaterialResponse;
-  onViewDetails: (material: MaterialResponse) => void;
-  onEdit: (material: MaterialResponse) => void;
-  onDelete: (material: MaterialResponse) => void;
+  material: Material;
+  onViewDetails: (material: Material) => void;
+  onEdit: (material: Material) => void;
+  onDelete: (material: Material) => void;
 }
 
 export const MaterialCard: React.FC<MaterialCardProps> = ({ 
@@ -25,17 +26,17 @@ export const MaterialCard: React.FC<MaterialCardProps> = ({
             <h3 className="text-lg font-bold text-gray-900 mb-2 truncate" title={material.name}>
               {material.name}
             </h3>
-            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(material.category)}`}>
-              {material.category}
+            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(material.type)}`}>
+              {material.type}
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-gray-50 p-3 rounded-lg">
+          {/* <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Rw (dB)</p>
             <p className="text-xl font-bold text-gray-900">{material.rw}</p>
-          </div>
+          </div> */}
           <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Densidad</p>
             <p className="text-sm font-semibold text-gray-900">{material.density} kg/m³</p>

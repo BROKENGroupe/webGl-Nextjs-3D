@@ -1,17 +1,16 @@
 // hooks/useMaterials.ts
 import { useState, useEffect, useCallback } from 'react';
-import { MaterialCategory, ViewMode } from '../types/materials';
+import { Material, MaterialType, ViewMode, CreateMaterial } from '../types/materials';
 import {
   materialsService,
   MaterialResponse,
   GetMaterialsParams,
-  CreateMaterialRequest,
   UpdateMaterialRequest
 } from '@/services/materialsService';
 
 export const useMaterials = () => {
   // Main data and view state
-  const [materials, setMaterials] = useState<MaterialResponse[]>([]);
+  const [materials, setMaterials] = useState<Material[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
   // Loading and error states
@@ -21,12 +20,12 @@ export const useMaterials = () => {
 
   // Filter and search state
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<MaterialCategory | 'ALL'>('ALL');
+  const [selectedCategory, setSelectedCategory] = useState<MaterialType | 'ALL'>('ALL');
 
   // Modal and selected material state
-  const [selectedMaterial, setSelectedMaterial] = useState<MaterialResponse | null>(null); // For details view
-  const [materialToEdit, setMaterialToEdit] = useState<MaterialResponse | null>(null);
-  const [materialToDelete, setMaterialToDelete] = useState<MaterialResponse | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null); // For details view
+  const [materialToEdit, setMaterialToEdit] = useState<Material | null>(null);
+  const [materialToDelete, setMaterialToDelete] = useState<Material | null>(null);
 
   // Fetch materials from backend
   const fetchMaterials = useCallback(async () => {
@@ -35,17 +34,17 @@ export const useMaterials = () => {
     try {
       const params: GetMaterialsParams = {
         search: searchTerm,
-        category: selectedCategory === 'ALL' ? undefined : selectedCategory,
+        type: selectedCategory === 'ALL' ? undefined : selectedCategory,
         sort_by: 'name',
         sort_order: 'asc',
       };
-      const response = await materialsService.getMaterials(params);
+      const response: Material[] | undefined = await materialsService.getMaterials(params);
+
       console.log('Fetched materials:', response);
       if (response) {
-        setMaterials(response.data
-        );
+        setMaterials(response);
       } else {
-        throw new Error(response.message || 'Failed to fetch materials');
+        throw new Error('Failed to fetch materials');
       }
     } catch (err: any) {
       setError(err.message || 'An unknown error occurred');
@@ -63,15 +62,15 @@ export const useMaterials = () => {
 
   // --- CRUD Handlers ---
 
-  const createMaterial = async (newMaterialData: CreateMaterialRequest) => {
+  const createMaterial = async (newMaterialData: CreateMaterial) => {
     setIsSubmitting(true);
     try {
       const response = await materialsService.createMaterial(newMaterialData);
-      if (response.data) {
-        setMaterials(prev => [response.data, ...prev]);
+      if (response) {
+        setMaterials(prev => [response, ...prev]);
         setSelectedMaterial(null); // Close create modal is handled by parent
       } else {
-        throw new Error(response.message || 'Failed to create material');
+        throw new Error(response || 'Failed to create material');
       }
     } catch (err: any) {
       setError(err.message);
@@ -85,11 +84,11 @@ export const useMaterials = () => {
     setIsSubmitting(true);
     try {
       const response = await materialsService.updateMaterial(id, data);
-      if (response.data) {
-        setMaterials(prev => prev.map(m => m._id === id ? response.data : m));
+      if (response) {
+        setMaterials(prev => prev.map(m => m._id === id ? response : m));
         setMaterialToEdit(null); // Close edit modal
       } else {
-        throw new Error(response.message || 'Failed to update material');
+        throw new Error(response || 'Failed to update material');
       }
     } catch (err: any) {
       setError(err.message);
@@ -103,12 +102,12 @@ export const useMaterials = () => {
     if (!materialToDelete) return;
     setIsSubmitting(true);
     try {
-      const response = await materialsService.deleteMaterial(materialToDelete._id);
-      if (response.data) {
+      const response = await materialsService.deleteMaterial(materialToDelete._id as string);
+      if (response) {
         setMaterials(prev => prev.filter(m => m._id !== materialToDelete._id));
         setMaterialToDelete(null); // Close delete modal
       } else {
-        throw new Error(response.message || 'Failed to delete material');
+        throw new Error(response || 'Failed to delete material');
       }
     } catch (err: any) {
       setError(err.message);
@@ -120,10 +119,10 @@ export const useMaterials = () => {
 
   // --- Modal Control ---
 
-  const handleOpenEditModal = (material: MaterialResponse) => setMaterialToEdit(material);
+  const handleOpenEditModal = (material: Material) => setMaterialToEdit(material);
   const handleCloseEditModal = () => setMaterialToEdit(null);
 
-  const handleOpenDeleteModal = (material: MaterialResponse) => setMaterialToDelete(material);
+  const handleOpenDeleteModal = (material: Material) => setMaterialToDelete(material);
   const handleCloseDeleteModal = () => setMaterialToDelete(null);
 
   return {

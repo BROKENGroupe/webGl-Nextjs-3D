@@ -1,8 +1,7 @@
 // components/EditMaterialModal.tsx
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Plus, Waves, Settings, Info, Thermometer, Ruler, Weight, Palette, Flag, Layers as LayersIcon, BarChart2, Save } from 'lucide-react';
-import { MaterialCategory, THIRD_OCTAVE_BANDS, ThirdOctave } from '../types/materials';
-import { UpdateMaterialRequest, MaterialResponse } from '@/services/materialsService';
+import { X, Waves, Info, Thermometer, Palette, Layers as LayersIcon, BarChart2, Save } from 'lucide-react';
+import { MaterialType, THIRD_OCTAVE_BANDS, ThirdOctave, Material, UpdateMaterialRequest } from '../types/materials';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { Label } from '@/shared/ui/label';
 
@@ -32,7 +31,7 @@ interface EditMaterialModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (id: string, material: UpdateMaterialRequest) => Promise<void>;
-  material: MaterialResponse | null;
+  material: Material | null;
 }
 
 type FormData = UpdateMaterialRequest;
@@ -46,21 +45,18 @@ const STEPS = [
   { id: 'appearance', title: 'Apariencia', icon: Palette },
 ];
 
-const getInitialFormData = (material: MaterialResponse | null): Partial<FormData> => {
+const getInitialFormData = (material: Material | null): Partial<FormData> => {
   if (!material) return {};
   return {
     name: material.name,
     description: material.description,
-    category: material.category,
+    type: material.type,
     density: material.density,
     reference: material.reference,
     is_active: material.is_active,
     picture: material.picture,
-    rw: material.rw,
     descriptor: material.descriptor,
     subtype: material.subtype,
-    type: material.type,
-    comments: material.comments,
     thickness_mm: material.thickness_mm,
     mass_kg_m2: material.mass_kg_m2,
     catalog: material.catalog,
@@ -172,9 +168,9 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
         if ((formData.thickness_mm ?? 0) <= 0) newErrors.thickness_mm = 'El espesor debe ser > 0';
         if ((formData.mass_kg_m2 ?? 0) <= 0) newErrors.mass_kg_m2 = 'La masa debe ser > 0';
         break;
-      case 2: // Acoustic Properties
-        if ((formData.rw ?? 0) <= 0) newErrors.rw = 'Rw debe ser > 0';
-        break;
+      // case 2: // Acoustic Properties
+      //   if ((formData.rw ?? 0) <= 0) newErrors.rw = 'Rw debe ser > 0';
+      //   break;
     }
     setErrors(prev => ({ ...prev, ...newErrors }));
     return Object.keys(newErrors).length === 0;
@@ -195,7 +191,11 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
     const allStepsValid = STEPS.map((_, i) => validateStep(i)).every(isValid => isValid);
 
     if (allStepsValid) {
-      await onSave(material._id, formData);
+      if (material._id) {
+        await onSave(material._id, formData);
+      } else {
+        alert("El ID del material no está definido.");
+      }
     } else {
       alert("Por favor, complete todos los campos requeridos en todos los pasos.");
       for (let i = 0; i < STEPS.length; i++) {
@@ -213,23 +213,23 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
   const Icon = currentStepData.icon;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-40 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl">
         <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg"><Icon className="text-blue-600" size={24} /></div>
-                <div>
-                    <h2 className="text-xl font-bold text-gray-900">Editar Material</h2>
-                    <p className="text-sm text-gray-600">{currentStepData.title}</p>
-                </div>
-                </div>
-                <button onClick={onClose} className="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><X size={20} /></button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 rounded-lg"><Icon className="text-blue-600" size={24} /></div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Editar Material</h2>
+                <p className="text-sm text-gray-600">{currentStepData.title}</p>
+              </div>
             </div>
-            <div className="mt-6"><div className="bg-gray-200 rounded-full h-2"><div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}/></div></div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><X size={20} /></button>
+          </div>
+          <div className="mt-6"><div className="bg-gray-200 rounded-full h-2"><div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }} /></div></div>
         </div>
 
         <div className="p-6 overflow-y-auto flex-grow">
@@ -247,11 +247,11 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
                 </FormField>
               </div>
               <FormField label="Categoría" tooltip="La categoría a la que pertenece el material.">
-                <select value={formData.category || ''} onChange={e => updateFormData('category', e.target.value)} className="w-full p-2 border rounded">
-                    <option value="WALLS">Paredes</option>
-                    <option value="FLOORS">Suelos</option>
-                    <option value="DOORS">Puertas</option>
-                    <option value="WINDOWS">Ventanas</option>
+                <select value={formData.type || ''} onChange={e => updateFormData('type', e.target.value)} className="w-full p-2 border rounded">
+                  <option value="WALLS">Paredes</option>
+                  <option value="FLOORS">Suelos</option>
+                  <option value="DOORS">Puertas</option>
+                  <option value="WINDOWS">Ventanas</option>
                 </select>
               </FormField>
               <FormField label="Tipo" tooltip="El tipo general del material (ej. Hormigón, Ladrillo).">
@@ -266,16 +266,11 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
               <FormField label="Catálogo" tooltip="Catálogo o norma de referencia.">
                 <input placeholder="Catálogo" value={formData.catalog || ''} onChange={e => updateFormData('catalog', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>
-              <div className="md:col-span-2">
-                <FormField label="Comentarios" tooltip="Notas o comentarios adicionales.">
-                  <textarea placeholder="Comentarios" value={formData.comments || ''} onChange={e => updateFormData('comments', e.target.value)} className="w-full p-2 border rounded" />
-                </FormField>
-              </div>
             </div>
           )}
           {currentStep === 1 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <FormField label="Densidad (kg/m³)" tooltip="La densidad del material." error={errors.density}>
+              <FormField label="Densidad (kg/m³)" tooltip="La densidad del material." error={errors.density}>
                 <input type="number" placeholder="Densidad (kg/m³)" value={formData.density || 0} onChange={e => updateFormData('density', Number(e.target.value))} className="w-full p-2 border rounded" />
               </FormField>
               <FormField label="Espesor (mm)" tooltip="El espesor del material en milímetros." error={errors.thickness_mm}>
@@ -297,17 +292,14 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
           )}
           {currentStep === 2 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField label="Rw" tooltip="Índice de reducción acústica ponderado." error={errors.rw}>
-                <input type="number" placeholder="Rw" value={formData.rw || 0} onChange={e => updateFormData('rw', Number(e.target.value))} className="w-full p-2 border rounded" />
-              </FormField>
               <FormField label="Weighted Rw" tooltip="Índice de reducción acústica ponderado (Rw) del índice ponderado.">
-                <input type="number" placeholder="Weighted Rw" value={formData.weightedIndex?.Rw || 0} onChange={e => updateFormData('weightedIndex', {...formData.weightedIndex, Rw: Number(e.target.value)})} className="w-full p-2 border rounded" />
+                <input type="number" placeholder="Weighted Rw" value={formData.weightedIndex?.Rw || 0} onChange={e => updateFormData('weightedIndex', { ...formData.weightedIndex, Rw: Number(e.target.value) })} className="w-full p-2 border rounded" />
               </FormField>
               <FormField label="Weighted C" tooltip="Término de adaptación para ruido rosa.">
-                <input type="number" placeholder="Weighted C" value={formData.weightedIndex?.C || 0} onChange={e => updateFormData('weightedIndex', {...formData.weightedIndex, C: Number(e.target.value)})} className="w-full p-2 border rounded" />
+                <input type="number" placeholder="Weighted C" value={formData.weightedIndex?.C || 0} onChange={e => updateFormData('weightedIndex', { ...formData.weightedIndex, C: Number(e.target.value) })} className="w-full p-2 border rounded" />
               </FormField>
               <FormField label="Weighted Ctr" tooltip="Término de adaptación para ruido de tráfico.">
-                <input type="number" placeholder="Weighted Ctr" value={formData.weightedIndex?.Ctr || 0} onChange={e => updateFormData('weightedIndex', {...formData.weightedIndex, Ctr: Number(e.target.value)})} className="w-full p-2 border rounded" />
+                <input type="number" placeholder="Weighted Ctr" value={formData.weightedIndex?.Ctr || 0} onChange={e => updateFormData('weightedIndex', { ...formData.weightedIndex, Ctr: Number(e.target.value) })} className="w-full p-2 border rounded" />
               </FormField>
             </div>
           )}
@@ -316,10 +308,10 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
               <FormField label="Bandas de Tercio de Octava" tooltip="Valores de reducción acústica para cada banda de frecuencia.">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {THIRD_OCTAVE_BANDS.map(freq => (
-                      <div key={freq} className="flex items-center">
-                        <label className="w-20 text-sm font-medium text-gray-700">{freq} Hz</label>
-                        <input type="number" value={formData.thirdOctaveBands ? formData.thirdOctaveBands[freq] : 0} onChange={e => updateThirdOctaveBandValue(freq, Number(e.target.value))} className="w-full p-2 border rounded" />
-                      </div>
+                    <div key={freq} className="flex items-center">
+                      <label className="w-20 text-sm font-medium text-gray-700">{freq} Hz</label>
+                      <input type="number" value={formData.thirdOctaveBands ? formData.thirdOctaveBands[freq] : 0} onChange={e => updateThirdOctaveBandValue(freq, Number(e.target.value))} className="w-full p-2 border rounded" />
+                    </div>
                   ))}
                 </div>
               </FormField>
@@ -329,20 +321,20 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
             <div>
               <FormField label="Capas" tooltip="Las capas que componen el material.">
                 {(formData.layers || []).map((layer, index) => (
-                    <div key={index} className="flex gap-2 mb-2 items-center">
-                        <input placeholder="Nombre de capa" value={layer.name} onChange={e => handleLayerChange(index, 'name', e.target.value)} className="w-full p-2 border rounded" />
-                        <input type="number" placeholder="Espesor (mm)" value={layer.thickness_mm} onChange={e => handleLayerChange(index, 'thickness_mm', e.target.value)} className="w-full p-2 border rounded" />
-                        <button onClick={() => removeLayer(index)} className="p-2 bg-red-500 text-white rounded">X</button>
-                    </div>
+                  <div key={index} className="flex gap-2 mb-2 items-center">
+                    <input placeholder="Nombre de capa" value={layer.name} onChange={e => handleLayerChange(index, 'name', e.target.value)} className="w-full p-2 border rounded" />
+                    <input type="number" placeholder="Espesor (mm)" value={layer.thickness_mm} onChange={e => handleLayerChange(index, 'thickness_mm', e.target.value)} className="w-full p-2 border rounded" />
+                    <button onClick={() => removeLayer(index)} className="p-2 bg-red-500 text-white rounded">X</button>
+                  </div>
                 ))}
                 <button onClick={addLayer} className="p-2 bg-blue-500 text-white rounded">Añadir Capa</button>
               </FormField>
               <div className="mt-6">
                 <FormField label="Flags" tooltip="Propiedades booleanas adicionales del material.">
                   <div className="flex items-center gap-4">
-                      <label className="flex items-center"><input type="checkbox" checked={formData.doubleLeaf || false} onChange={e => updateFormData('doubleLeaf', e.target.checked)} className="mr-2" /> Doble Hoja</label>
-                      <label className="flex items-center"><input type="checkbox" checked={formData.lightweightElement || false} onChange={e => updateFormData('lightweightElement', e.target.checked)} className="mr-2" /> Elemento Ligero</label>
-                      <label className="flex items-center"><input type="checkbox" checked={formData.onElasticBands || false} onChange={e => updateFormData('onElasticBands', e.target.checked)} className="mr-2" /> Bandas Elásticas</label>
+                    <label className="flex items-center"><input type="checkbox" checked={formData.doubleLeaf || false} onChange={e => updateFormData('doubleLeaf', e.target.checked)} className="mr-2" /> Doble Hoja</label>
+                    <label className="flex items-center"><input type="checkbox" checked={formData.lightweightElement || false} onChange={e => updateFormData('lightweightElement', e.target.checked)} className="mr-2" /> Elemento Ligero</label>
+                    <label className="flex items-center"><input type="checkbox" checked={formData.onElasticBands || false} onChange={e => updateFormData('onElasticBands', e.target.checked)} className="mr-2" /> Bandas Elásticas</label>
                   </div>
                 </FormField>
               </div>
@@ -354,12 +346,12 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
                 <input placeholder="Color" value={formData.color || ''} onChange={e => updateFormData('color', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>
               <FormField label="Imagen del Material" tooltip="Sube una imagen para el material.">
-                <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
               </FormField>
               {preview && (
                 <div className="md:col-span-2 mt-4">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Vista Previa:</p>
-                    <img src={preview} alt="Vista previa de la imagen" className="rounded-lg max-h-48 w-auto"/>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Vista Previa:</p>
+                  <img src={preview} alt="Vista previa de la imagen" className="rounded-lg max-h-48 w-auto" />
                 </div>
               )}
             </div>

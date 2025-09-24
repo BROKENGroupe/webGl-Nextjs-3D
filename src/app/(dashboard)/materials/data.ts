@@ -3,18 +3,15 @@ import { Material } from '../../../modules/materials/types/materials';
 
 export const ACOUSTIC_MATERIALS: Record<string, Material> = {
     CONCRETE_WALL: {
-        id: 'mat-concrete-wall-01',
         density: 2400,
         reference: 'CONCRETE_WALL',
         name: 'Pared de Concreto',
         description: 'Pared construida con concreto sólido, común en edificaciones modernas.',
-        category: 'WALLS',
         is_active: true,
         picture: null,
-        rw: 45,
         descriptor: 'Concrete Wall',
         subtype: 'Solid',
-        type: 'Concrete',
+        type: 'wall',
         thickness_mm: 200,
         mass_kg_m2: 480,
         catalog: 'Standard',

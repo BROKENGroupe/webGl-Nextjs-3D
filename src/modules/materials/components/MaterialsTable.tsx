@@ -3,12 +3,13 @@ import React from 'react';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { MaterialResponse } from '@/services/materialsService';
 import { getCategoryColor } from '../utils/materials';
+import { Material } from '../types/materials';
 
 interface MaterialsTableProps {
-  materials: MaterialResponse[];
-  onViewDetails: (material: MaterialResponse) => void;
-  onEdit: (material: MaterialResponse) => void;
-  onDelete: (material: MaterialResponse) => void;
+  materials: Material[];
+  onViewDetails: (material: Material) => void;
+  onEdit: (material: Material) => void;
+  onDelete: (material: Material) => void;
 }
 
 export const MaterialsTable: React.FC<MaterialsTableProps> = ({ 
@@ -38,11 +39,11 @@ export const MaterialsTable: React.FC<MaterialsTableProps> = ({
                   <div className="text-sm text-gray-500">{material.reference}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(material.category)}`}>
-                    {material.category}
+                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(material.type)}`}>
+                    {material.type}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{material.rw}</td>
+                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{material.rw}</td> */}
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{material.density} kg/m³</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-3">

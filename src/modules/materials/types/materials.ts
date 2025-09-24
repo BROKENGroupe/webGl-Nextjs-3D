@@ -7,10 +7,10 @@ export const THIRD_OCTAVE_BANDS = [
   800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000,
 ] as const;
 
-export type MaterialType = 'ALL' | 'wall' | 'floor' | 'door' | 'window' | 'ceiling';
+export type MaterialType = 'ALL' | 'wall' | 'floor' | 'door' | 'window' | 'ceiling' | 'other' ;
 
 export interface Material {
-  id: string;
+  _id?: string;
   name: string;
   description: string;
   density: number;
@@ -36,5 +36,13 @@ export interface Material {
   height: number;
   bottomOffset: number;
 }
+
+export interface CreateMaterial extends Omit<Material, '_id' | 'created_at' | 'updated_at'> {
+}
+
+export interface UpdateMaterialRequest extends Partial<Material> {
+  id?: string;
+}
+
 
 export type ViewMode = 'cards' | 'table';
