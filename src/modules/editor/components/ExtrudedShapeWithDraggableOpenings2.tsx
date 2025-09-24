@@ -138,7 +138,15 @@ export function ExtrudedShapeWithDraggableOpenings2({
         <RoomFloor
           key={`floor-${index}`}
           geometry={floorGeometry}
-          material={MaterialService.getFloorMaterial()}
+          floorIndex={index}
+          material={MaterialService.getWallMaterial({
+            isHovered:
+              (wallInteractions.hoveredWall === index &&
+                (isDragActive || openingDrag.isDraggingOpening)) ||
+              openingDrag.previewPosition?.wallIndex === index,
+            isDragActive: isDragActive || openingDrag.isDraggingOpening,
+            opacity: isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
+          })}
           floorId={floor.id}
           eventHandlers={{
             onContextMenu: (e: any) => {
@@ -230,8 +238,16 @@ export function ExtrudedShapeWithDraggableOpenings2({
         <RoomCeiling
           key={`ceiling-${index}`}
           geometry={ceilingGeometry}
-          material={MaterialService.getCeilingMaterial()}
+          material={MaterialService.getWallMaterial({
+            isHovered:
+              (wallInteractions.hoveredWall === index &&
+                (isDragActive || openingDrag.isDraggingOpening)) ||
+              openingDrag.previewPosition?.wallIndex === index,
+            isDragActive: isDragActive || openingDrag.isDraggingOpening,
+            opacity: isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
+          })}
           ceilingId={ceiling.id}
+          ceilingIndex={index}
           eventHandlers={{
             onContextMenu: (e: any) => {
               if (onCeilingContextMenu) {

@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
             const mapped = mapUserToToken({
               id: user.id,
               email: user.email,
-              name: user.username,
+              name: user.name,
               image: user.image ?? null,
               accessToken: user.accessToken,
               refreshToken: user.refreshToken,

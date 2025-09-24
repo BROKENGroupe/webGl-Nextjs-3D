@@ -1,8 +1,7 @@
 "use client";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getGoogleAuthUrl } from "@/services/authService";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
@@ -10,7 +9,6 @@ import { z } from "zod";
 import React from "react";
 import { Button } from "@/shared/ui/button";
 import { Loader2 } from "lucide-react";
-import { sign } from "crypto";
 
 const schema = z.object({
   email: z.string().email({ message: "Your email is invalid." }),
@@ -29,8 +27,8 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
     mode: "all",
     defaultValues: {
-      email: "dashtail@codeshaper.net",
-      password: "password",
+      email: "",
+      password: "",
     },
   });
 
@@ -42,11 +40,11 @@ export default function LoginPage() {
         redirect: false,
       });
       if (response?.ok) {
-        toast.success("Login Successful login 2");
+        toast.success("Login Successful");
         window.location.assign("/home");
         reset();
       } else if (response?.error) {
-        toast.error(response?.error);
+        toast.error("Ups algo salió mal!");
       }
     });
   };
@@ -83,16 +81,16 @@ export default function LoginPage() {
       {/* Columna Izquierda: Formulario */}
       <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white md:col-span-2">
         <div className="w-full max-w-md">
-          <Image
-            src="/assets/images/logo/insonor.png"
-            alt="Logo"
-            width={200}
-            height={80}
-            className="mb-8"
-          />
-          {/* <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            Welcome Back
-          </h1> */}
+          <div className="flex justify-between items-center">
+            <Image
+              src="/assets/images/insonor.png"
+              alt="Logo"
+              width={150}
+              height={70}
+              className="mb-8"
+            />
+            <h3 className="text-2xl text-gray-800 mb-8">Iniciar sesión</h3>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -199,7 +197,7 @@ export default function LoginPage() {
             Don't have an account?{" "}
             <Link
               href="/auth/register"
-              className="font-semibold text-green-600 hover:underline"
+              className="font-semibold text-blue-600 hover:underline"
             >
               Sign up
             </Link>
@@ -210,7 +208,7 @@ export default function LoginPage() {
       {/* Columna Derecha: Imagen */}
       <div className="hidden md:flex md:col-span-3 relative h-full">
         <Image
-          src="/assets/images/backgrounds/login-wall.png"
+          src="/assets/images/login-wall.png"
           alt="Close-up of a monstera plant leaf"
           fill
           style={{ objectFit: "cover" }}

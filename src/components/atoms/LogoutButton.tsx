@@ -3,14 +3,16 @@
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
+import { signOut } from "next-auth/react";
 
 export const LogoutButton = () => {
   const { logout } = useAuth();
   const router = useRouter();
 
   const handleLogout = () => {
-    logout();
-    router.push("/auth/login");
+    //logout();
+    signOut({ callbackUrl: "/auth/login" });
+    //router.push("/auth/login");
   };
 
   return (
