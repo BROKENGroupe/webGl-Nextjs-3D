@@ -65,6 +65,7 @@ export const useMaterials = () => {
   const createMaterial = async (newMaterialData: CreateMaterial) => {
     setIsSubmitting(true);
     try {
+      console.log('Creating material with data:', newMaterialData);
       const response = await materialsService.createMaterial(newMaterialData);
       if (response) {
         setMaterials(prev => [response, ...prev]);
