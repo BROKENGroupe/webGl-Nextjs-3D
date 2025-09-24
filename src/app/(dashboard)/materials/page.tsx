@@ -1,6 +1,9 @@
 'use client';
 
 import React from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { ElementType } from "@/modules/editor/types/walls";
+
 // Components
 import { PageHeader } from '../../../modules/materials/components/PageHeader';
 import { MaterialsFilters } from '../../../modules/materials/components/MaterialsFilters';
@@ -29,7 +32,7 @@ const MaterialsViewer = () => {
     selectedMaterial, // For details
     materialToEdit,
     materialToDelete,
-    
+
     // State Setters
     setViewMode,
     setSearchTerm,
@@ -49,7 +52,9 @@ const MaterialsViewer = () => {
   } = useMaterials();
 
   // Separate state for create modal to not conflict with edit/delete flows
-  const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [elementType, setElementType] = useState<ElementType>(ElementType.Wall);
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -72,15 +77,15 @@ const MaterialsViewer = () => {
       return <div className="text-red-500 text-center py-10">Error: {error}</div>;
     }
 
-    if (materials.length === 0) {
+    if (materials?.length === 0) {
       return <EmptyState onCreateNew={() => setIsCreateModalOpen(true)} />;
     }
 
     return viewMode === 'cards' ? (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {materials.map((material) => (
-          <MaterialCard 
-            key={material._id} 
+        {materials?.map((material) => (
+          <MaterialCard
+            key={material._id}
             material={material}
             onViewDetails={setSelectedMaterial}
             onEdit={handleOpenEditModal}
@@ -89,7 +94,7 @@ const MaterialsViewer = () => {
         ))}
       </div>
     ) : (
-      <MaterialsTable 
+      <MaterialsTable
         materials={materials}
         onViewDetails={setSelectedMaterial}
         onEdit={handleOpenEditModal}
@@ -116,17 +121,19 @@ const MaterialsViewer = () => {
 
           <div className="mb-6">
             <p className="text-gray-600">
-              {!isLoading && !error && `Mostrando ${materials.length} material${materials.length !== 1 ? 'es' : ''}`}
+              {!isLoading && !error && `Mostrando ${materials?.length} material${materials?.length !== 1 ? 'es' : ''}`}
             </p>
           </div>
 
           {renderContent()}
 
           {/* Modals */}
-          <MaterialDetailModal 
+          <MaterialDetailModal
             material={selectedMaterial}
             onClose={() => setSelectedMaterial(null)}
           />
+
+
 
           <CreateMaterialModal
             isOpen={isCreateModalOpen}

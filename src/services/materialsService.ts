@@ -1,39 +1,11 @@
 // services/materialsService.ts
-import { Material, MaterialCategory, ThirdOctave } from '@/modules/materials/types/materials';
+import { Material, MaterialType, ThirdOctave } from '@/modules/materials/types/materials';
 import { apiClient, ApiResponse } from '../core/api/client';
 import { API_CONFIG } from '../core/config/config';
 
-export interface CreateMaterialRequest {
-  name: string;
-  description: string;
-  category: MaterialCategory;
-  density: number;
-  reference: string;
-  is_active: boolean;
-  picture: string | null;
-  rw: number;
-  descriptor: string;
-  subtype: string;
-  type: string;
-  comments?: string;
-  thickness_mm: number;
-  mass_kg_m2: number;
-  catalog: string;
-  color?: string;
-  doubleLeaf?: boolean;
-  lightweightElement?: boolean;
-  onElasticBands?: boolean;
-  layers: { name: string; thickness_mm: number }[];
-  thirdOctaveBands: Record<ThirdOctave, number>;
-  octaveBands: { range: string; value: string }[];
-  weightedIndex?: { Rw: number; C: number; Ctr: number };
-  imageRef?: string;
-  width: number;
-  height: number;
-  bottomOffset: number;
-}
 
-export interface UpdateMaterialRequest extends Partial<CreateMaterialRequest> {
+
+export interface UpdateMaterialRequest extends Partial<Material> {
   id?: string;
 }
 
@@ -47,7 +19,7 @@ export interface GetMaterialsParams {
   page?: number;
   limit?: number;
   search?: string;
-  category?: MaterialCategory;
+  type?: MaterialType;
   is_active?: boolean;
   sort_by?: 'name' | 'created_at' | 'updated_at' | 'rw' | 'density';
   sort_order?: 'asc' | 'desc';
@@ -61,7 +33,7 @@ class MaterialsService {
     try {
       return await apiClient.get<MaterialResponse[]>(
         API_CONFIG.ENDPOINTS.MATERIALS + '/all',
-        params
+        // params
       );
     } catch (error) {
       console.error('Error fetching materials:', error);
@@ -100,15 +72,36 @@ class MaterialsService {
   /**
    * Crear un nuevo material
    */
-  async createMaterial(data: CreateMaterialRequest): Promise<ApiResponse<MaterialResponse>> {
+  async createMaterial(data: Material): Promise<ApiResponse<MaterialResponse>> {
     try {
       console.log('Creating material with data:', data);
-      // Validar datos antes de enviar
-      this.validateMaterialData(data);
+
+      const { picture, ...validationData } = data;
+      this.validateMaterialData(validationData);
+
+      let payload: Material | FormData = data;
+
+      if (picture && typeof picture !== 'string') {
+        const formData = new FormData();
+        formData.append('picture', picture as File);
+
+        const { picture: p, ...restData } = data;
+
+        Object.entries(restData).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+                if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+                    formData.append(key, JSON.stringify(value));
+                } else {
+                    formData.append(key, String(value));
+                }
+            }
+        });
+        payload = formData;
+      }
 
       return await apiClient.post<MaterialResponse>(
         API_CONFIG.ENDPOINTS.MATERIALS,
-        data
+        payload
       );
     } catch (error) {
       console.error('Error creating material:', error);
@@ -122,7 +115,7 @@ class MaterialsService {
   async updateMaterial(id: string, data: UpdateMaterialRequest): Promise<ApiResponse<MaterialResponse>> {
     try {
       if (data.reference || data.thirdOctaveBands) {
-        this.validateMaterialData(data as CreateMaterialRequest);
+        this.validateMaterialData(data as Material);
       }
 
       return await apiClient.put<MaterialResponse>(
@@ -182,9 +175,9 @@ class MaterialsService {
   /**
    * Obtener categorías disponibles
    */
-  async getCategories(): Promise<ApiResponse<{ value: MaterialCategory; label: string }[]>> {
+  async getCategories(): Promise<ApiResponse<{ value: Material; label: string }[]>> {
     try {
-      return await apiClient.get<{ value: MaterialCategory; label: string }[]>(
+      return await apiClient.get<{ value: Material; label: string }[]>(
         API_CONFIG.ENDPOINTS.MATERIAL_CATEGORIES
       );
     } catch (error) {
@@ -225,17 +218,15 @@ class MaterialsService {
   /**
    * Validar datos del material
    */
-  private validateMaterialData(data: Partial<CreateMaterialRequest>): void {
+  private validateMaterialData(data: Partial<Material>): void {
     const errors: string[] = [];
 
     if (!data.name?.trim()) errors.push('Material name is required');
     if (!data.reference?.trim()) errors.push('Material reference is required');
     if (!data.description?.trim()) errors.push('Material description is required');
     if ((data.density ?? 0) <= 0) errors.push('Density must be a positive number');
-    if ((data.rw ?? 0) <= 0) errors.push('Rw value must be a positive number');
     if ((data.thickness_mm ?? 0) <= 0) errors.push('Thickness must be a positive number');
     if ((data.mass_kg_m2 ?? 0) <= 0) errors.push('Mass must be a positive number');
-    if (!data.category) errors.push('Category is required');
     if (!data.type?.trim()) errors.push('Type is required');
     if (!data.subtype?.trim()) errors.push('Subtype is required');
     if (!data.descriptor?.trim()) errors.push('Descriptor is required');

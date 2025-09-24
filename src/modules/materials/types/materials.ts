@@ -7,22 +7,19 @@ export const THIRD_OCTAVE_BANDS = [
   800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000,
 ] as const;
 
-export type MaterialCategory = 'ALL' | 'WALLS' | 'FLOORS' | 'DOORS' | 'WINDOWS' | 'OTHER';
+export type MaterialType = 'ALL' | 'wall' | 'floor' | 'door' | 'window' | 'ceiling';
 
 export interface Material {
   id: string;
   name: string;
   description: string;
-  category: MaterialCategory;
   density: number;
   reference: string;
   is_active: boolean;
   picture: string | null;
-  rw: number;
   descriptor: string;
   subtype: string;
-  type: string;
-  comments?: string;
+  type: MaterialType;
   thickness_mm: number;
   mass_kg_m2: number;
   catalog: string;

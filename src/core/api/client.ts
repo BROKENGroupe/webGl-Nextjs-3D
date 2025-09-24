@@ -42,6 +42,10 @@ class ApiClient {
       },
     };
 
+    if (config.body instanceof FormData) {
+      delete (config.headers as any)['Content-Type'];
+    }
+
     // Agregar timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
@@ -76,29 +80,44 @@ class ApiClient {
 
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
     const searchParams = params ? `?${new URLSearchParams(params)}` : '';
-    return this.request<T>(`${endpoint}`, {
+    return this.request<T>(`${endpoint}${searchParams}`, {
       method: 'GET',
     });
   }
 
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    const isFormData = data instanceof FormData;
+    let body = data;
+    if (!isFormData && data) {
+        body = JSON.stringify(data);
+    }
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body,
     });
   }
 
   async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    const isFormData = data instanceof FormData;
+    let body = data;
+    if (!isFormData && data) {
+        body = JSON.stringify(data);
+    }
     return this.request<T>(endpoint, {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body,
     });
   }
 
   async patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    const isFormData = data instanceof FormData;
+    let body = data;
+    if (!isFormData && data) {
+        body = JSON.stringify(data);
+    }
     return this.request<T>(endpoint, {
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
+      body,
     });
   }
 

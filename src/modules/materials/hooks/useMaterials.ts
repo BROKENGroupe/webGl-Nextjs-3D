@@ -1,19 +1,19 @@
 // hooks/useMaterials.ts
 import { useState, useEffect, useCallback } from 'react';
 import { MaterialCategory, ViewMode } from '../types/materials';
-import { 
-  materialsService, 
-  MaterialResponse, 
-  GetMaterialsParams, 
-  CreateMaterialRequest, 
-  UpdateMaterialRequest 
+import {
+  materialsService,
+  MaterialResponse,
+  GetMaterialsParams,
+  CreateMaterialRequest,
+  UpdateMaterialRequest
 } from '@/services/materialsService';
 
 export const useMaterials = () => {
   // Main data and view state
   const [materials, setMaterials] = useState<MaterialResponse[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
-  
+
   // Loading and error states
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,8 +40,10 @@ export const useMaterials = () => {
         sort_order: 'asc',
       };
       const response = await materialsService.getMaterials(params);
-      if (response.data) {
-        setMaterials(response.data);
+      console.log('Fetched materials:', response);
+      if (response) {
+        setMaterials(response.data
+        );
       } else {
         throw new Error(response.message || 'Failed to fetch materials');
       }
@@ -136,7 +138,7 @@ export const useMaterials = () => {
     selectedMaterial,
     materialToEdit,
     materialToDelete,
-    
+
     // State Setters
     setViewMode,
     setSearchTerm,

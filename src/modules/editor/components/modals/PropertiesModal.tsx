@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import React, { useEffect, useState } from "react";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import {
@@ -37,6 +38,8 @@ interface PropertiesModalProps {
 }
 
 async function fetchAcousticWalls() {
+
+
   return [
     wallCeramicBrick,
     wallConcreteBlock,
@@ -72,7 +75,7 @@ export default function PropertiesModal({
   useEffect(() => {
     fetchAcousticWalls().then(setWallsData);
   }, []);
-  
+
   // Busca la pared seleccionada por índice
   let selectedElement: any = null;
   if (elementType === ElementType.Wall && wallIndex !== undefined) {
@@ -90,18 +93,30 @@ export default function PropertiesModal({
     selectedElement = ceilings.find((c: any) => c.id === ceilingId);
   }
 
-  // Obtiene el template acústico del elemento seleccionado
+
   const acoustic = selectedElement?.template;
+
+  const raw = acoustic?.thirdOctaveBands ?? {};
+
+  const chartData: { frequency: number; value_R: number }[] = Object.entries(raw)
+    .map(([freq, val]) => {
+      const frequency = parseInt(freq, 10);
+      const value_R = typeof val === 'number' ? val : Number(val);
+      return { frequency, value_R };
+    })
+    .filter(d => !Number.isNaN(d.frequency) && !Number.isNaN(d.value_R));
+  console.log("Selected Element:", acoustic);
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="w-[70vw]"
+        className="w-[40vw]"
         style={{
           maxHeight: "95vh",
           minHeight: "600px",
           overflowY: "auto",
-          padding: "0",
+          padding: "15px",
+
         }}
       >
         <DialogHeader>
@@ -114,7 +129,7 @@ export default function PropertiesModal({
           </DialogTitle>
         </DialogHeader>
         {selectedElement ? (
-          <div className="mb-4 space-y-2">
+          <div className="mb-6 space-y-2">
             <div>
               <span className="font-semibold">Nombre:</span>{" "}
               {acoustic?.descriptor || "Sin asignar"}
@@ -169,7 +184,72 @@ export default function PropertiesModal({
                     <li>Ctr: {acoustic.weightedIndex?.Ctr}</li>
                   </ul>
                 </div>
+
+
+                <div className="bg-gray-50 p-4 rounded-l¿">
+                  <h4 className="text-md font-semibold text-gray-800 mb-4 text-center">
+                    Curva de Aislamiento Acústico
+                  </h4>
+                  <div className="flex flex-col md:flex-row gap-2 p-2" style={{ height: 300 }}>
+                    {/* Left: table (fixed width on md+, full width on small screens) */}
+                    <div className="w-full md:w-1/3 lg:w-1/4 overflow-hidden">
+                      <h3 className="text-sm font-semibold mb-2">Tabla de valores</h3>
+
+                      {/* make this container fill the available height and scroll when content overflows */}
+                      <div className="h-full overflow-auto" style={{ maxHeight: 'calc(100% - 56px)' }}>
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="text-left text-xs text-gray-500">
+                              <th className="pb-2">Frecuencia (Hz)</th>
+                              <th className="pb-2">R (dB)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {chartData && chartData.length > 0 ? (
+                              chartData.map((p, i) => (
+                                <tr key={i} className="border-t last:border-b">
+                                  <td className="py-2">{p.frequency}</td>
+                                  <td className="py-2">{Number(p.value_R).toFixed(1)}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={2} className="py-4 text-center text-gray-400">
+                                  Sin datos
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+
+                    {/* Right: chart */}
+                    <div className="flex-1 p-3 h-full">
+                      <div style={{ width: '100%', height: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                            <XAxis
+                              dataKey="frequency"
+                              label={{ value: 'Frecuencia (Hz)', position: 'insideBottom', offset: -5, fontSize: 12 }}
+                              tick={{ fontSize: 10 }}
+                              type="category"
+                            />
+                            <YAxis label={{ value: 'R (dB)', angle: -90, position: 'insideLeft', fontSize: 12 }} tick={{ fontSize: 10 }} />
+                            <Tooltip labelFormatter={(value) => `${value} Hz`} formatter={(value: number) => [Number(value).toFixed(1), 'R (dB)']} />
+                            <Legend verticalAlign="top" height={36} />
+                            <Line type="monotone" dataKey="value_R" name="Índice de Reducción" stroke="#000000ff" strokeWidth={2} dot={{ r: 4, fill: '#000000ff' }} activeDot={{ r: 6 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
+
             )}
           </div>
         ) : (

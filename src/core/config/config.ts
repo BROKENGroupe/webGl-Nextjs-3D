@@ -2,7 +2,7 @@
 'use client';
 
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001/api',
   ENDPOINTS: {
     MATERIALS: '/materials',
     MATERIAL_BY_ID: (id: string) => `/materials/${id}`,
