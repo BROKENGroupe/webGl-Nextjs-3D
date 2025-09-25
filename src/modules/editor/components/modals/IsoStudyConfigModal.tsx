@@ -36,9 +36,9 @@ export const IsoStudyConfigModal: React.FC<IsoStudyConfigModalProps> = ({
   return (
     <>
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>      
-      <DialogContent>
-        <div className="space-y-4 mt-2 w-[30vw]">
-          <div>
+      <DialogContent className="space-y-4 mt-2 w-[30vw]">
+        <div>
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Altura del recinto (m)
             </label>
@@ -52,7 +52,7 @@ export const IsoStudyConfigModal: React.FC<IsoStudyConfigModalProps> = ({
               placeholder="Ej: 2.70"
             />
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tipo de estudio
             </label>
@@ -66,7 +66,7 @@ export const IsoStudyConfigModal: React.FC<IsoStudyConfigModalProps> = ({
                 </option>
               ))}
             </Select>
-          </div>
+          </div> */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nivel de presión sonora interior (Lp_in, dB)

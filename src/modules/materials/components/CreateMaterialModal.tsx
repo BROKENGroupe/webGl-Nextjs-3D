@@ -208,7 +208,7 @@ export const CreateMaterialModal: React.FC<CreateMaterialModalProps> = ({ isOpen
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-40 backdrop-blur-sm"
+      className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-opacity-40 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl">
