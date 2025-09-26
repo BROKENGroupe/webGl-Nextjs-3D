@@ -189,9 +189,8 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                 </span>
               </span>
               <span className="text-[13px] text-black font-medium min-w-[70px]">
-                Techo{" "}
                 <span className="font-bold">
-                  {ceiling.template?.descriptor}
+                  {ceiling.title} - {ceiling.template?.descriptor}
                 </span>
               </span>
               <span className="text-[11px] text-gray-500 italic ml-2">
@@ -247,8 +246,9 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                 </span>
               </span>
               <span className="text-[13px] text-black font-medium min-w-[70px]">
-                Piso{" "}
-                <span className="font-bold">{floor.template?.descriptor}</span>
+                <span className="font-bold">
+                  {floor.title} - {floor.template?.descriptor}
+                </span>
               </span>
               <span className="text-[11px] text-gray-500 italic ml-2">
                 Área: {floor.area ? floor.area.toFixed(2) : "N/A"} m²
@@ -303,9 +303,8 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                       <span className="text-[15px]">🧱</span>
                     </Badge>
                     <span className="text-[13px] font-medium text-black">
-                      Fachada{" "}
                       <span className="font-bold">
-                        {idx + 1} {wall.template?.descriptor || wall.descriptor}
+                        {wall.title} - {wall.template?.descriptor || wall.descriptor}
                       </span>
                     </span>
                   </span>
@@ -364,8 +363,7 @@ export const LayerTreePanel: React.FC<LayerTreePanelProps> = ({
                               <span className="font-bold">{oidx + 1}</span>
                             </span>
                             <span className="text-[11px] text-gray-500 italic flex-1">
-                              {opening.template?.descriptor ||
-                                "Sin descripción"}
+                              {opening.title} - {opening.template?.descriptor || "Sin descripción"}
                             </span>
                             <div className="flex items-center gap-1 ml-auto">
                               <Switch

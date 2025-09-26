@@ -1,5 +1,9 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import React from "react";
+import EditableHeader, { ElementType } from "./EditableHeader";
+import { useOpeningDrag } from "../../hooks/useOpeningDrag";
+import { useOpeningsStore } from "../../store/openingsStore";
+import { useWallsStore } from "../../store/wallsStore";
 
 
 interface openCellingContextMenuProps {
@@ -7,9 +11,11 @@ interface openCellingContextMenuProps {
   y: number;
   visible: boolean;
   facadeName: string;
+  title: string;
   onProperties: () => void;
   onChangeMaterial: () => void;
   onClose: () => void;
+  onUpdateName?: (newName: string, elementType: ElementType) => void;
 }
 
 export default function openCellingContextMenu({
@@ -17,11 +23,24 @@ export default function openCellingContextMenu({
   y,
   visible,
   facadeName,
+  title = "Techo",
   onProperties,
   onChangeMaterial,
   onClose,
+  onUpdateName,
 }: openCellingContextMenuProps) {
   if (!visible) return null;
+
+const { updateCeiling, ceilings } = useWallsStore();
+
+// Obtener el título de la pared por wallIndex (facadeName)
+  const wall = ceilings.find((ceiling) => ceiling.ceilingIndex === Number(facadeName));
+  const ceilingTitle = wall?.title || `Fachada ${facadeName + 1}`;
+
+  const handleUpdateName = (newName: string, elementType: ElementType) => {
+    onUpdateName?.(newName, elementType);
+    updateCeiling(facadeName, { title: newName });
+  };
 
   return (
     <Popover open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
@@ -41,9 +60,14 @@ export default function openCellingContextMenu({
           zIndex: 1000,
         }}
       >
-        <div style={{ padding: "8px 16px", fontWeight: "bold", borderBottom: "1px solid #eee" }}>
-          Techo
-        </div>
+        {/* Header editable */}
+        <EditableHeader
+          title={ceilingTitle}
+           elementType="ceiling"
+          onUpdateName={handleUpdateName}
+        />
+
+        {/* Opciones del menú */}
         <button
           style={{
             width: "100%",

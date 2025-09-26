@@ -43,6 +43,7 @@ export interface WallTemplate {
 
 export interface Wall {
   id: string;
+  title: string;
   wallIndex: number;
   template: AcousticMaterial;
   start: { x: number; z: number };

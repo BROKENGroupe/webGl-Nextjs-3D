@@ -1,15 +1,18 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import React from "react";
-
+import EditableHeader, { ElementType } from "./EditableHeader";
+import { useWallsStore } from "../../store/wallsStore";
 
 interface openFloorContextMenuProps {
   x: number;
   y: number;
   visible: boolean;
   facadeName: string;
+  title?: string;
   onProperties: () => void;
   onChangeMaterial: () => void;
   onClose: () => void;
+  onUpdateName?: (newName: string, elementType: ElementType) => void;
 }
 
 export default function openFloorContextMenu({
@@ -17,11 +20,24 @@ export default function openFloorContextMenu({
   y,
   visible,
   facadeName,
+  title = "Piso",
   onProperties,
   onChangeMaterial,
   onClose,
+  onUpdateName,
 }: openFloorContextMenuProps) {
   if (!visible) return null;
+
+  const { updateFloorByIndex, floors } = useWallsStore();
+
+  // Obtener el título del piso por wallIndex (facadeName)
+  const wall = floors.find((floor) => floor.floorIndex === Number(facadeName));
+  const floorTitle = wall?.title || `Fachada ${facadeName + 1}`;
+
+  const handleUpdateName = (newName: string, elementType: ElementType) => {
+    onUpdateName?.(newName, elementType);
+    updateFloorByIndex(0, { title: newName });
+  };
 
   return (
     <Popover open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
@@ -41,9 +57,13 @@ export default function openFloorContextMenu({
           zIndex: 1000,
         }}
       >
-        <div style={{ padding: "8px 16px", fontWeight: "bold", borderBottom: "1px solid #eee" }}>
-          Piso
-        </div>
+        {/* Header editable */}
+        <EditableHeader
+          title={floorTitle}
+          elementType="floor"
+          onUpdateName={handleUpdateName}
+        />
+
         <button
           style={{
             width: "100%",

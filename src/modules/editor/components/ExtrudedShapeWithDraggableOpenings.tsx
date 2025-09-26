@@ -28,11 +28,13 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
   onWallContextMenu?: (
     event: any,
     facadeName: number,
+    title: string,
     elementType: ElementType
   ) => void;
   onOpeningContextMenu?: (
     event: any,
     openingId: any,
+    title: string,
     elementType: ElementType
   ) => void;
   openings: any[];
@@ -40,17 +42,19 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
   onCeilingContextMenu?: (
     event: any,
     facadeName: string,
+    title: string,
     elementType: ElementType
   ) => void;
   onFloorContextMenu?: (
     event: any,
     facadeName: string,
+    title: string,
     elementType: ElementType
   ) => void;
 }
 
 // Componente principal
-export function ExtrudedShapeWithDraggableOpenings2({
+export function ExtrudedShapeWithDraggableOpenings({
   onDropOpening,
   isDragActive,
   draggedTemplate,
@@ -151,7 +155,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
           eventHandlers={{
             onContextMenu: (e: any) => {
               if (onFloorContextMenu) {
-                onFloorContextMenu(e.nativeEvent, floor.id, ElementType.Floor);
+                onFloorContextMenu(e.nativeEvent, floor.id, floor.title, ElementType.Floor);
               }
             },
           }}
@@ -189,7 +193,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
               onClick: (e: any) => wallInteractions.handleWallClick(index, e),
               onContextMenu: (e: any) => {
                 if (onWallContextMenu) {
-                  onWallContextMenu(e.nativeEvent, index, ElementType.Wall);
+                  onWallContextMenu(e.nativeEvent, index, "Fachada", ElementType.Wall);
                 }
               },
             }}
@@ -224,6 +228,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
                       onOpeningContextMenu(
                         e.nativeEvent,
                         opening.id,
+                        opening.title,
                         ElementType.Opening
                       );
                     }
@@ -254,6 +259,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
                 onCeilingContextMenu(
                   e.nativeEvent,
                   ceiling.id,
+                  ceiling.title,
                   ElementType.Ceiling
                 );
               }
