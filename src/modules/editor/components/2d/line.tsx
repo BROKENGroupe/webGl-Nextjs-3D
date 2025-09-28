@@ -25,18 +25,19 @@ export function Line({
   onContextLineMenu,
 }: LineProps) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const { currentLines, setCurrentLines, updateCurrentLine } = useDrawingStore();
-  const lineIdRef = useRef(id || `line-${Date.now()}-${Math.floor(Math.random() * 100000)}`);
+  const { currentLines, setCurrentLines, updateCurrentLine } =
+    useDrawingStore();
+  const lineIdRef = useRef(
+    id || `line-${Date.now()}-${Math.floor(Math.random() * 100000)}`
+  );
 
   const transform = LineGeometryEngine.calculateLineTransform(start, end);
   const dimensions = LineGeometryEngine.calculateLineDimensions(hovered);
-  const distance = transform.distance;  
+  const distance = transform.distance;
 
   useEffect(() => {
     // Buscar si la línea ya existe por id
-    const exists = currentLines.some(
-      (line) => line.id === lineIdRef.current
-    );
+    const exists = currentLines.some((line) => line.id === lineIdRef.current);
 
     if (exists) {
       // Actualiza la línea existente
@@ -60,7 +61,7 @@ export function Line({
           width: dimensions.width,
         },
       ]);
-    }    
+    }
   }, [start, end, color, dimensions.width]);
 
   // Calcula la distancia en tiempo real
@@ -69,7 +70,7 @@ export function Line({
     <group>
       {/* LÍNEA PRINCIPAL */}
       <mesh
-      style={{ pointerEvents: "auto", cursor: "hand" }}
+        style={{ pointerEvents: "auto", cursor: "hand" }}
         position={[
           transform.midPoint.x,
           transform.midPoint.y + 0.005,
@@ -107,8 +108,14 @@ export function Line({
             style={{
               padding: "2px 6px",
               borderRadius: 4,
-              cursor: "help",
+              cursor: "pointer",
               position: "relative",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onContextLineMenu) {
+                onContextLineMenu(lineIdRef.current);               
+              }
             }}
           >
             {distance.toFixed(2)} m

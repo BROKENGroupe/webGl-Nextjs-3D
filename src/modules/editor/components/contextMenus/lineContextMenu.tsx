@@ -67,7 +67,7 @@ export default function LineContextMenu({
   return (
     <Popover open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
       <PopoverTrigger asChild>
-        <div style={{ position: "fixed", top: centerY, left: centerX, width: 0, height: 0 }} />
+        <div style={{ position: "fixed", top: y, left: x, width: 0, height: 0 }} />
       </PopoverTrigger>
       <PopoverContent
         side="right"

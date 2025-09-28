@@ -276,7 +276,7 @@ export default function DrawingScene() {
       x: event.clientX,
       y: event.clientY,
       itemType: "line",
-      itemIndex: null, // If you need to store the id, add a new property for it
+      itemIndex: null,
     });
 
     setSelectedLineId(id);
