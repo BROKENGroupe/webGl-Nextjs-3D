@@ -2,35 +2,74 @@ import * as THREE from "three";
 import { LineGeometryEngine } from "../../core/engine/LineGeometryEngine";
 import { LINE_COLORS } from "@/config/materials";
 import { Html } from "@react-three/drei";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useDrawingStore } from "@/modules/editor/store/drawingStore";
 
 type LineProps = {
+  id?: string;
   start: THREE.Vector3;
   end: THREE.Vector3;
   hovered: boolean;
   eventHandler?: any;
   color?: string;
+  onContextLineMenu?: (id: string) => void; // <-- NUEVO
 };
 
 export function Line({
+  id,
   start,
   end,
   hovered,
   eventHandler = {},
   color = LINE_COLORS.line,
+  onContextLineMenu,
 }: LineProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const { currentLines, setCurrentLines, updateCurrentLine } = useDrawingStore();
+  const lineIdRef = useRef(id || `line-${Date.now()}-${Math.floor(Math.random() * 100000)}`);
 
   const transform = LineGeometryEngine.calculateLineTransform(start, end);
   const dimensions = LineGeometryEngine.calculateLineDimensions(hovered);
+  const distance = transform.distance;  
+
+  useEffect(() => {
+    // Buscar si la línea ya existe por id
+    const exists = currentLines.some(
+      (line) => line.id === lineIdRef.current
+    );
+
+    if (exists) {
+      // Actualiza la línea existente
+      updateCurrentLine(lineIdRef.current, {
+        start,
+        end,
+        color,
+        length: distance,
+        width: dimensions.width,
+      });
+    } else {
+      // Agrega una nueva línea
+      setCurrentLines([
+        ...currentLines,
+        {
+          id: lineIdRef.current,
+          start,
+          end,
+          color,
+          length: distance,
+          width: dimensions.width,
+        },
+      ]);
+    }    
+  }, [start, end, color, dimensions.width]);
 
   // Calcula la distancia en tiempo real
-  const distance = transform.distance;
 
   return (
     <group>
       {/* LÍNEA PRINCIPAL */}
       <mesh
+      style={{ pointerEvents: "auto", cursor: "hand" }}
         position={[
           transform.midPoint.x,
           transform.midPoint.y + 0.005,
@@ -43,16 +82,16 @@ export function Line({
           transform.quaternion.w,
         ]}
         {...eventHandler}
+        onContextMenu={(e) => {
+          e.stopPropagation();
+          if (onContextLineMenu) onContextLineMenu(lineIdRef.current);
+        }}
       >
         <boxGeometry
           args={[dimensions.width, transform.distance, dimensions.depth]}
         />
         <meshBasicMaterial
-          color={
-            hovered
-              ? new THREE.Color(LINE_COLORS.line).multiplyScalar(1.3)
-              : LINE_COLORS.line
-          }
+          color={color}
           transparent={false}
           side={THREE.DoubleSide}
         />
@@ -86,7 +125,7 @@ export function Line({
                   borderRadius: 4,
                   fontSize: 12,
                   whiteSpace: "nowrap",
-                  zIndex: 10,
+                  zIndex: 0,
                   boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                 }}
               >
@@ -114,11 +153,12 @@ export function Line({
           args={[dimensions.outlineWidth, transform.distance + 0.015, 0.004]}
         />
         <meshBasicMaterial
-          color={
-            hovered ? LINE_COLORS.lineOutlineHover : LINE_COLORS.lineOutline
-          }
+          // color={
+          //   hovered ? LINE_COLORS.lineOutlineHover : LINE_COLORS.lineOutline
+          // }
+          color={color}
           transparent={true}
-          opacity={0.6}
+          opacity={1}
           side={THREE.DoubleSide}
         />
       </mesh>

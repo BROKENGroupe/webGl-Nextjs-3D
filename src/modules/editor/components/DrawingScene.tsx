@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Extrude, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useRef } from "react";
 import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
@@ -36,6 +36,9 @@ import OpenCellingContextMenu from "./contextMenus/openCellingContextMenu";
 import OpenFloorContextMenu from "./contextMenus/openFloorContextMenu";
 
 import { ElementType, Wall } from "@/modules/editor/types/walls";
+import { LINE_COLORS } from "@/config/materials";
+import LineContextMenu from "./contextMenus/lineContextMenu";
+import { set } from "zod";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -164,6 +167,9 @@ export default function DrawingScene() {
 
   const [elementType, setElementType] = useState<ElementType>(ElementType.Wall);
 
+  const [lineMenuVisible, setLineMenuVisible] = useState(false);
+  const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
+
   const handleWallContextMenu = (
     event: any,
     facadeName: number,
@@ -171,6 +177,17 @@ export default function DrawingScene() {
     elementType: ElementType
   ) => {
     event.preventDefault();
+    event.stopPropagation(); // ✅ AGREGAR: Evitar que el evento se propague
+
+    // ✅ AGREGAR: Forzar fin de drag si está activo
+    if (isDragging) {
+      setDragging(false);
+    }
+    if (isDragActive) {
+      setIsDragActive(false);
+      setDraggedTemplate(null);
+    }
+
     setMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedFacadeName(facadeName);
     setElementType(elementType);
@@ -185,6 +202,16 @@ export default function DrawingScene() {
     elementType: ElementType
   ) => {
     event.preventDefault();
+    event.stopPropagation();
+
+    if (isDragging) {
+      setDragging(false);
+    }
+    if (isDragActive) {
+      setIsDragActive(false);
+      setDraggedTemplate(null);
+    }
+
     setOpeningMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedOpeningId(openingId);
     setElementType(elementType);
@@ -199,6 +226,16 @@ export default function DrawingScene() {
     elementType: ElementType
   ) => {
     event.preventDefault();
+    event.stopPropagation();
+
+    if (isDragging) {
+      setDragging(false);
+    }
+    if (isDragActive) {
+      setIsDragActive(false);
+      setDraggedTemplate(null);
+    }
+
     setCeilingMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedCeilingId(facadeName);
     setElementType(elementType);
@@ -213,11 +250,37 @@ export default function DrawingScene() {
     elementType: ElementType
   ) => {
     event.preventDefault();
+    event.stopPropagation();
+
+    if (isDragging) {
+      setDragging(false);
+    }
+    if (isDragActive) {
+      setIsDragActive(false);
+      setDraggedTemplate(null);
+    }
+
     setFloorMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedFloorId(facadeName);
     setElementType(elementType);
     setTitle(title);
     setFloorMenuVisible(true);
+  };
+
+  const handleLineContextMenu = (
+    id: string,
+    event: { clientX: number; clientY: number }
+  ) => {
+    setContextMenu({
+      visible: true,
+      x: event.clientX,
+      y: event.clientY,
+      itemType: "line",
+      itemIndex: null, // If you need to store the id, add a new property for it
+    });
+
+    setSelectedLineId(id);
+    setLineMenuVisible(true);
   };
 
   const handleClick3D = (point: THREE.Vector3) => {
@@ -276,6 +339,8 @@ export default function DrawingScene() {
       itemType: "line",
       itemIndex: lineIndex,
     });
+
+    setSelectedLineId("480");
   };
 
   const handleVertexRightClick = (
@@ -413,43 +478,37 @@ export default function DrawingScene() {
         width: template.width,
         height: template.height,
         bottomOffset: template.bottomOffset,
-        template, // ✅ AGREGAR: referencia al template original
-        currentCondition: "closed_sealed" as const, // ✅ CORREGIDO: tipo literal correcto
-        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
+        template,
+        currentCondition: "closed_sealed" as const,
+        relativePosition: 0,
       };
 
       addOpening(newOpening);
-
-      // Resetear estado de drag
-      setIsDragActive(false);
-      setDraggedTemplate(null);
-
       console.log("✅ Abertura creada:", newOpening);
     }
 
     if (template.type === ElementType.Wall) {
       updateWallByIndex(wallIndex, { template: template });
-
-      // Resetear estado de drag
-      setIsDragActive(false);
-      setDraggedTemplate(null);
     }
 
     if (template.type === ElementType.Ceiling) {
       updateCeilingByIndex(wallIndex, { template: template });
-
-      // Resetear estado de drag
-      setIsDragActive(false);
-      setDraggedTemplate(null);
     }
 
     if (template.type === ElementType.Floor) {
       updateFloorByIndex(wallIndex, { template: template });
-
-      // Resetear estado de drag
-      setIsDragActive(false);
-      setDraggedTemplate(null);
     }
+
+    // ✅ AGREGAR: Reset completo del estado de drag
+    setIsDragActive(false);
+    setDraggedTemplate(null);
+    setDragging(false); // ✅ También resetear isDragging del drawing store
+     
+    setTimeout(() => {
+      // Esto asegura que todos los event listeners se reactiven correctamente
+      console.log("🔄 Estado de drag reseteado completamente");
+    }, 10);
+    setExtruded(true); // Asegurar que seguimos en 3D
   };
 
   // Manejar fin de drag (sin drop válido)
@@ -457,6 +516,12 @@ export default function DrawingScene() {
     console.log("🚫 Drag cancelado");
     setIsDragActive(false);
     setDraggedTemplate(null);
+    setDragging(false); // ✅ También resetear isDragging del drawing store
+
+    // ✅ AGREGAR: Forzar limpieza de cualquier estado residual
+    setTimeout(() => {
+      console.log("🔄 Drag end completado");
+    }, 50);
   };
 
   // Manejar tecla ESC para cancelar drag
@@ -629,7 +694,12 @@ export default function DrawingScene() {
       >
         <ambientLight intensity={0.8} />
         <directionalLight position={[10, 15, 10]} intensity={0.6} />
-        <OrbitControls enabled={!isDragging && !isDragActive} />
+        <OrbitControls
+          enabled={!isDragging && !isDragActive}
+          enablePan={!isDragging && !isDragActive}
+          enableRotate={!isDragging && !isDragActive}
+          enableZoom={true} // ✅ Mantener zoom siempre habilitado
+        />
         {/* ✅ YA ESTÁ COMENTADO - SIN CUADRÍCULA */}
         {/* <gridHelper args={[50, 50, "#888", "#ccc"]} /> */}
         <DrawingSurface onClick3D={handleClick3D} />
@@ -643,8 +713,9 @@ export default function DrawingScene() {
                 onPointMove={handlePointMove}
                 onDragStart={() => setDragging(true)}
                 onDragEnd={() => setDragging(false)}
-                onLineRightClick={handleLineRightClick}
+                onLineRightClick={handleLineContextMenu}
                 onVertexRightClick={handleVertexRightClick}
+                color={LINE_COLORS.line}
               />
             )}
           </>
@@ -796,6 +867,16 @@ export default function DrawingScene() {
         floorId={selectedFloorId ?? ""}
         elementType={elementType}
         onClose={() => setShowMaterialModal(false)}
+      />
+
+      {/* Modal de contexto para la línea, fuera del grupo 3D */}
+
+      <LineContextMenu
+        x={menuPosition.x} // Puedes ajustar la posición según necesites
+        y={menuPosition.y} // Puedes ajustar la posición según necesites
+        visible={lineMenuVisible}
+        lineId={selectedLineId ?? ""}
+        onClose={() => setLineMenuVisible(false)}
       />
     </div>
   );

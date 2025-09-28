@@ -2,8 +2,18 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import * as THREE from 'three';
 
-interface DrawingState {  
+interface DrawingLine {
+  id: string;
+  start: THREE.Vector3;
+  end: THREE.Vector3;
+  color: string;
+  length: number;
+  width: number;
+}
+
+interface DrawingState {
   currentPoints: THREE.Vector3[];
+  currentLines: DrawingLine[]; // Nuevo array para líneas con propiedades
   currentHoleLines: [THREE.Vector3, THREE.Vector3][];
   currentHoles: { from: THREE.Vector3; to: THREE.Vector3 }[];
   savedPointsForExtrusion: THREE.Vector3[];
@@ -11,18 +21,20 @@ interface DrawingState {
   savedHolesForExtrusion: { from: THREE.Vector3; to: THREE.Vector3 }[];
   isClosed: boolean;
   isExtruded: boolean;
-  isDragging: boolean;  
-  
+  isDragging: boolean;
+
   planeXZCoordinates: { x: number; z: number }[];
   planeHoleCoordinates: { from: { x: number; z: number }; to: { x: number; z: number } }[];
   hasPlaneCoordinates: boolean;
-  
+
   internalWalls: { start: THREE.Vector3; end: THREE.Vector3 }[];
-  
+
   setCurrentPoints: (points: THREE.Vector3[]) => void;
   addCurrentPoint: (point: THREE.Vector3) => void;
   updateCurrentPoint: (index: number, point: THREE.Vector3) => void;
   removeCurrentPoint: (index: number) => void;
+  setCurrentLines: (lines: DrawingLine[]) => void;
+  updateCurrentLine: (id: string, updates: Partial<DrawingLine>) => void;
   setCurrentHoleLines: (lines: [THREE.Vector3, THREE.Vector3][]) => void;
   setCurrentHoles: (holes: { from: THREE.Vector3; to: THREE.Vector3 }[]) => void;
   saveCurrentStateForExtrusion: () => void;
@@ -30,7 +42,7 @@ interface DrawingState {
   setExtruded: (extruded: boolean) => void;
   setDragging: (dragging: boolean) => void;
   resetAll: () => void;
-  
+
   // Nuevas acciones para manejar coordenadas XZ
   savePlaneCoordinates: () => void;
   clearPlaneCoordinates: () => void;
@@ -40,6 +52,8 @@ interface DrawingState {
   addInternalWall: (start: THREE.Vector3, end: THREE.Vector3) => void;
   removeInternalWall: (index: number) => void;
 }
+
+
 
 // Función para asegurar que un objeto es Vector3
 const ensureVector3 = (obj: any): THREE.Vector3 => {
@@ -54,6 +68,7 @@ export const useDrawingStore = create<DrawingState>()(
     (set, get) => ({
       // Estados iniciales existentes
       currentPoints: [],
+      currentLines: [],
       currentHoleLines: [],
       currentHoles: [],
       savedPointsForExtrusion: [],
@@ -62,7 +77,7 @@ export const useDrawingStore = create<DrawingState>()(
       isClosed: false,
       isExtruded: false,
       isDragging: false,
-      
+
       // Nuevos estados iniciales
       planeXZCoordinates: [],
       planeHoleCoordinates: [],
@@ -70,11 +85,11 @@ export const useDrawingStore = create<DrawingState>()(
       internalWalls: [],
 
       // Acciones existentes
-      setCurrentPoints: (points) => set({ 
-        currentPoints: points.map(ensureVector3) 
+      setCurrentPoints: (points) => set({
+        currentPoints: points.map(ensureVector3)
       }),
-      addCurrentPoint: (point) => set((state) => ({ 
-        currentPoints: [...state.currentPoints, ensureVector3(point)] 
+      addCurrentPoint: (point) => set((state) => ({
+        currentPoints: [...state.currentPoints, ensureVector3(point)]
       })),
       updateCurrentPoint: (index, point) => set((state) => ({
         currentPoints: state.currentPoints.map((p, i) => i === index ? ensureVector3(point) : ensureVector3(p))
@@ -82,10 +97,21 @@ export const useDrawingStore = create<DrawingState>()(
       removeCurrentPoint: (index) => set((state) => ({
         currentPoints: state.currentPoints.filter((_, i) => i !== index).map(ensureVector3)
       })),
-      setCurrentHoleLines: (lines) => set({ 
+      setCurrentLines: (lines) => set({
+        currentLines: lines.map(line => ({
+          id: line.id || Date.now().toString(),
+          start: ensureVector3(line.start),
+          end: ensureVector3(line.end),
+          color: line.color || "blue",
+          length: line.length || ensureVector3(line.start).distanceTo(ensureVector3(line.end)),
+          width: line.width || 0.02
+        }))
+      }),
+
+      setCurrentHoleLines: (lines) => set({
         currentHoleLines: lines.map(line => [ensureVector3(line[0]), ensureVector3(line[1])] as [THREE.Vector3, THREE.Vector3])
       }),
-      setCurrentHoles: (holes) => set({ 
+      setCurrentHoles: (holes) => set({
         currentHoles: holes.map(hole => ({
           from: ensureVector3(hole.from),
           to: ensureVector3(hole.to)
@@ -104,6 +130,7 @@ export const useDrawingStore = create<DrawingState>()(
       setDragging: (dragging) => set({ isDragging: dragging }),
       resetAll: () => set({
         currentPoints: [],
+        currentLines: [],
         currentHoleLines: [],
         currentHoles: [],
         savedPointsForExtrusion: [],
@@ -117,13 +144,13 @@ export const useDrawingStore = create<DrawingState>()(
         hasPlaneCoordinates: false,
         internalWalls: [],
       }),
-      
+
       // Nuevas acciones para coordenadas XZ
       savePlaneCoordinates: () => {
         const state = get();
         console.log('🔍 Guardando coordenadas del plano...');
         console.log('📍 currentPoints antes de guardar:', state.currentPoints);
-        
+
         if (state.currentPoints.length === 0) {
           console.warn('⚠️ No hay puntos para guardar');
           return;
@@ -137,26 +164,26 @@ export const useDrawingStore = create<DrawingState>()(
         });
 
         // CRÍTICO: Remover el último punto si es igual al primero (forma cerrada)
-        const cleanCoordinates = xzCoordinates.length > 1 && 
+        const cleanCoordinates = xzCoordinates.length > 1 &&
           Math.abs(xzCoordinates[0].x - xzCoordinates[xzCoordinates.length - 1].x) < 0.001 &&
           Math.abs(xzCoordinates[0].z - xzCoordinates[xzCoordinates.length - 1].z) < 0.001
           ? xzCoordinates.slice(0, -1) // Remover último punto duplicado
           : xzCoordinates;
 
         console.log('✅ Coordenadas XZ guardadas:', cleanCoordinates);
-        
+
         set({
           planeXZCoordinates: cleanCoordinates,
           hasPlaneCoordinates: true
         });
       },
-      
+
       clearPlaneCoordinates: () => set({
         planeXZCoordinates: [],
         planeHoleCoordinates: [],
         hasPlaneCoordinates: false
       }),
-      
+
       updatePlaneCoordinatesFromCurrent: () => {
         const state = get();
         if (state.hasPlaneCoordinates) {
@@ -164,7 +191,7 @@ export const useDrawingStore = create<DrawingState>()(
           state.savePlaneCoordinates();
         }
       },
-      
+
       // Nuevas acciones para paredes internas
       addInternalWall: (start, end) =>
         set((state) => ({
@@ -177,14 +204,41 @@ export const useDrawingStore = create<DrawingState>()(
         set((state) => ({
           internalWalls: state.internalWalls.filter((_, i) => i !== index),
         })),
+
+      updateCurrentLine: (id: string, updates: Partial<DrawingLine>) => {
+        set((state) => ({
+          currentLines: state.currentLines.map((line) =>
+            line.id === id
+              ? {
+                ...line,
+                ...updates,
+                start: updates.start ? ensureVector3(updates.start) : line.start,
+                end: updates.end ? ensureVector3(updates.end) : line.end,
+                length:
+                  updates.length !== undefined
+                    ? updates.length
+                    : line.length,
+              }
+              : line
+          ),
+        }));
+      },
     }),
     {
       name: 'drawing-storage',
-      
+
       // Persistir solo los datos esenciales (sin Vector3 complejos)
       partialize: (state: DrawingState) => ({
         // Convertir Vector3 a objetos planos para el storage
         currentPoints: state.currentPoints.map(p => ({ x: p.x, y: p.y, z: p.z })),
+        currentLines: state.currentLines.map(line => ({
+          id: line.id, // <-- Agrega el id
+          start: { x: line.start.x, y: line.start.y, z: line.start.z },
+          end: { x: line.end.x, y: line.end.y, z: line.end.z },
+          color: line.color,
+          length: line.length,
+          width: line.width // <-- Agrega el width
+        })),
         currentHoleLines: state.currentHoleLines.map(line => [
           { x: line[0].x, y: line[0].y, z: line[0].z },
           { x: line[1].x, y: line[1].y, z: line[1].z }
@@ -212,7 +266,7 @@ export const useDrawingStore = create<DrawingState>()(
           end: { x: w.end.x, y: w.end.y, z: w.end.z }
         })),
       }),
-      
+
       // Reconstruir Vector3 cuando se carga desde storage
       onRehydrateStorage: () => {
         console.log('🔄 Cargando datos desde localStorage...');
@@ -221,11 +275,19 @@ export const useDrawingStore = create<DrawingState>()(
             console.error('❌ Error al cargar datos desde localStorage:', error);
           } else if (state) {
             console.log('✅ Datos cargados exitosamente desde localStorage');
-            
+
             // Reconstruir Vector3 desde objetos planos
             state.currentPoints = (state.currentPoints as any[])?.map(ensureVector3) || [];
+            state.currentLines = (state.currentLines as any[])?.map(line => ({
+              id: line.id ?? Date.now().toString(),
+              start: ensureVector3(line.start),
+              end: ensureVector3(line.end),
+              color: line.color,
+              length: line.length,
+              width: line.width ?? 0.02
+            })) || [];
             state.currentHoleLines = (state.currentHoleLines as any[])?.map(line => [
-              ensureVector3(line[0]), 
+              ensureVector3(line[0]),
               ensureVector3(line[1])
             ] as [THREE.Vector3, THREE.Vector3]) || [];
             state.currentHoles = (state.currentHoles as any[])?.map(hole => ({
@@ -234,7 +296,7 @@ export const useDrawingStore = create<DrawingState>()(
             })) || [];
             state.savedPointsForExtrusion = (state.savedPointsForExtrusion as any[])?.map(ensureVector3) || [];
             state.savedHoleLinesForExtrusion = (state.savedHoleLinesForExtrusion as any[])?.map(line => [
-              ensureVector3(line[0]), 
+              ensureVector3(line[0]),
               ensureVector3(line[1])
             ] as [THREE.Vector3, THREE.Vector3]) || [];
             state.savedHolesForExtrusion = (state.savedHolesForExtrusion as any[])?.map(hole => ({
@@ -245,7 +307,7 @@ export const useDrawingStore = create<DrawingState>()(
               start: ensureVector3(w.start),
               end: ensureVector3(w.end)
             })) || [];
-            
+
             console.log('📊 Estado recuperado con Vector3 reconstruidos');
           }
         };
