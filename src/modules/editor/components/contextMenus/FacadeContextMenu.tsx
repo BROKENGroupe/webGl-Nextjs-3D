@@ -95,6 +95,10 @@ export default function FacadeContextMenu({
             textAlign: "left",
             cursor: "pointer",
           }}
+          onClick={() => {
+            onProperties();
+            onClose();
+          }}
         >
           Propiedades
         </button>
