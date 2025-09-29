@@ -4,6 +4,7 @@ import * as THREE from 'three';
 
 interface DrawingLine {
   id: string;
+  name: string;
   start: THREE.Vector3;
   end: THREE.Vector3;
   color: string;
@@ -100,6 +101,7 @@ export const useDrawingStore = create<DrawingState>()(
       setCurrentLines: (lines) => set({
         currentLines: lines.map(line => ({
           id: line.id || Date.now().toString(),
+          name: line.name || line.id || "line",
           start: ensureVector3(line.start),
           end: ensureVector3(line.end),
           color: line.color || "blue",
@@ -233,6 +235,7 @@ export const useDrawingStore = create<DrawingState>()(
         currentPoints: state.currentPoints.map(p => ({ x: p.x, y: p.y, z: p.z })),
         currentLines: state.currentLines.map(line => ({
           id: line.id, // <-- Agrega el id
+          name: line.name, // <-- Agrega el name
           start: { x: line.start.x, y: line.start.y, z: line.start.z },
           end: { x: line.end.x, y: line.end.y, z: line.end.z },
           color: line.color,
@@ -280,6 +283,7 @@ export const useDrawingStore = create<DrawingState>()(
             state.currentPoints = (state.currentPoints as any[])?.map(ensureVector3) || [];
             state.currentLines = (state.currentLines as any[])?.map(line => ({
               id: line.id ?? Date.now().toString(),
+              name: line.name || "line",
               start: ensureVector3(line.start),
               end: ensureVector3(line.end),
               color: line.color,

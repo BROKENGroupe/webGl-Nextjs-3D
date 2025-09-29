@@ -1,7 +1,8 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import React, { useState } from "react";
-import { useDrawingStore } from "../../store/drawingStore";
-import { Button } from "@/shared/ui/button"; // Asegúrate que la ruta es correcta
+import { useDrawingStore } from "@/modules/editor/store/drawingStore";
+import { Button } from "@/shared/ui/button";
+import EditableHeaderLine from "./EditableHeaderLine";
+import * as THREE from "three";
 
 const predefinedColors = [
   { name: "Negro", value: "#000000" },
@@ -12,51 +13,43 @@ const predefinedColors = [
   { name: "Amarillo", value: "#f59e0b" },
 ];
 
-export default function LineContextMenu({
-  x,
-  y,
+export default function LineContextModal({
   visible,
   lineId,
-  onClose,
+  onClose
 }: {
-  x: number;
-  y: number;
   visible: boolean;
   lineId: string;
   onClose: () => void;
 }) {
-  const { currentLines, updateCurrentLine } = useDrawingStore();
+  const { currentLines, updateCurrentLine, currentPoints, setCurrentPoints } = useDrawingStore();
 
   // Buscar la línea por id
   const line = currentLines.find((l) => l.id === lineId);
 
+  const name = line?.name ?? "";
   const color = line?.color || "#000000";
   const width = line?.width || 0.02;
   const length = line?.length || (line ? line.start.distanceTo(line.end) : 0);
 
+  const [lineName, setLineName] = useState(name);
   const [selectedColor, setSelectedColor] = useState(color);
   const [lineWidth, setLineWidth] = useState(width);
   const [lineLength, setLineLength] = useState(length);
 
   React.useEffect(() => {
+    setLineName(name);
     setSelectedColor(color);
     setLineWidth(width);
     setLineLength(length);
-  }, [lineId, color, width, length]);
+  }, [lineId, name, color, width, length]);
 
   if (!visible) return null;
-
-  const centerX = window.innerWidth / 2;
-  const centerY = window.innerHeight / 2;
 
   // Handler para aplicar cambios
   const handleApplyChanges = () => {
     updateCurrentLine(lineId, {
-      color: selectedColor,
-      width: lineWidth,
-      length: lineLength,
-    });
-    console.log("🖊️ Cambios aplicados a línea", lineId, {
+      name: lineName,
       color: selectedColor,
       width: lineWidth,
       length: lineLength,
@@ -64,27 +57,85 @@ export default function LineContextMenu({
     onClose();
   };
 
+  const handleChangeTitle = (newTitle: string) => {
+    setLineName(newTitle);
+    updateCurrentLine(lineId, { name: newTitle });
+  };
+
+  // Handler para cambiar el largo en tiempo real
+  const handleLengthChange = (newLength: number) => {
+    const line = currentLines.find((l) => l.id === lineId);
+    if (!line) return;
+
+    const start = line.start;
+    const end = line.end;
+    const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+    const direction = new THREE.Vector3().subVectors(end, start).normalize();
+
+    const halfLength = newLength / 2;
+    const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
+    const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
+
+    // Actualiza la línea en el store
+    updateCurrentLine(lineId, {
+      start: newStart,
+      end: newEnd,
+      length: newLength,
+    });
+
+    // Actualiza los puntos extremos en el array de puntos
+    // setCurrentPoints((points: THREE.Vector3[]) =>
+    //   points.map((p, i) =>
+    //     i === startIndex ? newStart :
+    //     i === endIndex ? newEnd : p
+    //   )
+    // );
+  };
+
   return (
-    <Popover open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
-      <PopoverTrigger asChild>
-        <div style={{ position: "fixed", top: y, left: x, width: 0, height: 0 }} />
-      </PopoverTrigger>
-      <PopoverContent
-        side="right"
-        align="start"
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.25)",
+        zIndex: 99999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      onClick={onClose}
+    >
+      <div
         style={{
-          minWidth: "220px",
+          minWidth: "320px",
           background: "#fff",
           border: "1px solid #ccc",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-          borderRadius: "10px",
-          padding: "12px 0",
-          zIndex: 1000,
+          boxShadow: "0 2px 16px rgba(0,0,0,0.25)",
+          borderRadius: "12px",
+          padding: "24px 0",
+          zIndex: 99999,
+          position: "relative",
         }}
+        onClick={(e) => e.stopPropagation()}
       >
+        {/* Nombre de la línea editable */}
+        <div style={{ padding: "10px 24px" }}>
+          <EditableHeaderLine
+            name={name}
+            onUpdateName={(newName) => handleChangeTitle(newName)}
+          />
+        </div>
+
         {/* Largo de la línea editable */}
-        <div style={{ padding: "10px 16px" }}>
-          <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 6, display: "block" }}>
+        <div style={{ padding: "10px 24px" }}>
+          <label
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              marginBottom: 6,
+              display: "block",
+            }}
+          >
             Largo de línea (m)
           </label>
           <input
@@ -92,7 +143,7 @@ export default function LineContextMenu({
             min={0.01}
             step={0.01}
             value={lineLength}
-            onChange={(e) => setLineLength(Number(e.target.value))}
+            onChange={(e) => handleLengthChange(Number(e.target.value))}
             style={{
               width: "100%",
               padding: "6px 10px",
@@ -105,8 +156,15 @@ export default function LineContextMenu({
         </div>
 
         {/* Selector de color */}
-        <div style={{ padding: "10px 16px" }}>
-          <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 6, display: "block" }}>
+        <div style={{ padding: "10px 24px" }}>
+          <label
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              marginBottom: 6,
+              display: "block",
+            }}
+          >
             Color de línea
           </label>
           <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
@@ -114,7 +172,12 @@ export default function LineContextMenu({
               type="color"
               value={selectedColor}
               onChange={(e) => setSelectedColor(e.target.value)}
-              style={{ width: 32, height: 32, borderRadius: 6, border: "1px solid #ccc" }}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 6,
+                border: "1px solid #ccc",
+              }}
             />
             {predefinedColors.map((color) => (
               <button
@@ -124,7 +187,10 @@ export default function LineContextMenu({
                   width: 24,
                   height: 24,
                   borderRadius: 6,
-                  border: selectedColor === color.value ? "2px solid #3b82f6" : "1px solid #ccc",
+                  border:
+                    selectedColor === color.value
+                      ? "2px solid #3b82f6"
+                      : "1px solid #ccc",
                   background: color.value,
                   cursor: "pointer",
                 }}
@@ -135,8 +201,15 @@ export default function LineContextMenu({
         </div>
 
         {/* Selector de grosor */}
-        <div style={{ padding: "10px 16px" }}>
-          <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 6, display: "block" }}>
+        <div style={{ padding: "10px 24px" }}>
+          <label
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              marginBottom: 6,
+              display: "block",
+            }}
+          >
             Grosor de línea (m)
           </label>
           <input
@@ -158,7 +231,7 @@ export default function LineContextMenu({
         </div>
 
         {/* Botón negro para aplicar cambios */}
-        <div style={{ padding: "10px 16px" }}>
+        <div style={{ padding: "10px 24px" }}>
           <Button
             variant="default"
             style={{
@@ -175,7 +248,7 @@ export default function LineContextMenu({
             Aplicar cambios
           </Button>
         </div>
-      </PopoverContent>
-    </Popover>
+      </div>
+    </div>
   );
 }

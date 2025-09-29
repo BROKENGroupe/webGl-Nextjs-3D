@@ -871,12 +871,10 @@ export default function DrawingScene() {
 
       {/* Modal de contexto para la línea, fuera del grupo 3D */}
 
-      <LineContextMenu
-        x={menuPosition.x} // Puedes ajustar la posición según necesites
-        y={menuPosition.y} // Puedes ajustar la posición según necesites
+      <LineContextMenu        
         visible={lineMenuVisible}
         lineId={selectedLineId ?? ""}
-        onClose={() => setLineMenuVisible(false)}
+        onClose={() => setLineMenuVisible(false)}        
       />
     </div>
   );

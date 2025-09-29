@@ -263,6 +263,7 @@ export function LineRenderer(
                 id={`line-${index}`}
                 start={start}
                 end={end}
+                point={point}
                 hovered={props.hoveredLineIndex === index}
                 eventHandler={lineHandlers}
                 color={props.color}

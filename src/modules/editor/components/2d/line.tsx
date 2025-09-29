@@ -7,17 +7,19 @@ import { useDrawingStore } from "@/modules/editor/store/drawingStore";
 
 type LineProps = {
   id?: string;
+  point: THREE.Vector3;
   start: THREE.Vector3;
   end: THREE.Vector3;
   hovered: boolean;
   eventHandler?: any;
   color?: string;
-  onContextLineMenu?: (id: string) => void; // <-- NUEVO
+  onContextLineMenu?: (id: string) => void;
 };
 
 export function Line({
   id,
   start,
+  point,
   end,
   hovered,
   eventHandler = {},
@@ -25,15 +27,23 @@ export function Line({
   onContextLineMenu,
 }: LineProps) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const { currentLines, setCurrentLines, updateCurrentLine } =
-    useDrawingStore();
+  const { currentLines, setCurrentLines, updateCurrentLine } = useDrawingStore();
+
   const lineIdRef = useRef(
     id || `line-${Date.now()}-${Math.floor(Math.random() * 100000)}`
   );
 
+  // Busca la línea actualizada en el store
+  const line = currentLines.find((l) => l.id === lineIdRef.current);
+
+  // Calcula la distancia real
+  const realDistance = LineGeometryEngine.calculateLineTransform(start, end).distance;
+
+  // Usa el valor editado si existe, si no la distancia real
+  const legendDistance = line?.length ?? realDistance;
+
   const transform = LineGeometryEngine.calculateLineTransform(start, end);
   const dimensions = LineGeometryEngine.calculateLineDimensions(hovered);
-  const distance = transform.distance;
 
   useEffect(() => {
     // Buscar si la línea ya existe por id
@@ -45,7 +55,7 @@ export function Line({
         start,
         end,
         color,
-        length: distance,
+        length: realDistance,
         width: dimensions.width,
       });
     } else {
@@ -54,17 +64,19 @@ export function Line({
         ...currentLines,
         {
           id: lineIdRef.current,
+          name: lineIdRef.current || "line",
           start,
           end,
           color,
-          length: distance,
+          length: realDistance,
           width: dimensions.width,
         },
       ]);
     }
   }, [start, end, color, dimensions.width]);
 
-  // Calcula la distancia en tiempo real
+  // Usa el color del store si existe, si no el prop
+  const renderColor = line?.color ?? color;
 
   return (
     <group>
@@ -92,7 +104,7 @@ export function Line({
           args={[dimensions.width, transform.distance, dimensions.depth]}
         />
         <meshBasicMaterial
-          color={color}
+          color={renderColor}
           transparent={false}
           side={THREE.DoubleSide}
         />
@@ -114,11 +126,11 @@ export function Line({
             onClick={(e) => {
               e.stopPropagation();
               if (onContextLineMenu) {
-                onContextLineMenu(lineIdRef.current);               
+                onContextLineMenu(lineIdRef.current);
               }
             }}
           >
-            {distance.toFixed(2)} m
+            {legendDistance.toFixed(2)} m
             {showTooltip && (
               <span
                 style={{
@@ -163,7 +175,7 @@ export function Line({
           // color={
           //   hovered ? LINE_COLORS.lineOutlineHover : LINE_COLORS.lineOutline
           // }
-          color={color}
+          color={renderColor}
           transparent={true}
           opacity={1}
           side={THREE.DoubleSide}
@@ -172,3 +184,4 @@ export function Line({
     </group>
   );
 }
+
