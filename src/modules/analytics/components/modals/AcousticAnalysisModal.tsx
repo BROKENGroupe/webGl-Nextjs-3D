@@ -39,7 +39,7 @@ import {
   Settings
 } from 'lucide-react';
 import { Badge } from '@/shared/ui/badge';
-import { AcousticMaterial, ThirdOctave } from '@/modules/editor/types/AcousticMaterial';
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 import { useIsoResultStore } from '@/modules/editor/store/isoResultStore';
 import { Button } from '@/shared/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/shared/ui/card';
@@ -180,8 +180,8 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
         tlLow: tlBands.low,
         tlMid: tlBands.mid,
         tlHigh: tlBands.high,
-        density: material.mass_kg_m2,
-        thickness: material.thickness_mm / 100,
+        density: material.mass,
+        thickness: material.thickness / 100,
         thermalConductivity: (material as any).thermalConductivity ?? 0.4,
         thermalResistance: (material as any).thermalResistance ?? 2.0,
         materialCost,

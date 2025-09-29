@@ -1,4 +1,4 @@
-import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 // Piso típico de losa de hormigón
 export const floorConcreteSlab: AcousticMaterial = {
@@ -6,15 +6,15 @@ export const floorConcreteSlab: AcousticMaterial = {
     descriptor: "Concrete Slab Floor",
     subtype: "Solid slab",
     type: "floor",
-    thickness_mm: 200.0,
-    mass_kg_m2: 480.0,
+    thickness: 200.0,
+    mass: 480.0,
     catalog: "insonor Catalog",
     color: "Gray",
     doubleLeaf: false,
     lightweightElement: false,
     layers: [
-        { name: "50mm screed", thickness_mm: 50.0 },
-        { name: "150mm reinforced concrete", thickness_mm: 150.0 },
+        { name: "50mm screed", thickness: 50.0 },
+        { name: "150mm reinforced concrete", thickness: 150.0 },
     ],
     thirdOctaveBands: {
         50: 34.0, 63: 33.0, 80: 32.0, 100: 31.0, 125: 30.0, 160: 31.5,
@@ -39,14 +39,14 @@ export const floorAcousticPanel: AcousticMaterial = {
     descriptor: "Acoustic Panel Floor",
     subtype: "Suspended acoustic panel",
     type: "floor",
-    thickness_mm: 40.0,
-    mass_kg_m2: 10.0,
+    thickness: 40.0,
+    mass: 10.0,
     catalog: "SON Catalog",
     color: "Light Beige",
     doubleLeaf: false,
     lightweightElement: true,
     layers: [
-        { name: "Acoustic panel", thickness_mm: 40.0 },
+        { name: "Acoustic panel", thickness: 40.0 },
     ],
     thirdOctaveBands: {
         50: 12.0, 63: 13.0, 80: 14.0, 100: 15.0, 125: 16.0, 160: 17.0,

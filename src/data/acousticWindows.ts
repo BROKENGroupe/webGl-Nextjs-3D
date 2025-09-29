@@ -1,4 +1,4 @@
-import { AcousticMaterial } from "../modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 enum WindowSubtypes {
   FloatGlass = "Float Glass",
@@ -14,14 +14,14 @@ export const windowStandard: AcousticMaterial = {
   descriptor: "Single Glazing Window",
   subtype: WindowSubtypes.FloatGlass,
   type: "window",
-  thickness_mm: 6,
-  mass_kg_m2: 15,
+  thickness: 6,
+  mass: 15,
   catalog: "insonor Catalog",
   color: "Transparent",
   doubleLeaf: false,
   lightweightElement: true,
   layers: [
-    { name: "Float glass", thickness_mm: 6 }
+    { name: "Float glass", thickness: 6 }
   ],
   thirdOctaveBands: {
     50: 14, 63: 15, 80: 16, 100: 17, 125: 18, 160: 19, 200: 20, 250: 22, 315: 23, 400: 24,
@@ -42,16 +42,16 @@ export const windowDoubleGlazed: AcousticMaterial = {
   descriptor: "Double Glazing Window",
   subtype: WindowSubtypes.ArgonFilled,
   type: "window",
-  thickness_mm: 24,
-  mass_kg_m2: 18,
+  thickness: 24,
+  mass: 18,
   catalog: "insonor Catalog",
   color: "Transparent",
   doubleLeaf: false,
   lightweightElement: true,
   layers: [
-    { name: "Glass pane 1", thickness_mm: 6 },
-    { name: "Argon gap", thickness_mm: 12 },
-    { name: "Glass pane 2", thickness_mm: 6 }
+    { name: "Glass pane 1", thickness: 6 },
+    { name: "Argon gap", thickness: 12 },
+    { name: "Glass pane 2", thickness: 6 }
   ],
   thirdOctaveBands: {
     50: 22, 63: 24, 80: 26, 100: 27, 125: 28, 160: 30, 200: 32, 250: 33, 315: 34, 400: 35,
@@ -73,14 +73,14 @@ export const windowLaminated: AcousticMaterial = {
   descriptor: "Laminated Glass Window",
   subtype: WindowSubtypes.LaminatedSafetyGlass,
   type: "window",
-  thickness_mm: 8,
-  mass_kg_m2: 17,
+  thickness: 8,
+  mass: 17,
   catalog: "SON Catalog",
   color: "Transparent",
   doubleLeaf: false,
   lightweightElement: true,
   layers: [
-    { name: "Laminated glass", thickness_mm: 8 }
+    { name: "Laminated glass", thickness: 8 }
   ],
   thirdOctaveBands: {
     50: 16, 63: 17, 80: 18, 100: 19, 125: 20, 160: 21, 200: 22, 250: 23, 315: 24, 400: 25,
@@ -101,18 +101,18 @@ export const windowTripleGlazed: AcousticMaterial = {
   descriptor: "Triple Glazing Window",
   subtype: WindowSubtypes.TripleGlassArgon,
   type: "window",
-  thickness_mm: 36,
-  mass_kg_m2: 22,
+  thickness: 36,
+  mass: 22,
   catalog: "insonor Catalog",
   color: "Transparent",
   doubleLeaf: false,
   lightweightElement: true,
   layers: [
-    { name: "Glass pane 1", thickness_mm: 6 },
-    { name: "Argon gap 1", thickness_mm: 12 },
-    { name: "Glass pane 2", thickness_mm: 6 },
-    { name: "Argon gap 2", thickness_mm: 6 },
-    { name: "Glass pane 3", thickness_mm: 6 }
+    { name: "Glass pane 1", thickness: 6 },
+    { name: "Argon gap 1", thickness: 12 },
+    { name: "Glass pane 2", thickness: 6 },
+    { name: "Argon gap 2", thickness: 6 },
+    { name: "Glass pane 3", thickness: 6 }
   ],
   thirdOctaveBands: {
     50: 26, 63: 28, 80: 30, 100: 31, 125: 32, 160: 34, 200: 36, 250: 37, 315: 38, 400: 39,
@@ -134,14 +134,14 @@ export const windowAcoustic: AcousticMaterial = {
   descriptor: "Acoustic Window",
   subtype: WindowSubtypes.SpecialAcousticGlass,
   type: "window",
-  thickness_mm: 12,
-  mass_kg_m2: 25,
+  thickness: 12,
+  mass: 25,
   catalog: "insonor Catalog",
   color: "Transparent",
   doubleLeaf: false,
   lightweightElement: false,
   layers: [
-    { name: "Acoustic glass", thickness_mm: 12 }
+    { name: "Acoustic glass", thickness: 12 }
   ],
   thirdOctaveBands: {
     50: 20, 63: 22, 80: 24, 100: 25, 125: 26, 160: 28, 200: 30, 250: 32, 315: 33, 400: 34,

@@ -93,8 +93,8 @@ export const MaterialDetailModal: React.FC<MaterialDetailModalProps> = ({
               </h3>
               <div className="space-y-3">
                 <DetailItem label="Densidad" value={`${material.density} kg/m³`} />
-                <DetailItem label="Espesor" value={`${material.thickness_mm} mm`} />
-                <DetailItem label="Masa superficial" value={`${material.mass_kg_m2} kg/m²`} />
+                <DetailItem label="Espesor" value={`${material.thickness} mm`} />
+                <DetailItem label="Masa superficial" value={`${material.mass} kg/m²`} />
                 <DetailItem label="Ancho" value={`${material.width} mm`} />
                 <DetailItem label="Alto" value={`${material.height} mm`} />
                 <DetailItem label="Offset Inferior" value={`${material.bottomOffset} mm`} />
@@ -151,7 +151,7 @@ export const MaterialDetailModal: React.FC<MaterialDetailModalProps> = ({
               <ul className="space-y-2 pl-4 border-l-2 border-blue-200">
                 {material.layers.map((layer, index) => (
                   <li key={index} className="text-gray-700">
-                    <span className="font-semibold">{layer.name}:</span> {layer.thickness_mm} mm
+                    <span className="font-semibold">{layer.name}:</span> {layer.thickness} mm
                   </li>
                 ))}
               </ul>

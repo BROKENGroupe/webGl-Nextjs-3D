@@ -1,7 +1,7 @@
 // dragOpenings.ts
 // Lógica separada para drag-and-drop de openings (puertas y ventanas)
 
-import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+import { AcousticMaterial } from "@/modules/materials/types/AcousticMaterial";
 
 
 export function getBorderColor(type: string): string {

@@ -1,18 +1,18 @@
-import { AcousticMaterial } from "../modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 export const doorStandard: AcousticMaterial = {
   id: "door-standard",
   descriptor: "Standard Wood Door",
   subtype: "Solid Pine",
   type: "door",
-  thickness_mm: 40,
-  mass_kg_m2: 28,
+  thickness: 40,
+  mass: 28,
   catalog: "insonor Catalog",
   color: "Light Brown",
   doubleLeaf: false,
   lightweightElement: false,
   layers: [
-    { name: "Solid pine panel", thickness_mm: 40 }
+    { name: "Solid pine panel", thickness: 40 }
   ],
   thirdOctaveBands: {
     50: 18, 63: 19, 80: 20, 100: 20, 125: 20, 160: 21, 200: 22, 250: 24, 315: 25, 400: 26,
@@ -32,14 +32,14 @@ export const doorDouble: AcousticMaterial = {
   descriptor: "Double Wood Door",
   subtype: "Oak Double Leaf",
   type: "door",
-  thickness_mm: 45,
-  mass_kg_m2: 32,
+  thickness: 45,
+  mass: 32,
   catalog: "insonor Catalog",
   color: "Brown",
   doubleLeaf: true,
   lightweightElement: false,
   layers: [
-    { name: "Solid oak panel", thickness_mm: 45 }
+    { name: "Solid oak panel", thickness: 45 }
   ],
   thirdOctaveBands: {
     50: 22, 63: 23, 80: 24, 100: 25, 125: 25, 160: 26, 200: 27, 250: 29, 315: 30, 400: 31,
@@ -59,16 +59,16 @@ export const doorAcoustic: AcousticMaterial = {
   descriptor: "Acoustic Door",
   subtype: "Mineral Wool Core",
   type: 'door',
-  thickness_mm: 55,
-  mass_kg_m2: 48,
+  thickness: 55,
+  mass: 48,
   catalog: "insonor Catalog",
   color: "Gray",
   doubleLeaf: false,
   lightweightElement: false,
   layers: [
-    { name: "Steel sheet", thickness_mm: 2 },
-    { name: "Mineral wool core", thickness_mm: 51 },
-    { name: "Steel sheet", thickness_mm: 2 }
+    { name: "Steel sheet", thickness: 2 },
+    { name: "Mineral wool core", thickness: 51 },
+    { name: "Steel sheet", thickness: 2 }
   ],
   thirdOctaveBands: {
     50: 35, 63: 36, 80: 37, 100: 38, 125: 40, 160: 41, 200: 42, 250: 43, 315: 44, 400: 45,

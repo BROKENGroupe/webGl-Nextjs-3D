@@ -153,11 +153,11 @@ export default function PropertiesModal({
                   </div>
                   <div>
                     <span className="font-medium">Espesor:</span>{" "}
-                    {acoustic.thickness_mm} mm
+                    {acoustic.thickness} mm
                   </div>
                   <div>
                     <span className="font-medium">Masa:</span>{" "}
-                    {acoustic.mass_kg_m2} kg/m²
+                    {acoustic.mass} kg/m²
                   </div>
                   <div>
                     <span className="font-medium">Rw:</span>{" "}
@@ -172,7 +172,7 @@ export default function PropertiesModal({
                   <ul className="list-disc ml-6 text-xs text-gray-600">
                     {acoustic.layers?.map((layer: any, idx: number) => (
                       <li key={idx}>
-                        {layer.name} ({layer.thickness_mm} mm)
+                        {layer.name} ({layer.thickness} mm)
                       </li>
                     ))}
                   </ul>

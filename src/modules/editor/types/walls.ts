@@ -1,5 +1,5 @@
 import { wallCeramicBrick, wallConcreteBlock, wallGypsumBoard } from "@/data/acousticWalls";
-import { AcousticMaterial, ThirdOctave } from "./AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilings";
 

@@ -1,4 +1,4 @@
-import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 // Techo típico de losa de hormigón
 export const ceilingConcreteSlab: AcousticMaterial = {
@@ -6,15 +6,15 @@ export const ceilingConcreteSlab: AcousticMaterial = {
     descriptor: "Concrete Slab Ceiling",
     subtype: "Solid slab",
     type: "ceiling",
-    thickness_mm: 200.0,
-    mass_kg_m2: 480.0,
+    thickness: 200.0,
+    mass: 480.0,
     catalog: "insonor Catalog",
     color: "Light Gray",
     doubleLeaf: false,
     lightweightElement: false,
     layers: [
-        { name: "20mm plaster", thickness_mm: 20.0 },
-        { name: "180mm reinforced concrete", thickness_mm: 180.0 },
+        { name: "20mm plaster", thickness: 20.0 },
+        { name: "180mm reinforced concrete", thickness: 180.0 },
     ],
     thirdOctaveBands: {
         50: 33.0, 63: 32.0, 80: 31.0, 100: 30.0, 125: 29.0, 160: 30.5,
@@ -39,14 +39,14 @@ export const ceilingAcousticPanel: AcousticMaterial = {
     descriptor: "Acoustic Panel Ceiling",
     subtype: "Suspended acoustic panel",
     type: "ceiling",
-    thickness_mm: 50.0,
-    mass_kg_m2: 12.0,
+    thickness: 50.0,
+    mass: 12.0,
     catalog: "insonor Catalog",
     color: "White",
     doubleLeaf: false,
     lightweightElement: true,
     layers: [
-        { name: "Acoustic panel", thickness_mm: 50.0 },
+        { name: "Acoustic panel", thickness: 50.0 },
     ],
     thirdOctaveBands: {
         50: 15.0, 63: 16.0, 80: 17.0, 100: 18.0, 125: 19.0, 160: 20.0,

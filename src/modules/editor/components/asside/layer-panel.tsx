@@ -7,7 +7,8 @@ import {
 } from "@/modules/editor/core/engine/dragOpenings";
 import { Button } from "@/shared/ui/button";
 import { CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
-import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
+// import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
 import {
   Accordion,
   AccordionItem,
@@ -32,7 +33,7 @@ import {
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LayerTreePanel } from "./LayerTreePanel";
 import { OPENING_TEMPLATES } from "@/modules/editor/types/openings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
@@ -46,6 +47,7 @@ import {
   ceilingAcousticPanel,
   ceilingConcreteSlab,
 } from "@/data/acousticCeilings";
+import { materialsService } from "@/services/materialsService";
 
 type Layer = {
   key: string;
@@ -54,26 +56,6 @@ type Layer = {
   group?: string;
   thumbnail?: string;
 };
-
-const PALETTE_MATERIALS: AcousticMaterial[] = [
-  wallCeramicBrick,
-  wallConcreteBlock,
-  wallGypsumBoard,
-  wallLightWoodPanel,
-  wallThinBrickPartition,
-  windowStandard,
-  windowDoubleGlazed,
-  windowLaminated,
-  windowAcoustic,
-  windowTripleGlazed,
-  doorStandard,
-  doorDouble,
-  doorAcoustic,
-  floorConcreteSlab,
-  floorAcousticPanel,
-  ceilingConcreteSlab,
-  ceilingAcousticPanel,
-];
 
 const PALETTE_TEMPLATES: AcousticMaterial[] = Object.values(OPENING_TEMPLATES);
 
@@ -115,26 +97,6 @@ const GROUPED_TEMPLATES = {
   ),
 };
 
-const GROUPED_MATERIALS = {
-  Fachadas: PALETTE_MATERIALS.filter(
-    (m) =>
-      m.type?.toLowerCase().includes("wall") ||
-      m.type?.toLowerCase().includes("partition")
-  ),
-  Puertas: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("door")
-  ),
-  Ventanas: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("window")
-  ),
-  Pisos: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("floor")
-  ),
-  Techos: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("ceiling")
-  ),
-};
-
 export type LayerVisibility = Record<string, boolean>;
 
 // Lógica drag-and-drop separada
@@ -163,6 +125,42 @@ export function LayerPanel({
     GROUPS.map((g) => g.key)
   );
   const [materialFilter, setMaterialFilter] = useState("");
+  const [paletteMaterials, setPaletteMaterials] = useState<AcousticMaterial[]>(
+    []
+  );
+
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const materials = await materialsService.getMaterials();
+        setPaletteMaterials(materials);
+      } catch (error) {
+        console.error("Error fetching materials for palette:", error);
+      }
+    };
+
+    fetchMaterials();
+  }, []);
+
+  const GROUPED_MATERIALS = {
+    Fachadas: paletteMaterials.filter(
+      (m) =>
+        m.type?.toLowerCase().includes("wall") ||
+        m.type?.toLowerCase().includes("partition")
+    ),
+    Puertas: paletteMaterials.filter((m) =>
+      m.type?.toLowerCase().includes("door")
+    ),
+    Ventanas: paletteMaterials.filter((m) =>
+      m.type?.toLowerCase().includes("window")
+    ),
+    Pisos: paletteMaterials.filter((m) =>
+      m.type?.toLowerCase().includes("floor")
+    ),
+    Techos: paletteMaterials.filter((m) =>
+      m.type?.toLowerCase().includes("ceiling")
+    ),
+  };
 
   // Simulación de selección de capa
   const handleSelect = (key: string, edit: boolean) => {
@@ -285,11 +283,11 @@ export function LayerPanel({
                                     <span className="font-medium">
                                       Espesor:
                                     </span>{" "}
-                                    {material.thickness_mm} mm
+                                    {material.thickness} mm
                                     <span className="ml-2 font-medium">
                                       Masa:
                                     </span>{" "}
-                                    {material.mass_kg_m2} kg/m²
+                                    {material.mass} kg/m²
                                   </div>
                                   <div className="text-[11px] text-black mb-1">
                                     <span className="font-medium">Rw:</span>{" "}
