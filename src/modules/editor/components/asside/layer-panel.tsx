@@ -16,22 +16,6 @@ import {
   AccordionContent,
 } from "@/shared/ui/accordion";
 import { WALL_TEMPLATES } from "@/modules/editor/types/walls";
-import {
-  wallCeramicBrick,
-  wallConcreteBlock,
-  wallGypsumBoard,
-  wallLightWoodPanel,
-  wallThinBrickPartition,
-} from "@/data/acousticWalls";
-import {
-  windowStandard,
-  windowDoubleGlazed,
-  windowAcoustic,
-  windowLaminated,
-  windowTripleGlazed,
-} from "@/data/acousticWindows";
-import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
-import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 
 import { Skeleton } from "@/shared/ui/skeleton";
 import { useEffect, useState } from "react";
@@ -45,10 +29,6 @@ import {
   MagicWandIcon,
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
-import {
-  ceilingAcousticPanel,
-  ceilingConcreteSlab,
-} from "@/data/acousticCeilings";
 import { materialsService } from "@/services/materialsService";
 import { MaterialSkeletonGrid } from "./MaterialSkeletonGrid";
 import { MaterialSearchInput } from "./MaterialSearchInput";
@@ -137,13 +117,26 @@ export function LayerPanel({
       try {
         const materials = await materialsService.getMaterials();
         setPaletteMaterials(materials);
+
+
+
       } catch (error) {
         console.error("Error fetching materials for palette:", error);
       }
     };
 
-    fetchMaterials();
-  }, []);
+    if (tab === "materials") {
+      setLoading(true);
+      fetchMaterials();
+      setGroupedMaterials(null);
+      const timer = setTimeout(() => {
+        setGroupedMaterials(GROUPED_MATERIALS); // "Respuesta" de la petición
+        setLoading(false);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+
+  }, [tab]);
 
   const GROUPED_MATERIALS = {
     Fachadas: paletteMaterials.filter(
@@ -164,23 +157,23 @@ export function LayerPanel({
       m.type?.toLowerCase().includes("ceiling")
     ),
   }
-    const [groupedMaterials, setGroupedMaterials] = useState<
-      typeof GROUPED_MATERIALS | null
-    >(null);
-    const [showSearch, setShowSearch] = useState(false);
+  const [groupedMaterials, setGroupedMaterials] = useState<
+    typeof GROUPED_MATERIALS | null
+  >(null);
+  const [showSearch, setShowSearch] = useState(false);
 
-    // Simula petición HTTP al cambiar de tab
-    useEffect(() => {
-    if (tab === "materials") {
-      setLoading(true);
-      setGroupedMaterials(null);
-      const timer = setTimeout(() => {
-        setGroupedMaterials(GROUPED_MATERIALS); // "Respuesta" de la petición
-        setLoading(false);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [tab]);
+  // Simula petición HTTP al cambiar de tab
+  // useEffect(() => {
+  //   if (tab === "materials") {
+  //     setLoading(true);
+  //     setGroupedMaterials(null);
+  //     const timer = setTimeout(() => {
+  //       setGroupedMaterials(GROUPED_MATERIALS); // "Respuesta" de la petición
+  //       setLoading(false);
+  //     }, 1500);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [tab]);
 
   const handleTabChange = (value: string) => {
     setTab(value);
