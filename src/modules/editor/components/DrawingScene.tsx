@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Extrude, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useRef } from "react";
 import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
@@ -21,7 +21,7 @@ import { useIsoStudyConfigStore } from "@/modules/editor/store/isoStudyConfigSto
 import { useOpeningsStore } from "@/modules/editor/store/openingsStore";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { GeometryEngine } from "@/modules/editor/core/engine/GeometryEngine";
-import { OpeningType } from "@/modules/editor/types/openings";
+import { Opening, OpeningType } from "@/modules/editor/types/openings";
 import { CollapsibleAside } from "@/modules/editor/components/asside/asside-lateral";
 import {
   LayerVisibility,
@@ -32,12 +32,16 @@ import FacadeContextMenu from "./contextMenus/FacadeContextMenu";
 import PropertiesModal from "./modals/PropertiesModal";
 import MaterialModal from "./modals/materialModal";
 import OpeningContextMenu from "./contextMenus/OpeningContextMenu";
-import { ExtrudedShapeWithDraggableOpenings2 } from "./ExtrudedShapeWithDraggableOpenings2";
+import { ExtrudedShapeWithDraggableOpenings } from "./ExtrudedShapeWithDraggableOpenings";
 import { WallsToast } from "./extrudeToast";
 import OpenCellingContextMenu from "./contextMenus/openCellingContextMenu";
 import OpenFloorContextMenu from "./contextMenus/openFloorContextMenu";
 
-import { ElementType } from "@/modules/editor/types/walls";
+import { ElementType, Wall } from "@/modules/editor/types/walls";
+import { LINE_COLORS } from "@/config/materials";
+import LineContextMenu from "./contextMenus/lineContextMenu";
+import { set } from "zod";
+import { color } from "framer-motion";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -119,18 +123,23 @@ export default function DrawingScene() {
     if (key.template.type === ElementType.Wall) {
       setSelectedFacadeName(key.wallIndex);
       setElementType(key.template.type);
+      setTitle(key.title);
     } else if (key.template.type === ElementType.Window) {
       setSelectedOpeningId(key.id);
       setElementType(key.template.type);
+      setTitle(key.title);
     } else if (key.template.type === ElementType.Door) {
       setSelectedOpeningId(key.id);
       setElementType(key.template.type);
+      setTitle(key.title);
     } else if (key.template.type === ElementType.Ceiling) {
       setSelectedCeilingId(key.id);
       setElementType(key.template.type);
+      setTitle(key.title);
     } else if (key.template.type === ElementType.Floor) {
       setSelectedFloorId(key.id);
       setElementType(key.template.type);
+      setTitle(key.title);
     }
     if (!edit) {
       setShowPropertiesModal(true);
@@ -155,57 +164,126 @@ export default function DrawingScene() {
     useState<AcousticMaterial | null>(null);
   const { openings, addOpening } = useOpeningsStore();
   const { ceilings, addCeiling, updateWallByIndex } = useWallsStore();
-  const { floors, addFloor, updateCeilingByIndex, updateFloorByIndex } = useWallsStore();
+  const { floors, addFloor, updateCeilingByIndex, updateFloorByIndex } =
+    useWallsStore();
   const { coordinates } = useCoordinatesStore();
 
   const [elementType, setElementType] = useState<ElementType>(ElementType.Wall);
 
+  const [lineMenuVisible, setLineMenuVisible] = useState(false);
+  const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
+
   const handleWallContextMenu = (
     event: any,
     facadeName: number,
+    title: string,
     elementType: ElementType
   ) => {
     event.preventDefault();
+    event.stopPropagation(); // ✅ AGREGAR: Evitar que el evento se propague
+
+    // ✅ AGREGAR: Forzar fin de drag si está activo
+    if (isDragging) {
+      setDragging(false);
+    }
+    if (isDragActive) {
+      setIsDragActive(false);
+      setDraggedTemplate(null);
+    }
+
     setMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedFacadeName(facadeName);
     setElementType(elementType);
+    setTitle(title);
     setMenuVisible(true);
   };
 
   const handleOpeningContextMenu = (
     event: any,
     openingId: string,
+    title: string,
     elementType: ElementType
   ) => {
     event.preventDefault();
+    event.stopPropagation();
+
+    if (isDragging) {
+      setDragging(false);
+    }
+    if (isDragActive) {
+      setIsDragActive(false);
+      setDraggedTemplate(null);
+    }
+
     setOpeningMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedOpeningId(openingId);
     setElementType(elementType);
+    setTitle(title);
     setOpeningMenuVisible(true);
   };
 
   const handleCeilingContextMenu = (
     event: any,
     facadeName: string,
+    title: string,
     elementType: ElementType
   ) => {
     event.preventDefault();
+    event.stopPropagation();
+
+    if (isDragging) {
+      setDragging(false);
+    }
+    if (isDragActive) {
+      setIsDragActive(false);
+      setDraggedTemplate(null);
+    }
+
     setCeilingMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedCeilingId(facadeName);
     setElementType(elementType);
+    setTitle(title);
     setCeilingMenuVisible(true);
   };
 
   const handleFloorContextMenu = (
     event: any,
     facadeName: string,
+    title: string,
     elementType: ElementType
   ) => {
     event.preventDefault();
+    event.stopPropagation();
+
+    if (isDragging) {
+      setDragging(false);
+    }
+    if (isDragActive) {
+      setIsDragActive(false);
+      setDraggedTemplate(null);
+    }
+
     setFloorMenuPosition({ x: event.clientX, y: event.clientY });
     setSelectedFloorId(facadeName);
     setElementType(elementType);
+    setTitle(title);
     setFloorMenuVisible(true);
+  };
+
+  const handleLineContextMenu = (
+    id: string,
+    event: { clientX: number; clientY: number }
+  ) => {
+    setContextMenu({
+      visible: true,
+      x: event.clientX,
+      y: event.clientY,
+      itemType: "line",
+      itemIndex: null,
+    });
+
+    setSelectedLineId(id);
+    setLineMenuVisible(true);
   };
 
   const handleClick3D = (point: THREE.Vector3) => {
@@ -264,6 +342,8 @@ export default function DrawingScene() {
       itemType: "line",
       itemIndex: lineIndex,
     });
+
+    setSelectedLineId("480");
   };
 
   const handleVertexRightClick = (
@@ -388,101 +468,50 @@ export default function DrawingScene() {
     position: number,
     template: AcousticMaterial
   ) => {
-    debugger;
-    console.log(
-      "📍 Drop en pared:",
-      wallIndex,
-      "posición:",
-      position,
-      "template:",
-      template.type
-    );
-
     if (
       template.type === ElementType.Door ||
       template.type === ElementType.Window
     ) {
-      const newOpening = {
+      const newOpening: Opening = {
         id: `opening-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: template.type as OpeningType,
+        title: "Abertura",
         wallIndex,
         position,
         width: template.width,
         height: template.height,
         bottomOffset: template.bottomOffset,
-        template, // ✅ AGREGAR: referencia al template original
-        currentCondition: "closed_sealed" as const, // ✅ CORREGIDO: tipo literal correcto
-        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
+        template,
+        currentCondition: "closed_sealed" as const,
+        relativePosition: 0,
       };
 
       addOpening(newOpening);
-
-      // Resetear estado de drag
-      setIsDragActive(false);
-      setDraggedTemplate(null);
-
       console.log("✅ Abertura creada:", newOpening);
     }
 
     if (template.type === ElementType.Wall) {
-      const newWall = {
-        id: `wall-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: template.type,
-        wallIndex,
-        position,
-        width: template.width,
-        height: template.height,
-        bottomOffset: template.bottomOffset,
-        template, // ✅ AGREGAR: referencia al template original
-        currentCondition: "default" as import("@/modules/editor/types/walls").WallCondition, // <-- Cast to WallCondition
-        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
-      };
-
-      updateWallByIndex(wallIndex, {template: newWall.template} );
-
-      // Resetear estado de drag
-      setIsDragActive(false);
+      updateWallByIndex(wallIndex, { color: template.color, template: template });
     }
 
     if (template.type === ElementType.Ceiling) {
-      const newCeiling = {
-        id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: template.type,
-        ceilingIndex: wallIndex,
-        position,
-        width: template.width,
-        height: template.height,
-        bottomOffset: template.bottomOffset,
-        template, // ✅ AGREGAR: referencia al template original
-        currentCondition: "default" as import("@/modules/editor/types/walls").WallCondition, // <-- Cast to WallCondition
-        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
-      };
-
-      updateCeilingByIndex(wallIndex, {template: newCeiling.template} );
-
-      // Resetear estado de drag
-      setIsDragActive(false);
+      updateCeilingByIndex(wallIndex, { color: template.color, template: template });
     }
 
     if (template.type === ElementType.Floor) {
-      const newFloor = {
-        id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: template.type,
-        floorIndex: wallIndex,
-        position,
-        width: template.width,
-        height: template.height,
-        bottomOffset: template.bottomOffset,
-        template, // ✅ AGREGAR: referencia al template original
-        currentCondition: "default" as import("@/modules/editor/types/walls").WallCondition, // <-- Cast to WallCondition
-        relativePosition: 0, // <-- Añadido: valor por defecto, ajusta según lógica necesaria
-      };
-
-      updateFloorByIndex(wallIndex, {template: newFloor.template} );
-
-      // Resetear estado de drag
-      setIsDragActive(false);
+      updateFloorByIndex(wallIndex, { color: template.color, template: template });
     }
+
+    // ✅ AGREGAR: Reset completo del estado de drag
+    setIsDragActive(false);
+    setDraggedTemplate(null);
+    setDragging(false); // ✅ También resetear isDragging del drawing store
+     
+    setTimeout(() => {
+      // Esto asegura que todos los event listeners se reactiven correctamente
+      console.log("🔄 Estado de drag reseteado completamente");
+    }, 10);
+    setExtruded(true); // Asegurar que seguimos en 3D
   };
 
   // Manejar fin de drag (sin drop válido)
@@ -490,6 +519,12 @@ export default function DrawingScene() {
     console.log("🚫 Drag cancelado");
     setIsDragActive(false);
     setDraggedTemplate(null);
+    setDragging(false); // ✅ También resetear isDragging del drawing store
+
+    // ✅ AGREGAR: Forzar limpieza de cualquier estado residual
+    setTimeout(() => {
+      console.log("🔄 Drag end completado");
+    }, 50);
   };
 
   // Manejar tecla ESC para cancelar drag
@@ -556,6 +591,7 @@ export default function DrawingScene() {
       ...wall,
       id: crypto.randomUUID(),
       wallIndex: idx,
+      color: wall.template.color,
       template: wall.template ?? null,
       area: wall.area ?? 0,
       currentCondition: wall.currentCondition ?? "default",
@@ -600,6 +636,8 @@ export default function DrawingScene() {
     null
   );
 
+  const [title, setTitle] = useState<string>("");
+
   const [openingMenuVisible, setOpeningMenuVisible] = useState(false);
   const [openingMenuPosition, setOpeningMenuPosition] = useState({
     x: 0,
@@ -637,13 +675,7 @@ export default function DrawingScene() {
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [menuVisible]);
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMenuPosition({ x: e.clientX, y: e.clientY });
-    setMenuVisible(true);
-  };
+  }, [menuVisible]); 
 
   return (
     <div
@@ -651,18 +683,21 @@ export default function DrawingScene() {
         isDragActive ? "cursor-grabbing" : "cursor-default"
       }`}
       style={{ height: "93vh" }}
-      onContextMenu={handleContextMenu}
     >
       <Canvas
         camera={{ position: [10, 10, 10], fov: 50 }}
         style={{
           background: "linear-gradient(135deg, #f0f2f5 0%, #e8ebf0 100%)",
-        }} // ✅ GRADIENTE SUAVE
-        onContextMenu={(e) => e.preventDefault()}
+        }}
       >
         <ambientLight intensity={0.8} />
         <directionalLight position={[10, 15, 10]} intensity={0.6} />
-        <OrbitControls enabled={!isDragging && !isDragActive} />
+        <OrbitControls
+          enabled={!isDragging && !isDragActive}
+          enablePan={!isDragging && !isDragActive}
+          enableRotate={!isDragging && !isDragActive}
+          enableZoom={true} // ✅ Mantener zoom siempre habilitado
+        />
         {/* ✅ YA ESTÁ COMENTADO - SIN CUADRÍCULA */}
         {/* <gridHelper args={[50, 50, "#888", "#ccc"]} /> */}
         <DrawingSurface onClick3D={handleClick3D} />
@@ -676,15 +711,16 @@ export default function DrawingScene() {
                 onPointMove={handlePointMove}
                 onDragStart={() => setDragging(true)}
                 onDragEnd={() => setDragging(false)}
-                onLineRightClick={handleLineRightClick}
+                onLineRightClick={handleLineContextMenu}
                 onVertexRightClick={handleVertexRightClick}
+                color={LINE_COLORS.line}
               />
             )}
           </>
         )}
         //MODO 3D - Renderizar con funcionalidad de drag & drop
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
-          <ExtrudedShapeWithDraggableOpenings2
+          <ExtrudedShapeWithDraggableOpenings
             planeCoordinates={[]}
             onDropOpening={handleDropOpening}
             isDragActive={isDragActive}
@@ -701,20 +737,6 @@ export default function DrawingScene() {
             ceilings={ceilings}
           />
         )}
-        {/* {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
-          // <ExtrudedShapeWithDraggableOpenings
-          //   planeCoordinates={[]}
-          //   onDropOpening={handleDropOpening}
-          //   isDragActive={isDragActive}
-          //   draggedTemplate={draggedTemplate}
-          //   showHeatmap={showHeatmap}
-          //   onToggleHeatmap={handleToggleHeatmap}
-          //   onAddFloor={handleAddFloor}
-          //   floors={floors}
-          //   onWallContextMenu={handleWallContextMenu}
-          //   onOpeningContextMenu={handleOpeningContextMenu}
-          // />
-        )} */}
       </Canvas>
 
       {/* Controles de la aplicación */}
@@ -739,6 +761,7 @@ export default function DrawingScene() {
         y={menuPosition.y}
         visible={menuVisible}
         facadeName={selectedFacadeName ?? 0}
+        title={title}
         onProperties={handleProperties}
         onChangeMaterial={handleChangeMaterial}
         onClose={() => setMenuVisible(false)}
@@ -749,6 +772,7 @@ export default function DrawingScene() {
         y={openingMenuPosition.y}
         visible={openingMenuVisible}
         openingId={selectedOpeningId ?? ""}
+        title={title}
         onProperties={handleProperties}
         onChangeMaterial={handleChangeMaterial}
         onClose={() => setOpeningMenuVisible(false)}
@@ -759,6 +783,7 @@ export default function DrawingScene() {
         y={ceilingMenuPosition.y}
         visible={ceilingMenuVisible}
         facadeName={selectedCeilingId ?? ""}
+        title={title}
         onProperties={handleProperties}
         onChangeMaterial={handleChangeMaterial}
         onClose={() => setCeilingMenuVisible(false)}
@@ -769,6 +794,7 @@ export default function DrawingScene() {
         y={floorMenuPosition.y}
         visible={floorMenuVisible}
         facadeName={selectedFloorId ?? ""}
+        title={title}
         onProperties={handleProperties}
         onChangeMaterial={handleChangeMaterial}
         onClose={() => setFloorMenuVisible(false)}
@@ -839,6 +865,14 @@ export default function DrawingScene() {
         floorId={selectedFloorId ?? ""}
         elementType={elementType}
         onClose={() => setShowMaterialModal(false)}
+      />
+
+      {/* Modal de contexto para la línea, fuera del grupo 3D */}
+
+      <LineContextMenu        
+        visible={lineMenuVisible}
+        lineId={selectedLineId ?? ""}
+        onClose={() => setLineMenuVisible(false)}        
       />
     </div>
   );

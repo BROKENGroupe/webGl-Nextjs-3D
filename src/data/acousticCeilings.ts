@@ -9,7 +9,8 @@ export const ceilingConcreteSlab: AcousticMaterial = {
     thickness: 200.0,
     mass: 480.0,
     catalog: "insonor Catalog",
-    color: "Light Gray",
+    colorName: "Light Gray",
+    color: "#D3D3D3", // Light Gray hexadecimal
     doubleLeaf: false,
     lightweightElement: false,
     layers: [
@@ -42,7 +43,8 @@ export const ceilingAcousticPanel: AcousticMaterial = {
     thickness: 50.0,
     mass: 12.0,
     catalog: "insonor Catalog",
-    color: "White",
+    colorName: "White",
+    color: "#FFFFFF", // White hexadecimal
     doubleLeaf: false,
     lightweightElement: true,
     layers: [

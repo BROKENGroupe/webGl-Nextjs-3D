@@ -9,7 +9,8 @@ export const floorConcreteSlab: AcousticMaterial = {
     thickness: 200.0,
     mass: 480.0,
     catalog: "insonor Catalog",
-    color: "Gray",
+    colorName: "Gray",
+    color: "#808080", // Gris hexadecimal
     doubleLeaf: false,
     lightweightElement: false,
     layers: [
@@ -42,7 +43,8 @@ export const floorAcousticPanel: AcousticMaterial = {
     thickness: 40.0,
     mass: 10.0,
     catalog: "SON Catalog",
-    color: "Light Beige",
+    colorName: "Light Beige",
+    color: "#F5F5DC", // Beige claro hexadecimal
     doubleLeaf: false,
     lightweightElement: true,
     layers: [

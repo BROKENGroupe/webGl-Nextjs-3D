@@ -1,15 +1,19 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import React from "react";
+import EditableHeader, { ElementType } from "./EditableHeader";
+import { useOpeningsStore } from "../../store/openingsStore";
 
-
-interface FacadeContextMenuProps {
+interface OpeningContextMenuProps {
   x: number;
   y: number;
   visible: boolean;
   openingId: string;
+  title: string;
   onProperties: () => void;
   onChangeMaterial: () => void;
   onClose: () => void;
+  onUpdateName?: (newName: string, elementType: ElementType) => void;
+  onUpdateOpening?: (openingId: string, newTitle: string) => void;
 }
 
 export default function OpeningContextMenu({
@@ -17,16 +21,39 @@ export default function OpeningContextMenu({
   y,
   visible,
   openingId,
+  title,
   onProperties,
   onChangeMaterial,
   onClose,
-}: FacadeContextMenuProps) {
+  onUpdateName,
+  onUpdateOpening,
+}: OpeningContextMenuProps) {
   if (!visible) return null;
 
+  const { updateOpening, openings } = useOpeningsStore();
+
+  // Obtener el título de la abertura por openingId
+  const opening = openings.find((opening) => opening.id === openingId);
+  const openingTitle = opening?.title || `Abertura ${openingId}`;
+
+  const handleUpdateName = (newName: string, elementType: ElementType) => {
+    // Llamar al callback general
+    onUpdateName?.(newName, elementType);
+
+    // Llamar a la función específica del storage para actualizar la abertura
+    onUpdateOpening?.(openingId, newName);
+    updateOpening(openingId, { title: newName });
+  };
+
   return (
-    <Popover open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
+    <Popover
+      open={visible}
+      onOpenChange={(open: boolean) => !open && onClose()}
+    >
       <PopoverTrigger asChild>
-        <div style={{ position: "fixed", top: y, left: x, width: 0, height: 0 }} />
+        <div
+          style={{ position: "fixed", top: y, left: x, width: 0, height: 0 }}
+        />
       </PopoverTrigger>
       <PopoverContent
         side="right"
@@ -41,10 +68,14 @@ export default function OpeningContextMenu({
           zIndex: 1000,
         }}
       >
-        <div style={{ padding: "8px 16px", fontWeight: "bold", borderBottom: "1px solid #eee" }}>
-          {openingId}
-        </div>
-         <button
+        {/* Header editable */}
+        <EditableHeader
+          title={openingTitle}
+          elementType="opening"
+          onUpdateName={handleUpdateName}
+        />
+
+        <button
           style={{
             width: "100%",
             padding: "10px 16px",
@@ -75,7 +106,7 @@ export default function OpeningContextMenu({
           }}
         >
           Cambiar material
-        </button>        
+        </button>
         <button
           style={{
             width: "100%",
@@ -91,7 +122,7 @@ export default function OpeningContextMenu({
           }}
         >
           Propiedades
-        </button>        
+        </button>
       </PopoverContent>
     </Popover>
   );

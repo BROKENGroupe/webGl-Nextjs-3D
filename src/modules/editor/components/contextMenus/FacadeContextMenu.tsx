@@ -1,16 +1,18 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import React from "react";
-import { toast } from "sonner";
-
+import EditableHeader, { ElementType } from "./EditableHeader";
+import { useWallsStore } from "../../store/wallsStore";
 
 interface FacadeContextMenuProps {
   x: number;
   y: number;
   visible: boolean;
   facadeName: number;
+  title: string;
   onProperties: () => void;
   onChangeMaterial: () => void;
   onClose: () => void;
+  onUpdateName?: (newName: string, elementType: ElementType) => void;
 }
 
 export default function FacadeContextMenu({
@@ -18,22 +20,40 @@ export default function FacadeContextMenu({
   y,
   visible,
   facadeName,
+  title,
   onProperties,
   onChangeMaterial,
   onClose,
+  onUpdateName,
 }: FacadeContextMenuProps) {
   if (!visible) return null;
 
+  const { updateWallByIndex, walls } = useWallsStore();
+
+  // Obtener el título de la pared por wallIndex (facadeName)
+  const wall = walls.find((wall) => wall.wallIndex === facadeName);
+  const wallTitle = wall?.title || `Fachada ${facadeName + 1}`;
+
+  const handleUpdateName = (newName: string, elementType: ElementType) => {
+    onUpdateName?.(newName, elementType);
+    updateWallByIndex(facadeName, { title: newName });
+  };
+
   return (
-    <Popover open={visible} onOpenChange={(open: boolean) => !open && onClose()}>
+    <Popover
+      open={visible}
+      onOpenChange={(open: boolean) => !open && onClose()}
+    >
       <PopoverTrigger asChild>
-        <div style={{ position: "fixed", top: y, left: x, width: 0, height: 0 }} />
+        <div
+          style={{ position: "fixed", top: y, left: x, width: 0, height: 0 }}
+        />
       </PopoverTrigger>
       <PopoverContent
         side="right"
         align="start"
         style={{
-          minWidth: "180px",
+          minWidth: "220px",
           background: "#fff",
           border: "1px solid #ccc",
           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
@@ -42,9 +62,14 @@ export default function FacadeContextMenu({
           zIndex: 1000,
         }}
       >
-        <div style={{ padding: "8px 16px", fontWeight: "bold", borderBottom: "1px solid #eee" }}>
-          {facadeName}
-        </div>
+        {/* Header editable */}
+        <EditableHeader
+          title={wallTitle}
+          elementType="wall"
+          onUpdateName={handleUpdateName}
+        />
+
+        {/* Opciones del menú */}
         <button
           style={{
             width: "100%",
@@ -56,11 +81,11 @@ export default function FacadeContextMenu({
           }}
           onClick={() => {
             onChangeMaterial();
-            onClose();            
+            onClose();
           }}
         >
           Cambiar material
-        </button>        
+        </button>
         <button
           style={{
             width: "100%",
@@ -76,7 +101,7 @@ export default function FacadeContextMenu({
           }}
         >
           Propiedades
-        </button>       
+        </button>
       </PopoverContent>
     </Popover>
   );

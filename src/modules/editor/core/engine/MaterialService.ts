@@ -98,6 +98,7 @@ export class MaterialService {
    * });
    */
   static getWallMaterial(options?: {
+    colorBase?: string;
     isHovered?: boolean;
     isDragActive?: boolean;
     opacity?: number;
@@ -107,11 +108,31 @@ export class MaterialService {
     const key = `wall-${options?.isHovered}-${options?.isDragActive}-${options?.opacity}`;
     
     // ===== VERIFICACIÓN DE CACHE =====
-    if (!this.materialCache.has(key)) {
-      // ===== CREACIÓN DE MATERIAL NUEVO =====
-      const material = new THREE.MeshStandardMaterial({
+    // if (!this.materialCache.has(key)) {
+    //   // ===== CREACIÓN DE MATERIAL NUEVO =====
+    //   const material = new THREE.MeshStandardMaterial({
+    //     // Color dinámico basado en estado
+    //     color: "#ff0000",
+        
+    //     // Renderizado de ambas caras para paredes
+    //     side: THREE.DoubleSide,
+        
+    //     // Propiedades físicas desde configuración
+    //     roughness: MATERIAL_PROPERTIES.WALLS.roughness,
+    //     metalness: MATERIAL_PROPERTIES.WALLS.metalness,
+        
+    //     // Transparencia automática si necesaria
+    //     transparent: options?.isDragActive || (options?.opacity !== undefined),
+    //     opacity: options?.opacity ?? 1.0
+    //   });       
+      
+    //   // ===== ALMACENAMIENTO EN CACHE =====
+    //   this.materialCache.set(key, material);
+    // }
+
+    const material = new THREE.MeshStandardMaterial({
         // Color dinámico basado en estado
-        color: options?.isHovered ? COLORS.hover : COLORS.wall,
+        color: options?.isHovered ? COLORS.hover : (options?.colorBase || COLORS.wall),
         
         // Renderizado de ambas caras para paredes
         side: THREE.DoubleSide,
@@ -124,12 +145,8 @@ export class MaterialService {
         transparent: options?.isDragActive || (options?.opacity !== undefined),
         opacity: options?.opacity ?? 1.0
       });
-      
-      // ===== ALMACENAMIENTO EN CACHE =====
-      this.materialCache.set(key, material);
-    }
     
-    return this.materialCache.get(key) as THREE.MeshStandardMaterial;
+    return material;
   }
 
   /**
@@ -420,3 +437,13 @@ export class MaterialService {
  * });
  * ```
  */
+export function toThreeColor(color: string) {
+  // Si es hexadecimal válido, úsalo
+  if (/^#[0-9A-F]{6}$/i.test(color)) return color;
+  // Si es nombre CSS, úsalo
+  if (/^[a-zA-Z]+$/.test(color)) return color;
+  // Si es número, conviértelo
+  if (/^0x[0-9A-F]{6}$/i.test(color)) return parseInt(color, 16);
+  // Por defecto, gris claro
+  return "#CCCCCC";
+}

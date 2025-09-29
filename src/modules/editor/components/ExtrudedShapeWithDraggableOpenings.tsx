@@ -14,6 +14,7 @@ import { RoomCeiling } from "./extrudeFloor/RoomCeiling";
 import { RoomFloor } from "./extrudeFloor/RoomFloor";
 import { RoomWall } from "./extrudeFloor/RoomWall";
 import { ElementType } from "../types/walls";
+import { COLORS } from "@/config/materials";
 
 // Props interface
 interface ExtrudedShapeWithDraggableOpenings2Props {
@@ -28,11 +29,13 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
   onWallContextMenu?: (
     event: any,
     facadeName: number,
+    title: string,
     elementType: ElementType
   ) => void;
   onOpeningContextMenu?: (
     event: any,
     openingId: any,
+    title: string,
     elementType: ElementType
   ) => void;
   openings: any[];
@@ -40,17 +43,19 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
   onCeilingContextMenu?: (
     event: any,
     facadeName: string,
+    title: string,
     elementType: ElementType
   ) => void;
   onFloorContextMenu?: (
     event: any,
     facadeName: string,
+    title: string,
     elementType: ElementType
   ) => void;
 }
 
 // Componente principal
-export function ExtrudedShapeWithDraggableOpenings2({
+export function ExtrudedShapeWithDraggableOpenings({
   onDropOpening,
   isDragActive,
   draggedTemplate,
@@ -63,6 +68,8 @@ export function ExtrudedShapeWithDraggableOpenings2({
   openings,
   ceilings,
 }: ExtrudedShapeWithDraggableOpenings2Props) {
+
+  const { walls } = useWallsStore();
   // Altura de la habitación (puedes recibirla por props o definirla aquí)
   const depth = 3;
   const { planeXZCoordinates, hasPlaneCoordinates } = useDrawingStore();
@@ -151,7 +158,12 @@ export function ExtrudedShapeWithDraggableOpenings2({
           eventHandlers={{
             onContextMenu: (e: any) => {
               if (onFloorContextMenu) {
-                onFloorContextMenu(e.nativeEvent, floor.id, ElementType.Floor);
+                onFloorContextMenu(
+                  e.nativeEvent,
+                  floor.id,
+                  floor.title,
+                  ElementType.Floor
+                );
               }
             },
           }}
@@ -161,13 +173,17 @@ export function ExtrudedShapeWithDraggableOpenings2({
       {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
         const nextCoord = coordinatesToUse[nextIndex];
-        const wallOpenings = GeometryEngine.getOpeningsForWall(openings, index);
+        const wallOpenings = GeometryEngine.getOpeningsForWall(openings, index); 
+        
+        const wall = walls[index];
+        const wallColor = wall?.color ?? "#f21111ff";
 
         return (
           <RoomWall
             key={`wall-group-${index}`}
             geometry={createWallGeometry(index, coord, nextCoord)}
             material={MaterialService.getWallMaterial({
+              colorBase: wallColor || COLORS.wall,
               isHovered:
                 (wallInteractions.hoveredWall === index &&
                   (isDragActive || openingDrag.isDraggingOpening)) ||
@@ -189,7 +205,12 @@ export function ExtrudedShapeWithDraggableOpenings2({
               onClick: (e: any) => wallInteractions.handleWallClick(index, e),
               onContextMenu: (e: any) => {
                 if (onWallContextMenu) {
-                  onWallContextMenu(e.nativeEvent, index, ElementType.Wall);
+                  onWallContextMenu(
+                    e.nativeEvent,
+                    index,
+                    "Fachada",
+                    ElementType.Wall
+                  );
                 }
               },
             }}
@@ -224,6 +245,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
                       onOpeningContextMenu(
                         e.nativeEvent,
                         opening.id,
+                        opening.title,
                         ElementType.Opening
                       );
                     }
@@ -234,6 +256,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
           </RoomWall>
         );
       })}
+      
       {ceilings.map((ceiling, index) => (
         <RoomCeiling
           key={`ceiling-${index}`}
@@ -254,6 +277,7 @@ export function ExtrudedShapeWithDraggableOpenings2({
                 onCeilingContextMenu(
                   e.nativeEvent,
                   ceiling.id,
+                  ceiling.title,
                   ElementType.Ceiling
                 );
               }

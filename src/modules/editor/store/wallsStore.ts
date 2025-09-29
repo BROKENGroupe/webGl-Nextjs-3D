@@ -8,10 +8,13 @@ import { floorConcreteSlab } from "@/data/floors";
 import { Opening } from '../types/openings';
 import { ceilingConcreteSlab } from '@/data/acousticCeilings';
 import { toast } from 'sonner';
+import { COLORS } from '@/config/materials';
 
 // Tipos para piso y techo (más genéricos)
 interface FloorCeiling {
   id: string;
+  title?: string;
+  color: string;
   floorIndex?: number;
   ceilingIndex?: number;
   area: number;
@@ -60,21 +63,14 @@ export const useWallsStore = create<WallsStore>()(
       addWall: (wallIndex, area, template = WALL_TEMPLATES['wall-gypsum-board']) => {
         const newWall: Wall = {
           id: `wall-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title: `Fachada ${wallIndex + 1}`,
           wallIndex,
+          color: template.color || COLORS.wall,
           template,
           area,
           currentCondition: 'excellent',
           start: { x: 0, z: 0 },
-          end: { x: 0, z: 0 },
-          acousticRating: calculateWallAcousticRating({
-            id: '',
-            wallIndex,
-            template,
-            area,
-            currentCondition: 'excellent',
-            start: { x: 0, z: 0 },
-            end: { x: 0, z: 0 }
-          })
+          end: { x: 0, z: 0 }          
         };
         console.log('🧱 WallsStore initialized'),
 
@@ -82,12 +78,14 @@ export const useWallsStore = create<WallsStore>()(
         set((state) => ({
           walls: [...state.walls, newWall]
         }));
-        console.log('🧱 Nueva pared agregada:', newWall);
+        console.log('🧱 Nueva Fachada agregada:', newWall);
       },
 
       addFloor: (floorIndex, area, template = FLOOR_TEMPLATES['floor-concrete-slab']) => {
         const newFloor: FloorCeiling = {
           id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title: `Piso ${floorIndex + 1}`,
+          color: template.color || COLORS.ceiling,
           area,
           template,
           floorIndex
@@ -101,6 +99,8 @@ export const useWallsStore = create<WallsStore>()(
       addCeiling: (ceilingIndex, area, template = CEILING_TEMPLATES['ceiling-concrete-slab']) => {
         const newCeiling: FloorCeiling = {
           id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title: `Techo ${ceilingIndex + 1}`,
+          color: template.color || COLORS.ceiling,
           area,
           template,
           ceilingIndex
@@ -387,7 +387,9 @@ export const useWallsStore = create<WallsStore>()(
 
             return {
               id: prevWall?.id ?? `wall-${Date.now()}-${index}`,
+              title: prevWall?.title ?? `Pared ${index + 1}`,
               wallIndex: index,
+              color: prevWall?.template.color || COLORS.wall,
               template: prevWall?.template ?? WALL_TEMPLATES['wall-gypsum-board'],
               area,
               currentCondition: prevWall?.currentCondition ?? 'excellent',
@@ -396,11 +398,6 @@ export const useWallsStore = create<WallsStore>()(
               acousticRating: undefined
             };
           });
-
-          // // Calcula el rating acústico para cada pared
-          // updatedWalls.forEach(wall => {
-          //   wall.acousticRating = calculateWallAcousticRating(wall);
-          // });
 
           return { walls: updatedWalls };
         });
@@ -433,6 +430,8 @@ export const useWallsStore = create<WallsStore>()(
             return {
               floors: [{
                 id: `floor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                title: 'Piso 1',
+                color: template.color || COLORS.ceiling,
                 area,
                 template
               }]
@@ -467,6 +466,8 @@ export const useWallsStore = create<WallsStore>()(
             return {
               ceilings: [{
                 id: `ceiling-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                title: 'Techo 1',
+                color: template.color || COLORS.ceiling,
                 area,
                 template
               }]

@@ -66,9 +66,9 @@ export class LineGeometryEngine {
     } = {}
   ) {
     const {
-      baseWidth = 0.05,
-      hoverWidth = 0.04,
-      depth = 0.05
+      baseWidth = 0.02,
+      hoverWidth = 0.02,
+      depth = 0.005
     } = options;
 
     return {

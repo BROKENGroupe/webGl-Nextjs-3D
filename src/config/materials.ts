@@ -151,8 +151,8 @@ export const EXTRUDE_SETTINGS = {
 export const LINE_COLORS = {
   line: "#165fa8ff",              // Color principal de línea
   lineHover: "#3399FF",         // Color de línea en hover
-  lineOutline: "#B3D9FF",       // Color de contorno de línea
-  lineOutlineHover: "#E6F3FF",  // Color de contorno en hover
+  lineOutline: "#027af3ff",       // Color de contorno de línea
+  lineOutlineHover: "#0ff238ff",  // Color de contorno en hover
   vertex: "#3399FF",            // Color principal de vértice
   vertexHover: "#FFD700",       // Color de vértice en hover
   vertexDragged: "#00ff00",     // Color de vértice arrastrado

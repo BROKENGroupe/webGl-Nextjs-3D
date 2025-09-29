@@ -21,6 +21,7 @@ import { useState } from "react";
 import { LineRenderer } from "./LineRenderer";
 import { useDragSystem } from "../../hooks/useDragSystem";
 import { LineEventHandler } from "../../core/engine/LineEventHandler";
+import { useDrawingStore } from "@/modules/editor/store/drawingStore";
 
 /**
  * Propiedades del componente LineBuilder
@@ -38,7 +39,7 @@ interface LineBuilderProps {
   /** Callback ejecutado al finalizar el arrastre de un vértice */
   onDragEnd?: () => void;
   /** Callback ejecutado cuando se hace click derecho en una línea */
-  onLineRightClick?: (lineIndex: number, event: { clientX: number; clientY: number }) => void;
+  onLineRightClick?: (id: string, event: { clientX: number; clientY: number }) => void;
   /** Callback ejecutado cuando se hace click derecho en un vértice */
   onVertexRightClick?: (vertexIndex: number, event: { clientX: number; clientY: number }) => void;
 }
@@ -53,7 +54,8 @@ export function LineBuilder({
   onDragStart, 
   onDragEnd,
   onLineRightClick,
-  onVertexRightClick
+  onVertexRightClick,
+  
 }: LineBuilderProps) {
   
   // Estados de UI
@@ -95,22 +97,26 @@ export function LineBuilder({
     },
     onLineHover: setHoveredLineIndex,
     onVertexRightClick,
-    onLineRightClick: (lineIndex, event) => {
-      // Captura posición del mouse y del punto 3D si está disponible
-      const { clientX, clientY } = event;
-      console.log("🟦 Click derecho en línea", lineIndex, "Mouse:", clientX, clientY);
+    // onLineRightClick: (lineIndex, event) => {
+    //   // Captura posición del mouse y del punto 3D si está disponible
+    //   const { clientX, clientY } = event;
+    //   console.log("🟦 Click derecho en línea", lineIndex, "Mouse:", clientX, clientY);
 
-      // Llama el callback externo si existe
-      onLineRightClick?.(lineIndex, { clientX, clientY });
-    },
+    //   // Llama el callback externo si existe
+    //   onLineRightClick?.(lineIndex, { clientX, clientY });
+    // },
   });
 
   // Handler para click en línea
   function handleLineClick(lineIndex: number, point: THREE.Vector3) {
-    // Captura el punto 3D donde se hizo click
+    //const { addLine } = useDrawingStore();
+    // Supón que tienes el punto de inicio y el punto final
     const startPoint = point.clone();
-    // Si necesitas manejar el punto de inicio internamente, agrega lógica aquí o extiende el hook.
-    // Actualmente, dragSystem no tiene setInternalStart ni setInternalPreview.
+    // Suponiendo que 'points' es el array de puntos y 'lineIndex' es el índice actual
+    const endPoint = points[lineIndex + 1]?.clone() || point.clone(); // Usa el siguiente punto si existe
+
+    // Agrega la línea con color rojo
+    //addLine(startPoint, endPoint, "#ff0000");
   }
 
   return (
@@ -123,6 +129,7 @@ export function LineBuilder({
       isShiftMode={dragSystem.isShiftMode}
       eventHandler={eventHandler}
       onLineClick={handleLineClick}
+      onContextLineMenu={onLineRightClick}
     />
   );
 }

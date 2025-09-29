@@ -9,7 +9,8 @@ export const wallCeramicBrick: AcousticMaterial = {
     thickness: 397.0,
     mass: 602.3,
     catalog: "insonor Catalog",
-    color: "Brown/Red",
+    colorName: "Brown/Red",
+    color: "#B55239",
     doubleLeaf: false,
     lightweightElement: false,
     layers: [
@@ -44,7 +45,8 @@ export const wallConcreteBlock: AcousticMaterial = {
     thickness: 200.0,
     mass: 320.0,
     catalog: "insonor Catalog",
-    color: "Gray",
+    colorName: "Gray",
+    color: "#A0A0A0",
     doubleLeaf: false,
     lightweightElement: false,
     layers: [
@@ -79,7 +81,8 @@ export const wallGypsumBoard: AcousticMaterial = {
     thickness: 100.0,
     mass: 42.0,
     catalog: "insonor Catalog",
-    color: "White",
+    color: "#F5F5F5",
+    colorName: "White",
     doubleLeaf: true,
     lightweightElement: true,
     layers: [
@@ -114,7 +117,8 @@ export const wallThinBrickPartition: AcousticMaterial = {
     thickness: 70.0,
     mass: 95.0,
     catalog: "insonor Catalog",
-    color: "LightBrown",
+    colorName: "LightBrown",
+    color: "#D2B48C",
     doubleLeaf: false,
     lightweightElement: true,
     layers: [
@@ -146,7 +150,8 @@ export const wallLightWoodPanel: AcousticMaterial = {
     thickness: 18.0,
     mass: 12.0,
     catalog: "insnor Catalog",
-    color: "Wood",
+    colorName: "Wood",
+    color: "#C19A6B",
     doubleLeaf: false,
     lightweightElement: true,
     layers: [

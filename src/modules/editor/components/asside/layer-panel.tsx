@@ -33,7 +33,8 @@ import {
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 
-import { useState, useEffect } from "react";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { useEffect, useState } from "react";
 import { LayerTreePanel } from "./LayerTreePanel";
 import { OPENING_TEMPLATES } from "@/modules/editor/types/openings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
@@ -42,12 +43,16 @@ import {
   EyeOpenIcon,
   GearIcon,
   MagicWandIcon,
+  MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
 import {
   ceilingAcousticPanel,
   ceilingConcreteSlab,
 } from "@/data/acousticCeilings";
 import { materialsService } from "@/services/materialsService";
+import { MaterialSkeletonGrid } from "./MaterialSkeletonGrid";
+import { MaterialSearchInput } from "./MaterialSearchInput";
+import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
 
 type Layer = {
   key: string;
@@ -120,10 +125,8 @@ export function LayerPanel({
   const [showMenu, setShowMenu] = useState(false);
   // Estado local para visual feedback (opcional)
   const [draggedItem, setDraggedItem] = useState<AcousticMaterial | null>(null);
-  const [tab, setTab] = useState("layers");
-  const [openGroups, setOpenGroups] = useState<string[]>(
-    GROUPS.map((g) => g.key)
-  );
+  const [tab, setTab] = useState("materials");
+  const [loading, setLoading] = useState(true);
   const [materialFilter, setMaterialFilter] = useState("");
   const [paletteMaterials, setPaletteMaterials] = useState<AcousticMaterial[]>(
     []
@@ -160,6 +163,27 @@ export function LayerPanel({
     Techos: paletteMaterials.filter((m) =>
       m.type?.toLowerCase().includes("ceiling")
     ),
+  }
+    const [groupedMaterials, setGroupedMaterials] = useState<
+      typeof GROUPED_MATERIALS | null
+    >(null);
+    const [showSearch, setShowSearch] = useState(false);
+
+    // Simula petición HTTP al cambiar de tab
+    useEffect(() => {
+    if (tab === "materials") {
+      setLoading(true);
+      setGroupedMaterials(null);
+      const timer = setTimeout(() => {
+        setGroupedMaterials(GROUPED_MATERIALS); // "Respuesta" de la petición
+        setLoading(false);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [tab]);
+
+  const handleTabChange = (value: string) => {
+    setTab(value);
   };
 
   // Simulación de selección de capa
@@ -169,55 +193,45 @@ export function LayerPanel({
 
   return (
     <div className="w-96 border-gray-200 bg-white">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        {/* <CardTitle className="text-lg font-semibold">
-          Panel de propiedades
-        </CardTitle> */}
-      </CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between pb-2" />
       <CardContent className="p-0">
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-2 mb-2">
             <TabsTrigger value="materials">Materiales</TabsTrigger>
             <TabsTrigger value="layers">Capas</TabsTrigger>
           </TabsList>
           <TabsContent value="materials">
-            <div className="p-0">
-              <div className="flex items-center justify-between mb-4">
-                {/* <Button variant="default" size="sm" aria-label="Crear material">
-                  <MagicWandIcon className="mr-1" /> Crear material
-                </Button> */}
-                <h4 className="text-lg font-semibold">
-                  Materiales disponibles
-                </h4>
-                <div className="relative">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold">Materiales disponibles</h4>
+              <Popover>
+                <PopoverTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
-                    aria-label="Buscar"
-                    onClick={() => setShowMenu(!showMenu)}
+                    aria-label="Buscar material"
                   >
-                    <EyeNoneIcon />
+                    <MagnifyingGlassIcon />
                   </Button>
-                  {showMenu && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10 p-3">
-                      <input
-                        type="text"
-                        placeholder="Buscar materiales..."
-                        value={materialFilter}
-                        onChange={(e) => setMaterialFilter(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* Agrupación tipo acordeón estilo Elementor */}
-              <div className="overflow-y-auto max-h-[700px] pr-2">
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2" align="end">
+                  <MaterialSearchInput
+                    value={materialFilter}
+                    onChange={(e) =>
+                      setMaterialFilter(e.target.value.toLowerCase())
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="overflow-y-auto max-h-[700px] pr-2">
+              {loading || !groupedMaterials ? (
+                <MaterialSkeletonGrid count={6} />
+              ) : (
                 <Accordion
                   type="multiple"
-                  defaultValue={Object.keys(GROUPED_MATERIALS)}
+                  defaultValue={Object.keys(groupedMaterials)}
                 >
-                  {Object.entries(GROUPED_MATERIALS).map(
+                  {Object.entries(groupedMaterials).map(
                     ([group, materials]) => {
                       const filteredMaterials = materials.filter(
                         (m) =>
@@ -271,6 +285,22 @@ export function LayerPanel({
                                     <span className="text-2xl">
                                       {material.imageRef || "🧱"}
                                     </span>
+                                    {/* Círculo de color sutil */}
+                                    {material.color && (
+                                      <span
+                                        style={{
+                                          display: "inline-block",
+                                          width: 28,
+                                          height: 16,
+                                          borderRadius: "50%",
+                                          background: material.color,
+                                          border: "1px solid #eee",
+                                          marginRight: 6,
+                                          boxShadow: "0 0 2px #ccc",
+                                        }}
+                                        title={`Color: ${material.color}`}
+                                      />
+                                    )}
                                     <span className="font-semibold text-black text-[14px] truncate">
                                       {material.descriptor}
                                     </span>
@@ -323,7 +353,7 @@ export function LayerPanel({
                     }
                   )}
                 </Accordion>
-              </div>
+              )}
             </div>
           </TabsContent>
           <TabsContent value="layers">
