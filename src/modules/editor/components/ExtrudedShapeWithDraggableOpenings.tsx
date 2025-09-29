@@ -14,6 +14,7 @@ import { RoomCeiling } from "./extrudeFloor/RoomCeiling";
 import { RoomFloor } from "./extrudeFloor/RoomFloor";
 import { RoomWall } from "./extrudeFloor/RoomWall";
 import { ElementType } from "../types/walls";
+import { COLORS } from "@/config/materials";
 
 // Props interface
 interface ExtrudedShapeWithDraggableOpenings2Props {
@@ -67,6 +68,8 @@ export function ExtrudedShapeWithDraggableOpenings({
   openings,
   ceilings,
 }: ExtrudedShapeWithDraggableOpenings2Props) {
+
+  const { walls } = useWallsStore();
   // Altura de la habitación (puedes recibirla por props o definirla aquí)
   const depth = 3;
   const { planeXZCoordinates, hasPlaneCoordinates } = useDrawingStore();
@@ -155,7 +158,12 @@ export function ExtrudedShapeWithDraggableOpenings({
           eventHandlers={{
             onContextMenu: (e: any) => {
               if (onFloorContextMenu) {
-                onFloorContextMenu(e.nativeEvent, floor.id, floor.title, ElementType.Floor);
+                onFloorContextMenu(
+                  e.nativeEvent,
+                  floor.id,
+                  floor.title,
+                  ElementType.Floor
+                );
               }
             },
           }}
@@ -165,13 +173,17 @@ export function ExtrudedShapeWithDraggableOpenings({
       {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
         const nextCoord = coordinatesToUse[nextIndex];
-        const wallOpenings = GeometryEngine.getOpeningsForWall(openings, index);
+        const wallOpenings = GeometryEngine.getOpeningsForWall(openings, index); 
+        
+        const wall = walls[index];
+        const wallColor = wall?.color ?? "#f21111ff";
 
         return (
           <RoomWall
             key={`wall-group-${index}`}
             geometry={createWallGeometry(index, coord, nextCoord)}
             material={MaterialService.getWallMaterial({
+              colorBase: wallColor || COLORS.wall,
               isHovered:
                 (wallInteractions.hoveredWall === index &&
                   (isDragActive || openingDrag.isDraggingOpening)) ||
@@ -193,7 +205,12 @@ export function ExtrudedShapeWithDraggableOpenings({
               onClick: (e: any) => wallInteractions.handleWallClick(index, e),
               onContextMenu: (e: any) => {
                 if (onWallContextMenu) {
-                  onWallContextMenu(e.nativeEvent, index, "Fachada", ElementType.Wall);
+                  onWallContextMenu(
+                    e.nativeEvent,
+                    index,
+                    "Fachada",
+                    ElementType.Wall
+                  );
                 }
               },
             }}
@@ -239,6 +256,7 @@ export function ExtrudedShapeWithDraggableOpenings({
           </RoomWall>
         );
       })}
+      
       {ceilings.map((ceiling, index) => (
         <RoomCeiling
           key={`ceiling-${index}`}

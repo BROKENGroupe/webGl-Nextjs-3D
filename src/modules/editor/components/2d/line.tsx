@@ -148,7 +148,7 @@ export function Line({
                   boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                 }}
               >
-                Distancia en metros
+                {line?.name || <span style={{ fontStyle: "italic" }}>Sin nombre</span>}<br />
               </span>
             )}
           </span>

@@ -273,6 +273,22 @@ export function LayerPanel({
                                     <span className="text-2xl">
                                       {material.imageRef || "🧱"}
                                     </span>
+                                    {/* Círculo de color sutil */}
+                                    {material.color && (
+                                      <span
+                                        style={{
+                                          display: "inline-block",
+                                          width: 28,
+                                          height: 16,
+                                          borderRadius: "50%",
+                                          background: material.color,
+                                          border: "1px solid #eee",
+                                          marginRight: 6,
+                                          boxShadow: "0 0 2px #ccc",
+                                        }}
+                                        title={`Color: ${material.color}`}
+                                      />
+                                    )}
                                     <span className="font-semibold text-black text-[14px] truncate">
                                       {material.descriptor}
                                     </span>

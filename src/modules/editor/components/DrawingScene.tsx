@@ -39,6 +39,7 @@ import { ElementType, Wall } from "@/modules/editor/types/walls";
 import { LINE_COLORS } from "@/config/materials";
 import LineContextMenu from "./contextMenus/lineContextMenu";
 import { set } from "zod";
+import { color } from "framer-motion";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -488,15 +489,15 @@ export default function DrawingScene() {
     }
 
     if (template.type === ElementType.Wall) {
-      updateWallByIndex(wallIndex, { template: template });
+      updateWallByIndex(wallIndex, { color: template.color, template: template });
     }
 
     if (template.type === ElementType.Ceiling) {
-      updateCeilingByIndex(wallIndex, { template: template });
+      updateCeilingByIndex(wallIndex, { color: template.color, template: template });
     }
 
     if (template.type === ElementType.Floor) {
-      updateFloorByIndex(wallIndex, { template: template });
+      updateFloorByIndex(wallIndex, { color: template.color, template: template });
     }
 
     // ✅ AGREGAR: Reset completo del estado de drag
@@ -588,6 +589,7 @@ export default function DrawingScene() {
       ...wall,
       id: crypto.randomUUID(),
       wallIndex: idx,
+      color: wall.template.color,
       template: wall.template ?? null,
       area: wall.area ?? 0,
       currentCondition: wall.currentCondition ?? "default",
@@ -671,13 +673,7 @@ export default function DrawingScene() {
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [menuVisible]);
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setMenuPosition({ x: e.clientX, y: e.clientY });
-    setMenuVisible(true);
-  };
+  }, [menuVisible]); 
 
   return (
     <div

@@ -14,7 +14,7 @@ interface DrawingLine {
 
 interface DrawingState {
   currentPoints: THREE.Vector3[];
-  currentLines: DrawingLine[]; // Nuevo array para líneas con propiedades
+  currentLines: DrawingLine[];
   currentHoleLines: [THREE.Vector3, THREE.Vector3][];
   currentHoles: { from: THREE.Vector3; to: THREE.Vector3 }[];
   savedPointsForExtrusion: THREE.Vector3[];

@@ -45,6 +45,7 @@ export interface Wall {
   id: string;
   title: string;
   wallIndex: number;
+  color: string;
   template: AcousticMaterial;
   start: { x: number; z: number };
   end: { x: number; z: number };

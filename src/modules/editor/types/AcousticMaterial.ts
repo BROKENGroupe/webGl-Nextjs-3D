@@ -16,6 +16,7 @@ export interface AcousticMaterial {
   catalog: string;
 
   // Flags
+  colorName?: string;
   color?: string;
   doubleLeaf?: boolean;
   lightweightElement?: boolean;
