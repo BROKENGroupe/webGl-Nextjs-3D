@@ -108,72 +108,58 @@ export function LayerPanel({
   const [tab, setTab] = useState("materials");
   const [loading, setLoading] = useState(true);
   const [materialFilter, setMaterialFilter] = useState("");
-  const [paletteMaterials, setPaletteMaterials] = useState<AcousticMaterial[]>(
-    []
-  );
+  const [groupedMaterials, setGroupedMaterials] = useState<Record<
+    string,
+    AcousticMaterial[]
+  > | null>(null);
 
   useEffect(() => {
-    const fetchMaterials = async () => {
+    const fetchAndGroupMaterials = async () => {
+      if (tab !== "materials") {
+        setGroupedMaterials(null);
+        return;
+      }
+
+      setLoading(true);
+      setGroupedMaterials(null);
+
       try {
         const materials = await materialsService.getMaterials();
-        setPaletteMaterials(materials);
 
+        // NOTE: The timeout is to simulate a network request and can be removed.
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
+        const newGroupedMaterials = {
+          Fachadas: materials.filter(
+            (m) =>
+              m.type?.toLowerCase().includes("wall") ||
+              m.type?.toLowerCase().includes("partition")
+          ),
+          Puertas: materials.filter((m) =>
+            m.type?.toLowerCase().includes("door")
+          ),
+          Ventanas: materials.filter((m) =>
+            m.type?.toLowerCase().includes("window")
+          ),
+          Pisos: materials.filter((m) =>
+            m.type?.toLowerCase().includes("floor")
+          ),
+          Techos: materials.filter((m) =>
+            m.type?.toLowerCase().includes("ceiling")
+          ),
+        };
 
+        setGroupedMaterials(newGroupedMaterials);
       } catch (error) {
         console.error("Error fetching materials for palette:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (tab === "materials") {
-      setLoading(true);
-      fetchMaterials();
-      setGroupedMaterials(null);
-      const timer = setTimeout(() => {
-        setGroupedMaterials(GROUPED_MATERIALS); // "Respuesta" de la petición
-        setLoading(false);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-
+    fetchAndGroupMaterials();
   }, [tab]);
-
-  const GROUPED_MATERIALS = {
-    Fachadas: paletteMaterials.filter(
-      (m) =>
-        m.type?.toLowerCase().includes("wall") ||
-        m.type?.toLowerCase().includes("partition")
-    ),
-    Puertas: paletteMaterials.filter((m) =>
-      m.type?.toLowerCase().includes("door")
-    ),
-    Ventanas: paletteMaterials.filter((m) =>
-      m.type?.toLowerCase().includes("window")
-    ),
-    Pisos: paletteMaterials.filter((m) =>
-      m.type?.toLowerCase().includes("floor")
-    ),
-    Techos: paletteMaterials.filter((m) =>
-      m.type?.toLowerCase().includes("ceiling")
-    ),
-  }
-  const [groupedMaterials, setGroupedMaterials] = useState<
-    typeof GROUPED_MATERIALS | null
-  >(null);
   const [showSearch, setShowSearch] = useState(false);
-
-  // Simula petición HTTP al cambiar de tab
-  // useEffect(() => {
-  //   if (tab === "materials") {
-  //     setLoading(true);
-  //     setGroupedMaterials(null);
-  //     const timer = setTimeout(() => {
-  //       setGroupedMaterials(GROUPED_MATERIALS); // "Respuesta" de la petición
-  //       setLoading(false);
-  //     }, 1500);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [tab]);
 
   const handleTabChange = (value: string) => {
     setTab(value);
