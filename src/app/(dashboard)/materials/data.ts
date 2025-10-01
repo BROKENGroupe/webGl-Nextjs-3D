@@ -1,5 +1,7 @@
 // data/materials.ts
-import { Material } from '../../../modules/materials/types/materials';
+
+import { Material } from "@/modules/materials/types/materials";
+
 
 export const ACOUSTIC_MATERIALS: Record<string, Material> = {
     CONCRETE_WALL: {

@@ -132,6 +132,7 @@ export class MaterialService {
 
     const material = new THREE.MeshStandardMaterial({
         // Color dinámico basado en estado
+        
         color: options?.isHovered ? COLORS.hover : (options?.colorBase || COLORS.wall),
         
         // Renderizado de ambas caras para paredes
@@ -144,6 +145,7 @@ export class MaterialService {
         // Transparencia automática si necesaria
         transparent: options?.isDragActive || (options?.opacity !== undefined),
         opacity: options?.opacity ?? 1.0
+        
       });
     
     return material;

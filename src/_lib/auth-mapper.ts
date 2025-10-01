@@ -9,6 +9,7 @@ export interface MappedUser {
   accessToken: string | null;
   refreshToken: string | null;
   permissions: string[] | null;
+  slug: string | null;
 }
 
 /**
@@ -23,6 +24,7 @@ export function mapUserToToken(user: Partial<User>, account?: any): MappedUser {
     accessToken: (user as any).accessToken || account?.access_token || null,
     refreshToken: (user as any).refreshToken || null,
     permissions: (user as any).permissions ?? null,
+    slug: (user as any).tenantSlug ?? null,
   };
 }
 

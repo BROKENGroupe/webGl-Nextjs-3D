@@ -3,21 +3,21 @@
 import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { ElementType } from "@/modules/editor/types/walls";
-
-// Components
-import { PageHeader } from '../../../modules/materials/components/PageHeader';
-import { MaterialsFilters } from '../../../modules/materials/components/MaterialsFilters';
-import { MaterialCard } from '../../../modules/materials/components/MaterialCard';
-import { MaterialsTable } from '../../../modules/materials/components/MaterialsTable';
-import { MaterialDetailModal } from '../../../modules/materials/components/MaterialDetailModal';
-import { CreateMaterialModal } from '../../../modules/materials/components/CreateMaterialModal';
-import { EditMaterialModal } from '../../../modules/materials/components/EditMaterialModal';
-import { DeleteConfirmationModal } from '../../../modules/materials/components/DeleteConfirmationModal';
-import { EmptyState } from '../../../modules/materials/components/EmptyState';
+import { CreateMaterialModal } from '@/modules/materials/components/CreateMaterialModal';
+import { DeleteConfirmationModal } from '@/modules/materials/components/DeleteConfirmationModal';
+import { EditMaterialModal } from '@/modules/materials/components/EditMaterialModal';
+import { EmptyState } from '@/modules/materials/components/EmptyState';
+import { MaterialCard } from '@/modules/materials/components/MaterialCard';
+import { MaterialDetailModal } from '@/modules/materials/components/MaterialDetailModal';
+import { MaterialsFilters } from '@/modules/materials/components/MaterialsFilters';
+import { MaterialsTable } from '@/modules/materials/components/MaterialsTable';
+import { PageHeader } from '@/modules/materials/components/PageHeader';
+import { useMaterials } from '@/modules/materials/hooks/useMaterials';
 import { Skeleton } from '@/shared/ui/skeleton';
 
-// Hooks
-import { useMaterials } from '../../../modules/materials/hooks/useMaterials';
+
+
+
 
 const MaterialsViewer = () => {
   const {

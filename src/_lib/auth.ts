@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (user && user.accessToken) {
-            console.log('[user auth] Credentials', user);
+            //console.log('[user auth] Credentials', user);
             
             const mapped = mapUserToToken({
               id: user.id,
@@ -46,6 +46,7 @@ export const authOptions: NextAuthOptions = {
               accessToken: user.accessToken,
               refreshToken: user.refreshToken,
               permissions: user.permissions ?? [],
+              slug: '5454554545454545', // <-- agrega esto si lo tienes
             });
 
             return mapped as any;
@@ -144,6 +145,13 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }: { session: any; token: any }) {
       return mapTokenToSession(token, session);
     },
+
+    // async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
+    //   console.log('Redirecting to:', token, user);
+    //   // If there is a slug in the token or user, redirect to their dashboard
+    //   const slug = token?.slug || user?.slug || "david-velez";
+    //   return `${baseUrl}/${slug}/home`;
+    // },
   },
   pages: {
     signIn: '/auth/login',

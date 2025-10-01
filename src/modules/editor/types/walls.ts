@@ -1,7 +1,7 @@
 import { wallCeramicBrick, wallConcreteBlock, wallGypsumBoard } from "@/data/acousticWalls";
 import { AcousticMaterial, ThirdOctave } from "./AcousticMaterial";
 import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
-import { ceilingAcousticPanel, ceilingConcreteSlab } from "@/data/acousticCeilings";
+import { ceilingAcousticPanel, ceilingConcreteSlab, ceilingGypsumBoard, ceilingMetalPanel, ceilingMineralWool } from "@/data/acousticCeilings";
 
 export type WallCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged';
 
@@ -75,7 +75,9 @@ export const FLOOR_TEMPLATES: Record<string, AcousticMaterial> = {
 export const CEILING_TEMPLATES: Record<string, AcousticMaterial> = {
   "ceiling-concrete-slab": ceilingConcreteSlab,
   "ceiling-acoustic-panel": ceilingAcousticPanel,
-  // puedes agregar más tipos aquí
+  "ceiling-metal-panel": ceilingMetalPanel,
+  "ceiling-mineral-wool": ceilingMineralWool,
+  "ceiling-gypsum-board": ceilingGypsumBoard
 };
 
 export const calculateWallAcousticRating = (wall: Wall): 'A' | 'B' | 'C' | 'D' | 'E' => {

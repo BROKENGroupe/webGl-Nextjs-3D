@@ -47,6 +47,9 @@ import {
 import {
   ceilingAcousticPanel,
   ceilingConcreteSlab,
+  ceilingGypsumBoard,
+  ceilingMetalPanel,
+  ceilingMineralWool,
 } from "@/data/acousticCeilings";
 import { MaterialSkeletonGrid } from "./MaterialSkeletonGrid";
 import { MaterialSearchInput } from "./MaterialSearchInput";
@@ -78,6 +81,9 @@ const PALETTE_MATERIALS: AcousticMaterial[] = [
   floorAcousticPanel,
   ceilingConcreteSlab,
   ceilingAcousticPanel,
+  ceilingMetalPanel,
+  ceilingGypsumBoard,
+  ceilingMineralWool,
 ];
 
 const PALETTE_TEMPLATES: AcousticMaterial[] = Object.values(OPENING_TEMPLATES);
@@ -132,12 +138,12 @@ const GROUPED_MATERIALS = {
   Ventanas: PALETTE_MATERIALS.filter((m) =>
     m.type?.toLowerCase().includes("window")
   ),
-  Pisos: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("floor")
-  ),
   Techos: PALETTE_MATERIALS.filter((m) =>
     m.type?.toLowerCase().includes("ceiling")
   ),
+  Pisos: PALETTE_MATERIALS.filter((m) =>
+    m.type?.toLowerCase().includes("floor")
+  )
 };
 
 export type LayerVisibility = Record<string, boolean>;
@@ -263,10 +269,11 @@ export function LayerPanel({
                                     handleOpeningDragEnd(setDraggedItem);
                                   }}
                                   className={`flex flex-col border border-gray-200 rounded-2xl shadow-md bg-white p-5 transition-all
-            ${draggedItem?.descriptor === material.descriptor
-                                    ? "cursor-grabbing"
-                                    : "cursor-grab"
-                                  }
+            ${
+              draggedItem?.descriptor === material.descriptor
+                ? "cursor-grabbing"
+                : "cursor-grab"
+            }
             w-full min-w-0
             hover:shadow-lg
           `}
@@ -361,7 +368,7 @@ export function LayerPanel({
           <TabsContent value="layers">
             <div className="p-4">
               <div className="font-semibold text-sm mb-2">
-                Árbol de Capas en el Modelado
+                Árbol de capas
               </div>
               <LayerTreePanel onSelect={onSelect} />
             </div>

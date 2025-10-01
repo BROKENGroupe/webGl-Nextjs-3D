@@ -29,6 +29,9 @@ import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 import {
   ceilingAcousticPanel,
   ceilingConcreteSlab,
+  ceilingGypsumBoard,
+  ceilingMetalPanel,
+  ceilingMineralWool,
 } from "@/data/acousticCeilings";
 import { ElementType } from "../../types/walls";
 
@@ -60,6 +63,9 @@ const acousticMaterialsData = [
   floorAcousticPanel,
   ceilingConcreteSlab,
   ceilingAcousticPanel,
+  ceilingMetalPanel,
+  ceilingGypsumBoard,
+  ceilingMineralWool
 ];
 
 const typeOptions = [

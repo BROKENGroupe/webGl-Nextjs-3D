@@ -25,7 +25,7 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
   showHeatmap?: boolean;
   onToggleHeatmap?: () => void;
   onAddFloor?: () => void;
-  floors?: any[];
+  floors2?: any[];
   onWallContextMenu?: (
     event: any,
     facadeName: number,
@@ -39,7 +39,7 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
     elementType: ElementType
   ) => void;
   openings: any[];
-  ceilings: any[];
+  ceilings2: any[];
   onCeilingContextMenu?: (
     event: any,
     facadeName: string,
@@ -64,12 +64,11 @@ export function ExtrudedShapeWithDraggableOpenings({
   onOpeningContextMenu,
   onCeilingContextMenu,
   onFloorContextMenu,
-  floors = [],
+  floors2 = [],
   openings,
-  ceilings,
+  ceilings2,
 }: ExtrudedShapeWithDraggableOpenings2Props) {
-
-  const { walls } = useWallsStore();
+  const { walls, ceilings, floors } = useWallsStore();
   // Altura de la habitación (puedes recibirla por props o definirla aquí)
   const depth = 3;
   const { planeXZCoordinates, hasPlaneCoordinates } = useDrawingStore();
@@ -141,12 +140,12 @@ export function ExtrudedShapeWithDraggableOpenings({
   // Renderizado
   return (
     <group>
-      {floors.map((floor, index) => (
-        <RoomFloor
-          key={`floor-${index}`}
-          geometry={floorGeometry}
-          floorIndex={index}
+      {ceilings2.map((cl, index) => (
+        <RoomCeiling
+          key={`ceiling-${index}`}
+          geometry={ceilingGeometry}
           material={MaterialService.getWallMaterial({
+            colorBase: ceilings[index]?.color || COLORS.ceiling,
             isHovered:
               (wallInteractions.hoveredWall === index &&
                 (isDragActive || openingDrag.isDraggingOpening)) ||
@@ -154,15 +153,31 @@ export function ExtrudedShapeWithDraggableOpenings({
             isDragActive: isDragActive || openingDrag.isDraggingOpening,
             opacity: isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
           })}
-          floorId={floor.id}
+          ceilingId={cl.id}
+          ceilingIndex={index}
           eventHandlers={{
+            onPointerEnter: (e: any) => {
+              e.stopPropagation();
+              wallInteractions.handleWallPointerEnter(index);
+            },
+            onPointerLeave: wallInteractions.handleWallPointerLeave,
+            onPointerMove: (e: any) =>
+              openingDrag.handleMouseMove(
+                e,
+                wallInteractions.calculatePositionFromMouse
+              ),
+            onClick: (e: any) => {
+              e.stopPropagation();
+              wallInteractions.handleWallClick(index, e);
+            },
             onContextMenu: (e: any) => {
-              if (onFloorContextMenu) {
-                onFloorContextMenu(
+              e.stopPropagation();
+              if (onCeilingContextMenu) {
+                onCeilingContextMenu(
                   e.nativeEvent,
-                  floor.id,
-                  floor.title,
-                  ElementType.Floor
+                  cl.id,
+                  cl.title,
+                  ElementType.Ceiling
                 );
               }
             },
@@ -173,8 +188,8 @@ export function ExtrudedShapeWithDraggableOpenings({
       {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
         const nextCoord = coordinatesToUse[nextIndex];
-        const wallOpenings = GeometryEngine.getOpeningsForWall(openings, index); 
-        
+        const wallOpenings = GeometryEngine.getOpeningsForWall(openings, index);
+
         const wall = walls[index];
         const wallColor = wall?.color ?? "#f21111ff";
 
@@ -194,16 +209,22 @@ export function ExtrudedShapeWithDraggableOpenings({
             })}
             wallIndex={index}
             eventHandlers={{
-              onPointerEnter: () =>
-                wallInteractions.handleWallPointerEnter(index),
+              onPointerEnter: (e: any) => {
+                e.stopPropagation();
+                wallInteractions.handleWallPointerEnter(index);
+              },
               onPointerLeave: wallInteractions.handleWallPointerLeave,
               onPointerMove: (e: any) =>
                 openingDrag.handleMouseMove(
                   e,
                   wallInteractions.calculatePositionFromMouse
                 ),
-              onClick: (e: any) => wallInteractions.handleWallClick(index, e),
+              onClick: (e: any) => {
+                e.stopPropagation();
+                wallInteractions.handleWallClick(index, e);
+              },
               onContextMenu: (e: any) => {
+                e.stopPropagation();
                 if (onWallContextMenu) {
                   onWallContextMenu(
                     e.nativeEvent,
@@ -256,12 +277,14 @@ export function ExtrudedShapeWithDraggableOpenings({
           </RoomWall>
         );
       })}
-      
-      {ceilings.map((ceiling, index) => (
-        <RoomCeiling
-          key={`ceiling-${index}`}
-          geometry={ceilingGeometry}
+
+      {floors2.map((fl, index) => (
+        <RoomFloor
+          key={`floor-${index}`}
+          geometry={floorGeometry}
+          floorIndex={index}
           material={MaterialService.getWallMaterial({
+            colorBase: floors2[index]?.color || COLORS.ceiling,
             isHovered:
               (wallInteractions.hoveredWall === index &&
                 (isDragActive || openingDrag.isDraggingOpening)) ||
@@ -269,16 +292,30 @@ export function ExtrudedShapeWithDraggableOpenings({
             isDragActive: isDragActive || openingDrag.isDraggingOpening,
             opacity: isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
           })}
-          ceilingId={ceiling.id}
-          ceilingIndex={index}
+          floorId={fl.id}
           eventHandlers={{
+            onPointerEnter: (e: any) => {
+              e.stopPropagation();
+              wallInteractions.handleWallPointerEnter(index);
+            },
+            onPointerLeave: wallInteractions.handleWallPointerLeave,
+            onPointerMove: (e: any) =>
+              openingDrag.handleMouseMove(
+                e,
+                wallInteractions.calculatePositionFromMouse
+              ),
+            onClick: (e: any) => {
+              e.stopPropagation();
+              wallInteractions.handleWallClick(index, e);
+            },
             onContextMenu: (e: any) => {
-              if (onCeilingContextMenu) {
-                onCeilingContextMenu(
+              e.stopPropagation();
+              if (onFloorContextMenu) {
+                onFloorContextMenu(
                   e.nativeEvent,
-                  ceiling.id,
-                  ceiling.title,
-                  ElementType.Ceiling
+                  fl.id,
+                  fl.title,
+                  ElementType.Floor
                 );
               }
             },

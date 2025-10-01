@@ -67,3 +67,99 @@ export const ceilingAcousticPanel: AcousticMaterial = {
     width: 1.0,
     bottomOffset: 0
 };
+
+// Techo de panel metálico acústico
+export const ceilingMetalPanel: AcousticMaterial = {
+    id: "ceiling-metal-panel",
+    descriptor: "Metal Acoustic Panel Ceiling",
+    subtype: "Metal panel",
+    type: "ceiling",
+    thickness_mm: 30.0,
+    mass_kg_m2: 18.0,
+    catalog: "insonor Catalog",
+    colorName: "Silver",
+    color: "#C0C0C0", // Silver
+    doubleLeaf: false,
+    lightweightElement: true,
+    layers: [
+        { name: "Metal acoustic panel", thickness_mm: 30.0 },
+    ],
+    thirdOctaveBands: {
+        50: 18.0, 63: 19.0, 80: 20.0, 100: 21.0, 125: 22.0, 160: 23.0,
+        200: 24.0, 250: 25.0, 315: 26.0, 400: 27.0, 500: 28.0, 630: 29.0,
+        800: 30.0, 1000: 31.0, 1250: 32.0, 1600: 33.0, 2000: 34.0,
+        2500: 35.0, 3150: 36.0, 4000: 37.0, 5000: 37.0,
+    },
+    octaveBands: [
+        { range: "100-3150", value: "28(-3;-5)" },
+        { range: "125-4000", value: "28(-3;-5)" },
+    ],
+    weightedIndex: { Rw: 28, C: -3, Ctr: -5 },
+    height: 0.03,
+    width: 1.0,
+    bottomOffset: 0
+};
+
+// Techo de lana mineral suspendida
+export const ceilingMineralWool: AcousticMaterial = {
+    id: "ceiling-mineral-wool",
+    descriptor: "Mineral Wool Suspended Ceiling",
+    subtype: "Mineral wool panel",
+    type: "ceiling",
+    thickness_mm: 60.0,
+    mass_kg_m2: 8.0,
+    catalog: "insonor Catalog",
+    colorName: "Beige",
+    color: "#F5DEB3", // Wheat/Beige
+    doubleLeaf: false,
+    lightweightElement: true,
+    layers: [
+        { name: "Mineral wool panel", thickness_mm: 60.0 },
+    ],
+    thirdOctaveBands: {
+        50: 10.0, 63: 11.0, 80: 12.0, 100: 13.0, 125: 14.0, 160: 15.0,
+        200: 16.0, 250: 17.0, 315: 18.0, 400: 19.0, 500: 20.0, 630: 21.0,
+        800: 22.0, 1000: 23.0, 1250: 24.0, 1600: 25.0, 2000: 26.0,
+        2500: 27.0, 3150: 28.0, 4000: 29.0, 5000: 29.0,
+    },
+    octaveBands: [
+        { range: "100-3150", value: "20(-4;-7)" },
+        { range: "125-4000", value: "20(-4;-7)" },
+    ],
+    weightedIndex: { Rw: 20, C: -4, Ctr: -7 },
+    height: 0.06,
+    width: 1.0,
+    bottomOffset: 0
+};
+
+// Techo de yeso acústico
+export const ceilingGypsumBoard: AcousticMaterial = {
+    id: "ceiling-gypsum-board",
+    descriptor: "Gypsum Board Acoustic Ceiling",
+    subtype: "Gypsum board",
+    type: "ceiling",
+    thickness_mm: 25.0,
+    mass_kg_m2: 9.0,
+    catalog: "insonor Catalog",
+    colorName: "Light Blue",
+    color: "#B0C4DE", // Light Steel Blue
+    doubleLeaf: false,
+    lightweightElement: true,
+    layers: [
+        { name: "Gypsum board", thickness_mm: 25.0 },
+    ],
+    thirdOctaveBands: {
+        50: 14.0, 63: 15.0, 80: 16.0, 100: 17.0, 125: 18.0, 160: 19.0,
+        200: 20.0, 250: 21.0, 315: 22.0, 400: 23.0, 500: 24.0, 630: 25.0,
+        800: 26.0, 1000: 27.0, 1250: 28.0, 1600: 29.0, 2000: 30.0,
+        2500: 31.0, 3150: 32.0, 4000: 33.0, 5000: 33.0,
+    },
+    octaveBands: [
+        { range: "100-3150", value: "22(-3;-6)" },
+        { range: "125-4000", value: "22(-3;-6)" },
+    ],
+    weightedIndex: { Rw: 22, C: -3, Ctr: -6 },
+    height: 0.025,
+    width: 1.0,
+    bottomOffset: 0
+};

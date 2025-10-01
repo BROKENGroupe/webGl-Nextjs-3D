@@ -1,5 +1,6 @@
-import React from "react";
-import * as THREE from "three";
+import React, { useState } from "react";
+import { Edges } from "@react-three/drei";
+import { COLORS } from "@/config/materials";
 
 export function RoomWall({
   geometry,
@@ -15,14 +16,28 @@ export function RoomWall({
   eventHandlers: any;
   children?: React.ReactNode;
 }) {
+  const [hovered, setHovered] = useState(false);
 
   return (
     <mesh
+      castShadow
+      receiveShadow
       geometry={geometry}
       {...eventHandlers}
       userData={{ wallIndex, type: "wall" }}
+      onPointerOver={(event) => {
+        event.stopPropagation();
+        document.body.style.cursor = "pointer";
+        setHovered(true);
+      }}
+      onPointerOut={(event) => {
+        event.stopPropagation();
+        document.body.style.cursor = "auto";
+        setHovered(false);
+      }}
     >
       <primitive object={material} />
+      {hovered && <Edges color={COLORS.hover} />}
       {children}
     </mesh>
   );

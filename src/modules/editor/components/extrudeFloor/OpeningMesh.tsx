@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import { COLORS } from "@/config/materials";
+import { Edges } from "@react-three/drei";
+import React, { useState, useMemo } from "react";
 import * as THREE from "three";
 
 export function OpeningMesh({
@@ -28,6 +30,17 @@ export function OpeningMesh({
   const dz = nextCoord.z - coord.z;
   const wallAngle = Math.atan2(dz, dx);
 
+  // Memoiza la geometría del borde
+  const edgeGeometry = useMemo(
+    () =>
+      new THREE.BoxGeometry(
+        opening.width ?? 0.8,
+        opening.height ?? 1.2,
+        0.01
+      ),
+    [opening.width, opening.height]
+  );
+
   return (
     <group>
       <mesh
@@ -35,6 +48,7 @@ export function OpeningMesh({
         rotation={[0, -wallAngle, 0]}
         {...eventHandlers}
         onPointerEnter={(e) => {
+          e.stopPropagation();
           setHovered(true);
           document.body.style.cursor = "pointer";
           if (eventHandlers?.onPointerEnter) eventHandlers.onPointerEnter(e);
@@ -62,21 +76,7 @@ export function OpeningMesh({
           opacity={0.1}
         />
         {/* Borde resaltado solo en hover */}
-        {hovered && (
-          <lineSegments>
-            <edgesGeometry
-              attach="geometry"
-              args={[
-                new THREE.BoxGeometry(
-                  opening.width ?? 0.8,
-                  opening.height ?? 0,
-                  0.01
-                ),
-              ]}
-            />
-            <lineBasicMaterial color="#1c37ceff" linewidth={1} />
-          </lineSegments>
-        )}
+        {hovered && <Edges color={COLORS.hover} lineWidth={2} />}
       </mesh>
     </group>
   );

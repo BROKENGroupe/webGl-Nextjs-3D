@@ -30,7 +30,7 @@ export default function OpeningContextMenu({
 }: OpeningContextMenuProps) {
   if (!visible) return null;
 
-  const { updateOpening, openings } = useOpeningsStore();
+  const { updateOpening, openings, removeOpening } = useOpeningsStore();
 
   // Obtener el título de la abertura por openingId
   const opening = openings.find((opening) => opening.id === openingId);
@@ -43,6 +43,11 @@ export default function OpeningContextMenu({
     // Llamar a la función específica del storage para actualizar la abertura
     onUpdateOpening?.(openingId, newName);
     updateOpening(openingId, { title: newName });
+  };
+
+  const handleDelete = () => {
+    removeOpening(openingId);
+    onClose();
   };
 
   return (
@@ -85,7 +90,7 @@ export default function OpeningContextMenu({
             cursor: "pointer",
           }}
           onClick={() => {
-            onProperties();
+            handleDelete();
             onClose();
           }}
         >

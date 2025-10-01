@@ -680,7 +680,7 @@ export default function DrawingScene() {
       className={`w-full relative ${
         isDragActive ? "cursor-grabbing" : "cursor-default"
       }`}
-      style={{ height: "93vh" }}
+      style={{ height: "93.5vh" }}
     >
       <Canvas
         camera={{ position: [10, 10, 10], fov: 50 }}
@@ -726,13 +726,13 @@ export default function DrawingScene() {
             showHeatmap={showHeatmap}
             onToggleHeatmap={handleToggleHeatmap}
             onAddFloor={handleAddFloor}
-            floors={floors}
+            floors2={floors}
             onWallContextMenu={handleWallContextMenu}
             onOpeningContextMenu={handleOpeningContextMenu}
             onCeilingContextMenu={handleCeilingContextMenu}
             onFloorContextMenu={handleFloorContextMenu}
             openings={openings}
-            ceilings={ceilings}
+            ceilings2={ceilings}
           />
         )}
       </Canvas>
