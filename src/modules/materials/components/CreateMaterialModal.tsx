@@ -62,8 +62,8 @@ const getInitialFormData = (): FormData => ({
   descriptor: '',
   subtype: '',
   type: 'wall',
-  thickness: 0,
-  mass: 0,
+  thickness_mm: 0,
+  mass_kg_m2: 0,
   catalog: '',
   color: '',
   doubleLeaf: false,
@@ -165,8 +165,8 @@ export const CreateMaterialModal: React.FC<CreateMaterialModalProps> = ({ isOpen
       case 1: // Physical Properties
       console.log(formData.layers.length)
         if ((formData.density || 0) <= 0) newErrors.density = 'La densidad debe ser > 0';
-        if (formData.thickness <= 0) newErrors.thickness = 'El espesor debe ser > 0';
-        if (formData.mass <= 0) newErrors.mass = 'La masa debe ser > 0';
+        if (formData.thickness_mm <= 0) newErrors.thickness = 'El espesor debe ser > 0';
+        if (formData.mass_kg_m2 <= 0) newErrors.mass = 'La masa debe ser > 0';
         if (formData.layers.length > 0) newErrors.layers = 'Deben de haber al menos 1 capa';
         break;
       // case 2: // Acoustic Properties
@@ -281,10 +281,10 @@ export const CreateMaterialModal: React.FC<CreateMaterialModalProps> = ({ isOpen
                   <input type="number" placeholder="Densidad (kg/m³)" value={formData.density} onChange={e => updateFormData('density', Number(e.target.value))} className="w-full p-2 border rounded" />
                 </FormField>
                 <FormField label="Espesor (mm)" tooltip="El espesor del material en milímetros." error={errors.thickness}>
-                  <input type="number" placeholder="Espesor (mm)" value={formData.thickness} onChange={e => updateFormData('thickness', Number(e.target.value))} className="w-full p-2 border rounded" />
+                  <input type="number" placeholder="Espesor (mm)" value={formData.thickness_mm} onChange={e => updateFormData('thickness_mm', Number(e.target.value))} className="w-full p-2 border rounded" />
                 </FormField>
                 <FormField label="Masa (kg/m²)" tooltip="La masa por unidad de superficie del material." error={errors.mass}>
-                  <input type="number" placeholder="Masa (kg/m²)" value={formData.mass} onChange={e => updateFormData('mass', Number(e.target.value))} className="w-full p-2 border rounded" />
+                  <input type="number" placeholder="Masa (kg/m²)" value={formData.mass_kg_m2} onChange={e => updateFormData('mass_kg_m2', Number(e.target.value))} className="w-full p-2 border rounded" />
                 </FormField>
 
 
@@ -308,7 +308,7 @@ export const CreateMaterialModal: React.FC<CreateMaterialModalProps> = ({ isOpen
                       <input
                         type="number"
                         placeholder="Espesor (mm)"
-                        value={layer.thickness}
+                        value={layer.thickness_mm}
                         onChange={e => handleLayerChange(index, 'thickness', e.target.value)}
                         className="w-full p-2 border rounded"
                       />
