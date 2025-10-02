@@ -1,6 +1,7 @@
 // utils/materials.ts
 
-import { MATERIAL_CATEGORIES } from '@/app/[id]/(dashboard)/materials/data';
+
+import { MATERIAL_CATEGORIES } from '@/app/(dashboard)/materials/data';
 import { MaterialType } from '../types/materials';
 
 // Store para nombres de materiales dinámicos
