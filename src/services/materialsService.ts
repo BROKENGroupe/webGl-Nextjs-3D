@@ -1,15 +1,16 @@
 // services/materialsService.ts
 import { Material, MaterialType, CreateMaterial } from '@/modules/materials/types/materials';
+import { AcousticMaterial } from '@/modules/materials/types/AcousticMaterial';
 import { apiClient, ApiResponse } from '../core/api/client';
 import { API_CONFIG } from '../core/config/config';
 
 
 
-export interface UpdateMaterialRequest extends Partial<Material> {
+export interface UpdateMaterialRequest extends Partial<AcousticMaterial> {
   id?: string;
 }
 
-export type MaterialResponse = Material & {
+export type MaterialResponse = AcousticMaterial & {
   _id: string;
   created_at: string;
   updated_at: string;
@@ -31,10 +32,10 @@ class MaterialsService {
   /**
    * Obtener todos los materiales con filtros opcionales
    */
-  async getMaterials(params?: GetMaterialsParams): Promise<Material[]> {
+  async getMaterials(params?: GetMaterialsParams): Promise<AcousticMaterial[]> {
     try {
 
-      const response = await apiClient.get<Material[]>(
+      const response = await apiClient.get<AcousticMaterial[]>(
         API_CONFIG.ENDPOINTS.MATERIALS + '/all',
         // params
       );
@@ -123,7 +124,7 @@ class MaterialsService {
   async updateMaterial(id: string, data: UpdateMaterialRequest): Promise<MaterialResponse> {
     try {
       if (data.reference || data.thirdOctaveBands) {
-        this.validateMaterialData(data as Material);
+        this.validateMaterialData(data as AcousticMaterial);
       }
 
       return await apiClient.put<MaterialResponse>(
@@ -183,9 +184,9 @@ class MaterialsService {
   /**
    * Obtener categorías disponibles
    */
-  async getCategories(): Promise<{ value: Material; label: string }[]> {
+  async getCategories(): Promise<{ value: AcousticMaterial; label: string }[]> {
     try {
-      return await apiClient.get<{ value: Material; label: string }[]>(
+      return await apiClient.get<{ value: AcousticMaterial; label: string }[]>(
         API_CONFIG.ENDPOINTS.MATERIAL_CATEGORIES
       );
     } catch (error) {
@@ -226,15 +227,15 @@ class MaterialsService {
   /**
    * Validar datos del material
    */
-  private validateMaterialData(data: Partial<Material>): void {
+  private validateMaterialData(data: Partial<AcousticMaterial>): void {
     const errors: string[] = [];
 
     if (!data.name?.trim()) errors.push('Material name is required');
     if (!data.reference?.trim()) errors.push('Material reference is required');
     if (!data.description?.trim()) errors.push('Material description is required');
     if ((data.density ?? 0) <= 0) errors.push('Density must be a positive number');
-    if ((data.thickness_mm ?? 0) <= 0) errors.push('Thickness must be a positive number');
-    if ((data.mass_kg_m2 ?? 0) <= 0) errors.push('Mass must be a positive number');
+    if ((data.thickness ?? 0) <= 0) errors.push('Thickness must be a positive number');
+    if ((data.mass ?? 0) <= 0) errors.push('Mass must be a positive number');
     if (!data.type?.trim()) errors.push('Type is required');
     if (!data.subtype?.trim()) errors.push('Subtype is required');
     if (!data.descriptor?.trim()) errors.push('Descriptor is required');

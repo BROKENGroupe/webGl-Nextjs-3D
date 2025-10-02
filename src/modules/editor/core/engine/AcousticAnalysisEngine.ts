@@ -19,7 +19,7 @@
 
 
 import { Wall } from '@/modules/editor/types/walls';
-import { AcousticMaterial, ThirdOctave } from '@/modules/editor/types/AcousticMaterial';
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 import { ISO12354_4Engine } from '../engineMath/ISO12354_4Engine';
 import { Opening } from '../../types/openings';
 

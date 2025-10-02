@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AcousticMaterial } from '@/modules/editor/types/AcousticMaterial';
+import { AcousticMaterial } from '@/modules/materials/types/AcousticMaterial';
 
 export function useDragAndDrop() {
   const [isDragActive, setIsDragActive] = useState(false);

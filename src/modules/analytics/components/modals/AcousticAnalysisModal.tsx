@@ -39,7 +39,7 @@ import {
   Settings
 } from 'lucide-react';
 import { Badge } from '@/shared/ui/badge';
-import { AcousticMaterial, ThirdOctave } from '@/modules/editor/types/AcousticMaterial';
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 import { useIsoResultStore } from '@/modules/editor/store/isoResultStore';
 import { Button } from '@/shared/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/shared/ui/card';

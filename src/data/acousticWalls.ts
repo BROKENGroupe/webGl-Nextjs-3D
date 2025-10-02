@@ -1,4 +1,4 @@
-import { AcousticMaterial } from "../modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 // Muro de ladrillo cerámico
 export const wallCeramicBrick: AcousticMaterial = {
@@ -9,7 +9,6 @@ export const wallCeramicBrick: AcousticMaterial = {
     thickness_mm: 397.0,
     mass_kg_m2: 602.3,
     catalog: "insonor Catalog",
-    colorName: "Brown/Red",
     color: "#B55239",
     doubleLeaf: false,
     lightweightElement: false,
@@ -45,7 +44,6 @@ export const wallConcreteBlock: AcousticMaterial = {
     thickness_mm: 200.0,
     mass_kg_m2: 320.0,
     catalog: "insonor Catalog",
-    colorName: "Gray",
     color: "#A0A0A0",
     doubleLeaf: false,
     lightweightElement: false,
@@ -82,7 +80,6 @@ export const wallGypsumBoard: AcousticMaterial = {
     mass_kg_m2: 42.0,
     catalog: "insonor Catalog",
     color: "#F5F5F5",
-    colorName: "White",
     doubleLeaf: true,
     lightweightElement: true,
     layers: [
@@ -117,7 +114,6 @@ export const wallThinBrickPartition: AcousticMaterial = {
     thickness_mm: 70.0,
     mass_kg_m2: 95.0,
     catalog: "insonor Catalog",
-    colorName: "LightBrown",
     color: "#D2B48C",
     doubleLeaf: false,
     lightweightElement: true,
@@ -150,7 +146,6 @@ export const wallLightWoodPanel: AcousticMaterial = {
     thickness_mm: 18.0,
     mass_kg_m2: 12.0,
     catalog: "insnor Catalog",
-    colorName: "Wood",
     color: "#C19A6B",
     doubleLeaf: false,
     lightweightElement: true,

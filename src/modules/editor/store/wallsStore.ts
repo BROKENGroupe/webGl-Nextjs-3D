@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { calculateWallAcousticRating, CEILING_TEMPLATES, FLOOR_TEMPLATES, Wall, WALL_TEMPLATES } from '@/modules/editor/types/walls';
 
-import { AcousticMaterial, ThirdOctave } from '@/modules/editor/types/AcousticMaterial';
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
+
 import { floorConcreteSlab } from "@/data/floors";
 import { Opening } from '../types/openings';
 import { ceilingConcreteSlab } from '@/data/acousticCeilings';

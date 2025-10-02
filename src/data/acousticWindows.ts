@@ -1,4 +1,4 @@
-import { AcousticMaterial } from "../modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 enum WindowSubtypes {
   FloatGlass = "Float Glass",
@@ -138,6 +138,7 @@ export const windowAcoustic: AcousticMaterial = {
   mass_kg_m2: 25,
   catalog: "insonor Catalog",
   color: "Transparent",
+  colorName: "Crystal Clear",
   doubleLeaf: false,
   lightweightElement: false,
   layers: [

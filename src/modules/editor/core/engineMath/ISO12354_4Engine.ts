@@ -1,4 +1,4 @@
-import { AcousticMaterial, ThirdOctave } from "@/modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 /**
  * Clase base para cálculos acústicos según la norma ISO 12354-4.

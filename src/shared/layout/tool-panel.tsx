@@ -32,7 +32,7 @@ import {
   CollapsibleTrigger,
 } from "@/shared/ui/collapsible"
 
-import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial"
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 interface ToolPanelProps {
   isOpen?: boolean

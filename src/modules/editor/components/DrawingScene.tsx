@@ -11,7 +11,9 @@ import React, { useState } from "react";
 import { AcousticAnalysisModal } from "@/modules/analytics/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
 
 import { AppControls } from "@/modules/editor/components/AppControls";
-import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+// import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
+
 import { IsoStudyConfigModal } from "@/modules/editor/components/modals/IsoStudyConfigModal";
 import { useCoordinatesStore } from "@/modules/editor/store/coordinatesStore";
 import { useDrawingStore } from "@/modules/editor/store/drawingStore";

@@ -7,7 +7,11 @@ import {
 } from "@/modules/editor/core/engine/dragOpenings";
 import { Button } from "@/shared/ui/button";
 import { CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
-import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+import {
+  AcousticMaterial,
+  ThirdOctave,
+} from "@/modules/materials/types/AcousticMaterial";
+// import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
 import {
   Accordion,
   AccordionItem,
@@ -15,22 +19,6 @@ import {
   AccordionContent,
 } from "@/shared/ui/accordion";
 import { WALL_TEMPLATES } from "@/modules/editor/types/walls";
-import {
-  wallCeramicBrick,
-  wallConcreteBlock,
-  wallGypsumBoard,
-  wallLightWoodPanel,
-  wallThinBrickPartition,
-} from "@/data/acousticWalls";
-import {
-  windowStandard,
-  windowDoubleGlazed,
-  windowAcoustic,
-  windowLaminated,
-  windowTripleGlazed,
-} from "@/data/acousticWindows";
-import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
-import { floorAcousticPanel, floorConcreteSlab } from "@/data/floors";
 
 import { Skeleton } from "@/shared/ui/skeleton";
 import { useEffect, useState } from "react";
@@ -54,6 +42,24 @@ import {
 import { MaterialSkeletonGrid } from "./MaterialSkeletonGrid";
 import { MaterialSearchInput } from "./MaterialSearchInput";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
+import {
+  wallCeramicBrick,
+  wallConcreteBlock,
+  wallGypsumBoard,
+  wallLightWoodPanel,
+  wallThinBrickPartition,
+} from "@/data/acousticWalls";
+import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
+import {
+  windowStandard,
+  windowDoubleGlazed,
+  windowLaminated,
+  windowAcoustic,
+  windowTripleGlazed,
+} from "@/data/acousticWindows";
+import { floorConcreteSlab, floorAcousticPanel } from "@/data/floors";
+import { materialsService } from "@/services/materialsService";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/shared/ui/select";
 
 type Layer = {
   key: string;
@@ -143,7 +149,7 @@ const GROUPED_MATERIALS = {
   ),
   Pisos: PALETTE_MATERIALS.filter((m) =>
     m.type?.toLowerCase().includes("floor")
-  )
+  ),
 };
 
 export type LayerVisibility = Record<string, boolean>;
@@ -172,23 +178,63 @@ export function LayerPanel({
   const [tab, setTab] = useState("materials");
   const [loading, setLoading] = useState(true);
   const [materialFilter, setMaterialFilter] = useState("");
-  const [groupedMaterials, setGroupedMaterials] = useState<
-    typeof GROUPED_MATERIALS | null
-  >(null);
-  const [showSearch, setShowSearch] = useState(false);
+  const [groupedMaterials, setGroupedMaterials] = useState<Record<
+    string,
+    AcousticMaterial[]
+  > | null>(null);
+  const [dataSource, setDataSource] = useState<"local" | "backend">("local");
 
-  // Simula petición HTTP al cambiar de tab
   useEffect(() => {
-    if (tab === "materials") {
+    const fetchAndGroupMaterials = async () => {
+      if (tab !== "materials") {
+        setGroupedMaterials(null);
+        return;
+      }
+
       setLoading(true);
       setGroupedMaterials(null);
-      const timer = setTimeout(() => {
-        setGroupedMaterials(GROUPED_MATERIALS); // "Respuesta" de la petición
+
+      try {
+        let materials: AcousticMaterial[] = [];
+        if (dataSource === "backend") {
+          materials = await materialsService.getMaterials();
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+        } else {
+          materials = PALETTE_MATERIALS;
+        }
+
+        const newGroupedMaterials = {
+          Fachadas: materials.filter(
+            (m) =>
+              m.type?.toLowerCase().includes("wall") ||
+              m.type?.toLowerCase().includes("partition")
+          ),
+          Puertas: materials.filter((m) =>
+            m.type?.toLowerCase().includes("door")
+          ),
+          Ventanas: materials.filter((m) =>
+            m.type?.toLowerCase().includes("window")
+          ),
+          Pisos: materials.filter((m) =>
+            m.type?.toLowerCase().includes("floor")
+          ),
+          Techos: materials.filter((m) =>
+            m.type?.toLowerCase().includes("ceiling")
+          ),
+        };
+
+        setGroupedMaterials(newGroupedMaterials);
+      } catch (error) {
+        console.error("Error fetching materials for palette:", error);
+      } finally {
         setLoading(false);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [tab]);
+      }
+    };
+
+    fetchAndGroupMaterials();
+  }, [tab, dataSource]);
+
+  const [showSearch, setShowSearch] = useState(false);
 
   const handleTabChange = (value: string) => {
     setTab(value);
@@ -200,8 +246,7 @@ export function LayerPanel({
   };
 
   return (
-    <div className="w-96 border-gray-200 bg-white">
-      <CardHeader className="flex flex-row items-center justify-between pb-2" />
+    <div className="w-96 border-gray-200 bg-white">      
       <CardContent className="p-0">
         <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-2 mb-2">
@@ -367,9 +412,7 @@ export function LayerPanel({
           </TabsContent>
           <TabsContent value="layers">
             <div className="p-4">
-              <div className="font-semibold text-sm mb-2">
-                Árbol de capas
-              </div>
+              <div className="font-semibold text-sm mb-2">Árbol de capas</div>
               <LayerTreePanel onSelect={onSelect} />
             </div>
           </TabsContent>

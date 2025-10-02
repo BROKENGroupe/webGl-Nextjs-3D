@@ -1,6 +1,6 @@
 import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 import { windowStandard, windowDoubleGlazed } from "@/data/acousticWindows";
-import { AcousticMaterial } from "./AcousticMaterial";
+import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 
 export type OpeningType = 'door' | 'window' | 'double-door' | 'sliding-door';

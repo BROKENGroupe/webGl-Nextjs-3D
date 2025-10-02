@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   wallCeramicBrick,
   wallConcreteBlock,
@@ -34,6 +34,8 @@ import {
   ceilingMineralWool,
 } from "@/data/acousticCeilings";
 import { ElementType } from "../../types/walls";
+import { materialsService } from "@/services/materialsService";
+import { AcousticMaterial } from "@/modules/materials/types/AcousticMaterial";
 
 interface MaterialModalProps {
   visible: boolean;
@@ -88,6 +90,9 @@ export default function MaterialModal({
 }: MaterialModalProps) {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [acousticMaterialsData, setAcousticMaterialsData] = useState<
+    AcousticMaterial[]
+  >([]);
   const walls = useWallsStore((state) => state.walls);
   const openings = useOpeningsStore((state) => state.openings);
   const floors = useWallsStore((state) => state.floors);
@@ -98,6 +103,21 @@ export default function MaterialModal({
   );
   const updateFloorMaterial = useWallsStore((state) => state.updateFloor);
   const updateCeilingMaterial = useWallsStore((state) => state.updateCeiling);
+
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const materials = await materialsService.getMaterials();
+        setAcousticMaterialsData(materials);
+      } catch (error) {
+        console.error("Error fetching materials for modal:", error);
+      }
+    };
+
+    if (visible) {
+      fetchMaterials();
+    }
+  }, [visible]);
 
   // Busca el elemento seleccionado según el tipo
   let selectedElement: any = null;
@@ -144,7 +164,7 @@ export default function MaterialModal({
           : true;
       return matchesQuery && matchesType;
     });
-  }, [query, typeFilter]);
+  }, [query, typeFilter, acousticMaterialsData]);
 
   // Handler para seleccionar material según el tipo de elemento
   const handleSelectMaterial = (material: any) => {
@@ -270,7 +290,7 @@ export default function MaterialModal({
                   <ul className="list-disc ml-4 text-sm text-gray-600">
                     {material.layers.map((layer: any, idx: number) => (
                       <li key={idx}>
-                        {layer.name} ({layer.thickness_mm} mm)
+                        {layer.name} ({layer.thickness} mm)
                       </li>
                     ))}
                   </ul>

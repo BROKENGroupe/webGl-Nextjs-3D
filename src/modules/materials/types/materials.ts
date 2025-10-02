@@ -10,6 +10,7 @@ export const THIRD_OCTAVE_BANDS = [
 export type MaterialType = 'ALL' | 'wall' | 'floor' | 'door' | 'window' | 'ceiling' | 'other' ;
 
 export interface Material {
+  id?:string;
   _id?: string;
   name: string;
   description: string;
@@ -20,14 +21,14 @@ export interface Material {
   descriptor: string;
   subtype: string;
   type: MaterialType;
-  thickness_mm: number;
-  mass_kg_m2: number;
+  thickness: number;
+  mass: number;
   catalog: string;
   color?: string;
   doubleLeaf?: boolean;
   lightweightElement?: boolean;
   onElasticBands?: boolean;
-  layers: { name: string; thickness_mm: number }[];
+  layers: { name: string; thickness: number }[];
   thirdOctaveBands: Record<ThirdOctave, number>;
   octaveBands: { range: string; value: string }[];
   weightedIndex?: { Rw: number; C: number; Ctr: number };
