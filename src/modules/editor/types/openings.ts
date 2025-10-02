@@ -17,12 +17,13 @@ export interface Opening {
   wallIndex: number;
   relativePosition: number;
   position: number;
+  color?:string;
   width: number;
   height: number;
   bottomOffset: number;
   template: AcousticMaterial; // Ahora el template es el material real
   currentCondition: 'closed_sealed' | 'closed_unsealed' | 'partially_open' | 'fully_open' | 'damaged';
-  area?: number;
+  area: number;
   acousticRating?: 'A' | 'B' | 'C' | 'D' | 'E';
   constructionDate?: Date;
   lastInspectionDate?: Date;

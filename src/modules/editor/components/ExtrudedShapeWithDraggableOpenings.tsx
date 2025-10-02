@@ -71,7 +71,7 @@ export function ExtrudedShapeWithDraggableOpenings({
   const { walls, ceilings, floors } = useWallsStore();
   // Altura de la habitación (puedes recibirla por props o definirla aquí)
   const depth = 3;
-  const { planeXZCoordinates, hasPlaneCoordinates } = useDrawingStore();
+  const { planeXZCoordinates, hasPlaneCoordinates, currentLines } = useDrawingStore();
   const { updateOpeningPosition } = useOpeningsStore();
   // Validación de coordenadas
   let coordinatesToUse = planeXZCoordinates;
@@ -116,7 +116,7 @@ export function ExtrudedShapeWithDraggableOpenings({
 
   useEffect(() => {
     if (coordinatesToUse.length >= 3) {
-      generateWallsFromCoordinates(coordinatesToUse);
+      generateWallsFromCoordinates(coordinatesToUse, currentLines);
       generateFloorFromCoordinates(coordinatesToUse);
       generateCeilingFromCoordinates(coordinatesToUse);
     }

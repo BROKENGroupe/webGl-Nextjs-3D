@@ -19,6 +19,8 @@ interface FloorCeiling {
   ceilingIndex?: number;
   area: number;
   template: AcousticMaterial;
+  height?: number; // en metros
+  width?: number;  // en metros
 }
 
 interface WallsStore {
@@ -40,7 +42,7 @@ interface WallsStore {
   clearWalls: () => void;
   clearFloors: () => void;
   clearCeilings: () => void;
-  generateWallsFromCoordinates: (coordinates: any[]) => void;
+  generateWallsFromCoordinates: (coordinates: any[], currentLines: any[]) => void;
   calculateCompositeWallSTC: (wall: Wall, openings: Opening[]) => { low: number; mid: number; high: number; average: number };
   calculateRatingFromSTC: (stc: number) => 'A' | 'B' | 'C' | 'D' | 'E';
   analyzeWallWithOpenings: (wallIndex: number, openings: Opening[]) => void;
@@ -70,7 +72,9 @@ export const useWallsStore = create<WallsStore>()(
           area,
           currentCondition: 'excellent',
           start: { x: 0, z: 0 },
-          end: { x: 0, z: 0 }          
+          end: { x: 0, z: 0 },          
+          height: get().wallHeight,
+          width: 0
         };
         console.log('🧱 WallsStore initialized'),
 
@@ -359,7 +363,7 @@ export const useWallsStore = create<WallsStore>()(
         return 'E';
       },
 
-      generateWallsFromCoordinates: (coordinates) => {
+      generateWallsFromCoordinates: (coordinates, currentLines) => {
         // Calcular área del polígono (piso/techo) usando la fórmula de Shoelace
         console.log('🧱 Generando paredes desde coordenadas:', coordinates);
         let totalFloorArea = 0;
@@ -375,7 +379,10 @@ export const useWallsStore = create<WallsStore>()(
         set((state) => {
           const wallHeight = state.wallHeight;
 
-          const updatedWalls = coordinates.map((coord, index) => {
+          const updatedWalls: Wall[] = coordinates.map((coord, index) => {
+
+            const length = currentLines?.[index]?.length || 0;
+
             const nextCoord = coordinates[(index + 1) % coordinates.length];
             const wallLength = Math.sqrt(
               (nextCoord.x - coord.x) ** 2 + (nextCoord.z - coord.z) ** 2
@@ -395,7 +402,9 @@ export const useWallsStore = create<WallsStore>()(
               currentCondition: prevWall?.currentCondition ?? 'excellent',
               start: { x: coord.x, z: coord.z },
               end: { x: nextCoord.x, z: nextCoord.z },
-              acousticRating: undefined
+              acousticRating: undefined,
+              height: wallHeight,
+              width: length
             };
           });
 

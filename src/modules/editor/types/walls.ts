@@ -52,6 +52,8 @@ export interface Wall {
   area: number;
   currentCondition: WallCondition;
   acousticRating?: 'A' | 'B' | 'C' | 'D' | 'E';
+  height: number; // en metros
+  width: number;  // en metros
 }
 
 // ✅ TEMPLATES SIMPLES

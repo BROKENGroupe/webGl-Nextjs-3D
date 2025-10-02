@@ -478,6 +478,8 @@ export default function DrawingScene() {
         title: "Abertura",
         wallIndex,
         position,
+        color: template.color,
+        area: template.width * template.height,
         width: template.width,
         height: template.height,
         bottomOffset: template.bottomOffset,
