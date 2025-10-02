@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { COLORS } from '@/config/materials';
 
 // Tipos para piso y techo (más genéricos)
-interface FloorCeiling {
+export interface FloorCeiling {
   id: string;
   title?: string;
   color: string;
