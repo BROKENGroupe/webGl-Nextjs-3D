@@ -57,8 +57,8 @@ const getInitialFormData = (material: Material | null): Partial<FormData> => {
     picture: material.picture,
     descriptor: material.descriptor,
     subtype: material.subtype,
-    thickness: material.thickness,
-    mass: material.mass,
+    thickness_mm: material.thickness_mm,
+    mass_kg_m2: material.mass_kg_m2,
     catalog: material.catalog,
     color: material.color,
     doubleLeaf: material.doubleLeaf,
@@ -165,8 +165,8 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
         break;
       case 1: // Physical Properties
         if ((formData.density ?? 0) <= 0) newErrors.density = 'La densidad debe ser > 0';
-        if ((formData.thickness ?? 0) <= 0) newErrors.thickness = 'El espesor debe ser > 0';
-        if ((formData.mass ?? 0) <= 0) newErrors.mass = 'La masa debe ser > 0';
+        if ((formData.thickness_mm ?? 0) <= 0) newErrors.thickness_mm = 'El espesor debe ser > 0';
+        if ((formData.mass_kg_m2 ?? 0) <= 0) newErrors.mass_kg_m2 = 'La masa debe ser > 0';
         break;
       // case 2: // Acoustic Properties
       //   if ((formData.rw ?? 0) <= 0) newErrors.rw = 'Rw debe ser > 0';
@@ -273,11 +273,11 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
               <FormField label="Densidad (kg/m³)" tooltip="La densidad del material." error={errors.density}>
                 <input type="number" placeholder="Densidad (kg/m³)" value={formData.density || 0} onChange={e => updateFormData('density', Number(e.target.value))} className="w-full p-2 border rounded" />
               </FormField>
-              <FormField label="Espesor (mm)" tooltip="El espesor del material en milímetros." error={errors.thickness}>
-                <input type="number" placeholder="Espesor (mm)" value={formData.thickness || 0} onChange={e => updateFormData('thickness', Number(e.target.value))} className="w-full p-2 border rounded" />
+              <FormField label="Espesor (mm)" tooltip="El espesor del material en milímetros." error={errors.thickness_mm}>
+                <input type="number" placeholder="Espesor (mm)" value={formData.thickness_mm || 0} onChange={e => updateFormData('thickness_mm', Number(e.target.value))} className="w-full p-2 border rounded" />
               </FormField>
-              <FormField label="Masa (kg/m²)" tooltip="La masa por unidad de superficie del material." error={errors.mass}>
-                <input type="number" placeholder="Masa (kg/m²)" value={formData.mass || 0} onChange={e => updateFormData('mass', Number(e.target.value))} className="w-full p-2 border rounded" />
+              <FormField label="Masa (kg/m²)" tooltip="La masa por unidad de superficie del material." error={errors.mass_kg_m2}>
+                <input type="number" placeholder="Masa (kg/m²)" value={formData.mass_kg_m2 || 0} onChange={e => updateFormData('mass_kg_m2', Number(e.target.value))} className="w-full p-2 border rounded" />
               </FormField>
               <FormField label="Ancho (mm)" tooltip="El ancho del material en milímetros.">
                 <input type="number" placeholder="Ancho (mm)" value={formData.width || 0} onChange={e => updateFormData('width', Number(e.target.value))} className="w-full p-2 border rounded" />
@@ -323,7 +323,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
                 {(formData.layers || []).map((layer, index) => (
                   <div key={index} className="flex gap-2 mb-2 items-center">
                     <input placeholder="Nombre de capa" value={layer.name} onChange={e => handleLayerChange(index, 'name', e.target.value)} className="w-full p-2 border rounded" />
-                    <input type="number" placeholder="Espesor (mm)" value={layer.thickness} onChange={e => handleLayerChange(index, 'thickness', e.target.value)} className="w-full p-2 border rounded" />
+                    <input type="number" placeholder="Espesor (mm)" value={layer.thickness_mm} onChange={e => handleLayerChange(index, 'thickness_mm', e.target.value)} className="w-full p-2 border rounded" />
                     <button onClick={() => removeLayer(index)} className="p-2 bg-red-500 text-white rounded">X</button>
                   </div>
                 ))}

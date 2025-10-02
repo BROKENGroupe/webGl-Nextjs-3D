@@ -10,7 +10,7 @@ import {
 
 export const useMaterials = () => {
   // Main data and view state
-  const [materials, setMaterials] = useState<Material[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
   // Loading and error states
@@ -38,7 +38,7 @@ export const useMaterials = () => {
         sort_by: 'name',
         sort_order: 'asc',
       };
-      const response: Material[] | undefined = await materialsService.getMaterials(params);
+      const response: any[] | undefined = await materialsService.getMaterials(params);
 
       console.log('Fetched materials:', response);
       if (response) {
@@ -62,7 +62,7 @@ export const useMaterials = () => {
 
   // --- CRUD Handlers ---
 
-  const createMaterial = async (newMaterialData: CreateMaterial) => {
+  const createMaterial = async (newMaterialData: any) => {
     setIsSubmitting(true);
     try {
       console.log('Creating material with data:', newMaterialData);

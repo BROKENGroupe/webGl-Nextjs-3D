@@ -21,14 +21,14 @@ export interface Material {
   descriptor: string;
   subtype: string;
   type: MaterialType;
-  thickness: number;
-  mass: number;
+  thickness_mm: number;
+  mass_kg_m2: number;
   catalog: string;
   color?: string;
   doubleLeaf?: boolean;
   lightweightElement?: boolean;
   onElasticBands?: boolean;
-  layers: { name: string; thickness: number }[];
+  layers: { name: string; thickness_mm: number }[];
   thirdOctaveBands: Record<ThirdOctave, number>;
   octaveBands: { range: string; value: string }[];
   weightedIndex?: { Rw: number; C: number; Ctr: number };

@@ -81,7 +81,7 @@ class MaterialsService {
   /**
    * Crear un nuevo material
    */
-  async createMaterial(data: CreateMaterial): Promise<MaterialResponse> {
+  async createMaterial(data: any): Promise<MaterialResponse> {
     try {
       console.log('Creating material with data:', data);
 
@@ -234,8 +234,8 @@ class MaterialsService {
     if (!data.reference?.trim()) errors.push('Material reference is required');
     if (!data.description?.trim()) errors.push('Material description is required');
     if ((data.density ?? 0) <= 0) errors.push('Density must be a positive number');
-    if ((data.thickness ?? 0) <= 0) errors.push('Thickness must be a positive number');
-    if ((data.mass ?? 0) <= 0) errors.push('Mass must be a positive number');
+    if ((data.thickness_mm ?? 0) <= 0) errors.push('Thickness must be a positive number');
+    if ((data.mass_kg_m2 ?? 0) <= 0) errors.push('Mass must be a positive number');
     if (!data.type?.trim()) errors.push('Type is required');
     if (!data.subtype?.trim()) errors.push('Subtype is required');
     if (!data.descriptor?.trim()) errors.push('Descriptor is required');
