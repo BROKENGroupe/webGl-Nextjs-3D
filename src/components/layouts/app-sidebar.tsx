@@ -43,15 +43,15 @@ const data = {
   },
   teams: [
     {
-      name: "insonor",
+      name: "David´s workspace",
       logo: Home,
       plan: "Professional",
     },
-    {
-      name: "Architecture Studio", 
-      logo: Home,
-      plan: "Premium",
-    },
+    // {
+    //   name: "Architecture Studio", 
+    //   logo: Home,
+    //   plan: "Premium",
+    // },
   ],
   navMain: [
     {
