@@ -47,12 +47,12 @@ export default function RegisterPage() {
         
         console.log("Response from registerUser:", response);
         
-        if (response && response.user) {
+        if (response) {
           // ✅ Guardar en Zustand en lugar de localStorage
           const registerDataToSave = {
-            id: response.user.id,
-            email: response.user.email,
-            name: response.user.name,
+            id: response.id,
+            email: response.email,
+            name: response.name,
             password: data.password
           };
           
