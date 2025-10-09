@@ -53,9 +53,9 @@ export default function RegisterPage() {
             password: data.password
           };
 
-          console.log("✅ Registration response:", response);
+          console.log("✅ Registration response:", registerDataToSave);
 
-          if (response.id == null) {
+          if (response.id == undefined) {
             toast.error("Error: Missing user ID in response");
             return 
           }
