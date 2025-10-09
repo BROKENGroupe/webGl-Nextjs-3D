@@ -34,169 +34,194 @@ import {
   SidebarFooter,
   SidebarHeader
 } from "@/shared/ui/sidebar"
-
-const data = {
-  user: {
-    name: "Arquitecto 3D ff",
-    email: "admin@webgl3d.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "David´s workspace",
-      logo: Home,
-      plan: "Professional",
-    },
-    // {
-    //   name: "Architecture Studio", 
-    //   logo: Home,
-    //   plan: "Premium",
-    // },
-  ],
-  navMain: [
-    {
-      title: "Herramientas de Diseño",
-      url: "#",
-      icon: Move3D,
-      isActive: true,
-      items: [
-        {
-          title: "Creador de Formas",
-          url: "/",
-        },
-        {
-          title: "Editor de Líneas",
-          url: "/line-builder",
-        },
-        {
-          title: "Manipulador 3D",
-          url: "/3d-manipulator",
-        },
-        {
-          title: "Generador de Planos",
-          url: "/floor-plans",
-        },
-      ],
-    },
-    {
-      title: "Biblioteca",
-      url: "#",
-      icon: Layers,
-      items: [
-        {
-          title: "Plantillas de Edificios",
-          url: "/templates",
-        },
-        {
-          title: "Elementos Arquitectónicos", 
-          url: "/elements",
-        },
-        {
-          title: "Materiales y Texturas",
-          url: "/materials",
-        },
-        {
-          title: "Componentes Reutilizables",
-          url: "/components",
-        },
-      ],
-    },
-    {
-      title: "Visualización",
-      url: "#",
-      icon: Eye,
-      items: [
-        {
-          title: "Vista 3D Interactiva", // ✅ Este es el texto que mencionas
-          url: "/viewer",
-        },
-        {
-          title: "Renderizado Avanzado",
-          url: "/render",
-        },
-        {
-          title: "Recorridos Virtuales",
-          url: "/walkthrough",
-        },
-        {
-          title: "Análisis de Iluminación",
-          url: "/lighting",
-        },
-      ],
-    },
-    {
-      title: "Configuración",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "Preferencias de Dibujo",
-          url: "/settings/drawing",
-        },
-        {
-          title: "Configuración de Render",
-          url: "/settings/render",
-        },
-        {
-          title: "Atajos de Teclado",
-          url: "/settings/shortcuts",
-        },
-        {
-          title: "Exportar/Importar", 
-          url: "/settings/export",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Soporte Técnico",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Documentación API",
-      url: "#", 
-      icon: BookOpen,
-    },
-    {
-      title: "Enviar Feedback",
-      url: "#",
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Casa Moderna Minimalista",
-      url: "/projects/modern-house",
-      icon: Home,
-    },
-    // {
-    //   name: "Edificio Corporativo",
-    //   url: "/projects/corporate-building", 
-    //   icon: Frame,
-    // },
-    // {
-    //   name: "Complejo Residencial",
-    //   url: "/projects/residential-complex",
-    //   icon: Grid3X3,
-    // },
-  ],
-}
+import { useAccess } from "@/context/AccessContext"
+import { useTypedSession } from "@/hooks/useTypedSession"
+import { Can } from "@/app/auth/can"
+import { NavMainWithPermissions } from "./NavMainWithPermissions"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { modules, hasPermission, role, workspace } = useAccess();
+  const { session } = useTypedSession();
+
+  // ✅ Validación defensiva para modules
+  const safeModules = Array.isArray(modules) ? modules : [];
+
+  // ✅ Datos dinámicos basados en la sesión
+  const data = {
+    user: {
+      name: session?.user?.name || "Usuario",
+      email: session?.user?.email || "user@example.com",
+      avatar: session?.user?.image?.src || "/avatars/default.jpg",
+    },
+    teams: [
+      {
+        name: workspace?.name || "Mi Workspace",
+        logo: Home,
+        plan: workspace?.accountType === "professional" ? "Professional" : "Básico",
+      },
+    ],
+    navMain: [
+      // ✅ Solo mostrar si tiene el módulo "design" habilitado
+      ...(safeModules.includes("design") ? [{
+        title: "Herramientas de Diseño",
+        url: "#",
+        icon: Move3D,
+        isActive: true,
+        items: [
+          {
+            title: "Creador de Formas",
+            url: "/",
+            permission: "design:create"
+          },
+          {
+            title: "Editor de Líneas", 
+            url: "/line-builder",
+            permission: "design:edit"
+          },
+          {
+            title: "Manipulador 3D",
+            url: "/3d-manipulator", 
+            permission: "3d:manipulate"
+          },
+          {
+            title: "Generador de Planos",
+            url: "/floor-plans",
+            permission: "design:plans"
+          },
+        ],
+      }] : []),
+
+      // ✅ Solo mostrar si tiene el módulo "library" habilitado
+      ...(safeModules.includes("library") ? [{
+        title: "Biblioteca",
+        url: "#",
+        icon: Layers,
+        items: [
+          {
+            title: "Plantillas de Edificios",
+            url: "/templates",
+            permission: "library:read"
+          },
+          {
+            title: "Elementos Arquitectónicos",
+            url: "/elements", 
+            permission: "library:read"
+          },
+          {
+            title: "Materiales y Texturas",
+            url: "/materials",
+            permission: "library:materials"
+          },
+          {
+            title: "Componentes Reutilizables",
+            url: "/components",
+            permission: "library:components"
+          },
+        ],
+      }] : []),
+
+      // ✅ Solo mostrar si tiene el módulo "3d-viewer" habilitado
+      ...(safeModules.includes("render") ? [{
+        title: "Visualización",
+        url: "#", 
+        icon: Eye,
+        items: [
+          {
+            title: "Vista 3D Interactiva",
+            url: "/viewer",
+            permission: "render:view"
+          },
+          {
+            title: "Renderizado Avanzado", 
+            url: "/render",
+            permission: "render:view"
+          },
+          {
+            title: "Recorridos Virtuales",
+            url: "/walkthrough",
+            permission: "render:view"
+          },
+          {
+            title: "Análisis de Iluminación",
+            url: "/lighting", 
+            permission: "render:view"
+          },
+        ],
+      }] : []),
+
+      // ✅ Solo mostrar si tiene el módulo "settings" o es owner/admin
+      ...((safeModules.includes("settings") || ["owner", "admin"].includes(role ?? "")) ? [{
+        title: "Configuración",
+        url: "#",
+        icon: Settings2,
+        items: [
+          {
+            title: "Preferencias de Dibujo",
+            url: "/settings/drawing",
+            permission: "settings:drawing"
+          },
+          {
+            title: "Configuración de Render", 
+            url: "/settings/render",
+            permission: "settings:render"
+          },
+          {
+            title: "Atajos de Teclado",
+            url: "/settings/shortcuts",
+            permission: "settings:shortcuts"
+          },
+          {
+            title: "Exportar/Importar",
+            url: "/settings/export",
+            permission: "settings:export"
+          },
+        ],
+      }] : []),
+    ],
+    navSecondary: [
+      {
+        title: "Soporte Técnico",
+        url: "#",
+        icon: LifeBuoy,
+      },
+      {
+        title: "Documentación API", 
+        url: "#",
+        icon: BookOpen,
+      },
+      {
+        title: "Enviar Feedback",
+        url: "#",
+        icon: Send,
+      },
+    ],
+    projects: [
+      // ✅ Usar hasPermission en lugar de permissions.includes
+      ...(hasPermission("projects:view") ? [{
+        name: "Casa Moderna Minimalista",
+        url: "/projects/modern-house",
+        icon: Home,
+      }] : []),
+    ],
+  };
+
   return (
     <Sidebar 
-      variant="sidebar" // ✅ CAMBIAR: de "inset" a "sidebar" para comportamiento correcto
-      collapsible="icon"  // ✅ AGREGAR: permite colapsar mostrando solo iconos
+      variant="sidebar"
+      collapsible="icon"
       {...props}
     >
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* ✅ Pasar la función hasPermission */}
+        <NavMainWithPermissions items={data.navMain} hasPermission={hasPermission} />
+        
+        <Can permission="projects:view">
+          <NavProjects projects={data.projects} />
+        </Can>
+        
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
@@ -205,3 +230,4 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
+

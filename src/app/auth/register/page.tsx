@@ -10,8 +10,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import router from "next/router";
-import { registerUser } from "@/services/userService";
+import { registerAccount, registerUser } from "@/services/userService";
 import { sign } from "crypto";
 import { signIn } from "next-auth/react";
 
@@ -24,6 +23,8 @@ const schema = z.object({
 });
 export default function RegisterPage() {
   const [isPending, startTransition] = React.useTransition();
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -34,45 +35,31 @@ export default function RegisterPage() {
     mode: "all",
   });
 
-  // const onSubmit: SubmitHandler<CreateUserDto> = async (data) => {
-  //   try {
-  //     await registerUser(data);
-  //     alert("¡Registro exitoso! Serás redirigido para iniciar sesión.");
-  //     await loginUser({ email: data.email, password: data.password });
-  //     router.push("/");
-  //   } catch (error: any) {
-  //     const errorMessages = error.response?.data?.message || [error.message];
-  //     alert("Error en el registro: " + [].concat(errorMessages).join("\n"));
-  //   }
-  // };
-
   const onSubmit = (data: any) => {
     startTransition(async () => {
       let response = await registerUser(data);
-      debugger;
-      if (response != "") {
-        const data = response;
-        let responseLogin = await signIn("credentials", {
-          email: data.email,
-          password: data.password,
-          redirect: false,
-        });
-        if (responseLogin?.ok) {
-          toast.success("Login Successful login 2");
-          window.location.assign("/register-onboarding");
-          reset();
-        } else if (responseLogin?.error) {
-          toast.error(responseLogin?.error);
-        }
-      } else {
-        toast.error(response?.message);
+      debugger
+      console.log("Response from registerUser:", response);
+      if (response !== "") {
+        // Guarda en sessionStorage
+        sessionStorage.setItem(
+          "registerData",
+          JSON.stringify({
+            id: response.user.id,
+            email: response.user.email,
+            name: response.user.name, 
+            password: data.password
+          })
+        );
+
+        router.push("/register-onboarding");
       }
     });
   };
 
   const handleGoogleLogin = () => {
     signIn("google", { callbackUrl: "/register-onboarding" });
-  }; 
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">
@@ -87,9 +74,7 @@ export default function RegisterPage() {
               height={70}
               className="mb-8"
             />
-            <h3 className="text-2xl text-gray-800 mb-8">
-              Crear cuenta
-            </h3>
+            <h3 className="text-2xl text-gray-800 mb-8">Crear cuenta</h3>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -319,4 +304,21 @@ export default function RegisterPage() {
       </div>
     </div>
   );
+}
+
+// Agrega esta interface al inicio del archivo o en un archivo de tipos separado
+interface RegisterAccountResponse {
+  id: string;
+  name: string;
+  email: string;
+  image: {
+    src: string;
+    height: number;
+    width: number;
+    _id: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  accessToken: string;
+  refreshToken: string;
 }

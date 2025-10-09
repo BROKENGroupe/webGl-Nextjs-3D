@@ -30,23 +30,35 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const { data: user } = await api.post('/auth/login', {
+          const { data } = await api.post('/account/login', {
             email: credentials?.email,
             password: credentials?.password,
           });
 
-          if (user && user.accessToken) {
-            //console.log('[user auth] Credentials', user);
+          // Nueva estructura de respuesta con user y workspace separados
+          if (data && data.accessToken && data.user && data.workspace) {
+            console.log('[user auth] Credentials', data);
             
             const mapped = mapUserToToken({
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              image: user.image ?? null,
-              accessToken: user.accessToken,
-              refreshToken: user.refreshToken,
-              permissions: user.permissions ?? [],
-              slug: '5454554545454545', // <-- agrega esto si lo tienes
+              // Datos del usuario
+              id: data.user.id,
+              email: data.user.email,
+              name: data.user.name,
+              image: data.user.image ?? null,
+              role: data.user.role,
+              permissions: data.user.permissions ?? [],
+              // Datos del workspace
+              workspaceId: data.workspace.id,
+              workspaceName: data.workspace.name,
+              slug: data.workspace.slug,
+              accountType: data.workspace.accountType,
+              enabledModules: data.workspace.enabledModules,
+              members: data.workspace.members,
+              settings: data.workspace.settings,
+              metadata: data.workspace.metadata,
+              // Tokens
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
             });
 
             return mapped as any;
@@ -76,16 +88,28 @@ export const authOptions: NextAuthOptions = {
             idToken: account?.id_token,
           });
 
-          if (data?.accessToken) {
-
+          // Nueva estructura de respuesta para Google
+          if (data?.accessToken && data.user && data.workspace) {
             const mapped = mapUserToToken({
-              id: data.id,
-              email: data.email,
-              name: data.name,
-              image: data.image ?? null,
+              // Datos del usuario
+              id: data.user.id,
+              email: data.user.email,
+              name: data.user.name,
+              image: data.user.image ?? null,
+              role: data.user.role,
+              permissions: data.user.permissions ?? [],
+              // Datos del workspace
+              workspaceId: data.workspace.id,
+              workspaceName: data.workspace.name,
+              slug: data.workspace.slug,
+              accountType: data.workspace.accountType,
+              enabledModules: data.workspace.enabledModules,
+              members: data.workspace.members,
+              settings: data.workspace.settings,
+              metadata: data.workspace.metadata,
+              // Tokens
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
-              permissions: data.permissions ?? [],
             }, account);
 
             Object.assign(user, mapped);
@@ -105,7 +129,6 @@ export const authOptions: NextAuthOptions = {
       try {
         const accessTokenExpires = Date.now() + ONE_HOUR;
         if (user) {
-
           if (user) {
             const mapped = mapUserToToken(user, token);
             return {
@@ -121,12 +144,43 @@ export const authOptions: NextAuthOptions = {
           return token;
         }
 
+        // Refresh token - también debe manejar la nueva estructura
         const { data } = await api.post('/auth/refresh', {
           refreshToken: token.refreshToken,
         });
 
         const newAccessTokenExpires = Date.now() + ONE_HOUR;
 
+        // Si el refresh devuelve la nueva estructura completa
+        if (data.user && data.workspace) {
+          return {
+            ...token,
+            // Actualizar tokens
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            // Actualizar datos del usuario si cambiaron
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+            image: data.user.image,
+            role: data.user.role,
+            permissions: data.user.permissions,
+            // Actualizar datos del workspace si cambiaron
+            workspaceId: data.workspace.id,
+            workspaceName: data.workspace.name,
+            slug: data.workspace.slug,
+            accountType: data.workspace.accountType,
+            enabledModules: data.workspace.enabledModules,
+            members: data.workspace.members,
+            settings: data.workspace.settings,
+            metadata: data.workspace.metadata,
+            // Timestamps
+            accessTokenExpires: newAccessTokenExpires,
+            exp: Math.floor(newAccessTokenExpires / 1000),
+          };
+        }
+
+        // Fallback si solo devuelve el accessToken
         return {
           ...token,
           accessToken: data.accessToken,
@@ -142,16 +196,20 @@ export const authOptions: NextAuthOptions = {
         };
       }
     },
+
     async session({ session, token }: { session: any; token: any }) {
       return mapTokenToSession(token, session);
     },
 
-    // async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
-    //   console.log('Redirecting to:', token, user);
-    //   // If there is a slug in the token or user, redirect to their dashboard
-    //   const slug = token?.slug || user?.slug || "david-velez";
-    //   return `${baseUrl}/${slug}/home`;
-    // },
+    async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
+      console.log('Redirecting to:', token, user);
+      // Usar el slug del workspace para la redirección
+      const slug = token?.slug || user?.slug || token?.workspaceSlug || user?.workspaceSlug;
+      if (slug) {
+        return `${baseUrl}/${slug}/home`;
+      }
+      return `${baseUrl}/home`;
+    },
   },
   pages: {
     signIn: '/auth/login',

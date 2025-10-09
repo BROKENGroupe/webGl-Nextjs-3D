@@ -1,18 +1,27 @@
-import AuthProvider from "@/providers/auth.provider";
 import "./globals.css";
 import { Toaster } from "@/shared/ui/sonner";
+import ClientProviders from "@/providers/ClientProviders";
 
-const RootLayout = ({ children }: { children: React.ReactNode }) => {
+export const metadata = {
+  title: 'Insonor',
+  description: 'Plataforma de control acústico',
+}
+
+export default function RootLayout({ 
+  children 
+}: { 
+  children: React.ReactNode 
+}) {
   return (
-    <html>
-      <body>        
-          <AuthProvider>{children}</AuthProvider>       
+    <html lang="es">
+      <body>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
         <Toaster />
       </body>
     </html>
   );
-};
-
-export default RootLayout;
+}
 
 

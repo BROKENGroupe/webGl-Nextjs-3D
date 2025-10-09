@@ -6,7 +6,7 @@ export default withAuth(
     const token = req.nextauth.token;
     const { pathname } = req.nextUrl;
 
-    // Permitir archivos estáticos y públicos
+    // Permitir archivos estáticos y públicos PRIMERO
     if (
       pathname.startsWith("/_next") ||         // Next.js internals
       pathname.startsWith("/favicon.ico") ||   // favicon
@@ -20,9 +20,26 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // Si está logueado e intenta entrar al login → redirigir al dashboard
-    if (token && pathname === "/auth/login") {
-      return NextResponse.redirect(new URL("/home", req.url));
+    // ✅ RUTAS COMPLETAMENTE PÚBLICAS - No requieren ninguna validación
+    const publicRoutes = [
+      "/auth/register",
+      "/register-onboarding", 
+      "/auth/login",
+      "/auth/signup",
+      "/auth/forgot-password",
+    ];
+
+    if (publicRoutes.some(route => pathname.startsWith(route))) {
+      return NextResponse.next();
+    }
+
+    // API routes públicas
+    if (
+      pathname.startsWith("/api/auth") ||
+      pathname.startsWith("/api/accounts/register") ||
+      pathname.startsWith("/api/accounts/create")
+    ) {
+      return NextResponse.next();
     }
 
     // Si entra a raíz (/) → decidir según sesión
@@ -30,6 +47,16 @@ export default withAuth(
       return NextResponse.redirect(
         new URL(token ? "/home" : "/auth/login", req.url)
       );
+    }
+
+    // Si está logueado e intenta entrar al login → redirigir al dashboard
+    if (token && pathname === "/auth/login") {
+      return NextResponse.redirect(new URL("/home", req.url));
+    }
+
+    // ✅ SOLO AHORA - Si no tiene token para rutas protegidas → redirigir al login
+    if (!token) {
+      return NextResponse.redirect(new URL("/auth/login", req.url));
     }
 
     return NextResponse.next();
@@ -41,8 +68,8 @@ export default withAuth(
   }
 );
 
+// ✅ Matcher más simple - excluye APIs completamente
 export const config = {
   matcher: [
-    "/((?!auth/register|api|_next/static|_next/image|favicon.ico|assets|.*\\.svg$|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.webp$).*)",
   ],
 };
