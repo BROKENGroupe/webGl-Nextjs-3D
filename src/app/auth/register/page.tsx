@@ -53,6 +53,8 @@ export default function RegisterPage() {
             password: data.password
           };
 
+          console.log("✅ Registration response:", response);
+
           if (response.id == null) {
             toast.error("Error: Missing user ID in response");
             return 
