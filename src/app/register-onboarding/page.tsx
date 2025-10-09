@@ -12,6 +12,7 @@ import { useOnboardingValidation } from "@/modules/onb/hooks/useOnboardingValida
 import NavigationButtons from "@/modules/onb/components/Navigation";
 import { OnboardingFormData } from "@/modules/onb/types/onboarding";
 import { AccountType } from "@/modules/onb/types/enum";
+import { useRegisterStore } from "@/stores/registerStore";
 
 export default function RegisterOnboardingPage() {
   const [step, setStep] = useState(0);
@@ -20,23 +21,26 @@ export default function RegisterOnboardingPage() {
   const totalSteps = ONBOARDING_STEPS.length;
   const router = useRouter();
   const { validateStep, validateFinalSubmission } = useOnboardingValidation();
+  
+  // ✅ Usar todas las funciones de Zustand store
+  const { registerData, clearRegisterData, hasRegisterData } = useRegisterStore();
 
+  // ✅ Reemplazar useEffect localStorage por Zustand
   useEffect(() => {
-    const registerData = localStorage.getItem("registerData");
-    if (registerData) {
-      try {
-        const userData = JSON.parse(registerData);
-        setForm((prev) => ({
-          ...prev,
-          id: userData.id,
-          email: userData.email,
-          password: userData.password,
-        }));
-      } catch (error) {
-        console.error("Error parsing register data:", error);
-      }
+    if (hasRegisterData()) {
+      console.log('🗃️ Loading register data from Zustand:', registerData);
+      setForm((prev) => ({
+        ...prev,
+        id: registerData.id,
+        email: registerData.email,
+        password: registerData.password,
+      }));
+    } else {
+      console.log('⚠️ No register data found in Zustand store');
+      // ✅ Opcional: redireccionar si no hay datos de registro
+      // router.push('/auth/register');
     }
-  }, []);
+  }, [registerData, hasRegisterData, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -139,7 +143,9 @@ export default function RegisterOnboardingPage() {
 
         if (signInResult?.ok) {
           console.log("✅ Login automático exitoso");
-          sessionStorage.removeItem("registerData");
+          // ✅ Limpiar Zustand en lugar de sessionStorage
+          clearRegisterData();
+          console.log("🗑️ Register data cleared from Zustand");
           router.push("/home");
         } else {
           throw new Error("Error en el login automático");
@@ -156,6 +162,24 @@ export default function RegisterOnboardingPage() {
       setLoading(false);
     }
   };
+
+  // ✅ Mostrar loading si no hay datos de registro
+  if (!hasRegisterData()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando datos de registro...</p>
+          <button 
+            onClick={() => router.push('/auth/register')}
+            className="mt-4 text-blue-600 hover:underline"
+          >
+            Volver al registro
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-white">
@@ -177,7 +201,6 @@ export default function RegisterOnboardingPage() {
             />
           </div>
 
-          {/* ✅ Usar NavigationButtons en lugar de Navigation */}
           <NavigationButtons
             currentStep={step}
             totalSteps={totalSteps}

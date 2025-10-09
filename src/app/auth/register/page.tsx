@@ -13,6 +13,7 @@ import { z } from "zod";
 import { registerAccount, registerUser } from "@/services/userService";
 import { sign } from "crypto";
 import { signIn } from "next-auth/react";
+import { useRegisterStore } from "@/stores/registerStore"; // ✅ Import Zustand
 
 const schema = z.object({
   name: z
@@ -21,9 +22,13 @@ const schema = z.object({
   email: z.string().email({ message: "Your email is invalid." }),
   password: z.string().min(4),
 });
+
 export default function RegisterPage() {
   const [isPending, startTransition] = React.useTransition();
   const router = useRouter();
+  
+  // ✅ Usar Zustand store
+  const setRegisterData = useRegisterStore((state) => state.setRegisterData);
 
   const {
     register,
@@ -37,27 +42,50 @@ export default function RegisterPage() {
 
   const onSubmit = (data: any) => {
     startTransition(async () => {
-      let response = await registerUser(data);
-      debugger
-      console.log("Response from registerUser:", response);
-      if (response !== "") {
-        // Guarda en localStorage
-        localStorage.setItem(
-          "registerData",
-          JSON.stringify({
+      try {
+        let response = await registerUser(data);
+        
+        console.log("Response from registerUser:", response);
+        
+        if (response && response.user) {
+          // ✅ Guardar en Zustand en lugar de localStorage
+          const registerDataToSave = {
             id: response.user.id,
             email: response.user.email,
-            name: response.user.name, 
+            name: response.user.name,
             password: data.password
-          })
-        );
+          };
+          
+          console.log("🗃️ Saving register data to Zustand:", registerDataToSave);
+          
+          setRegisterData(registerDataToSave);
+          
+          // ✅ Mostrar toast de éxito
+          toast.success("Cuenta creada exitosamente", {
+            description: "Completa tu perfil para continuar"
+          });
 
-        router.push("/register-onboarding");
+          // Navegar al onboarding
+          router.push("/register-onboarding");
+          
+        } else {
+          throw new Error("Invalid response from server");
+        }
+        
+      } catch (error: any) {
+        console.error("❌ Error in registration:", error);
+        
+        // ✅ Mostrar toast de error
+        toast.error("Error al crear la cuenta", {
+          description: error.message || "Intenta nuevamente"
+        });
       }
     });
   };
 
   const handleGoogleLogin = () => {
+    // ✅ También puedes manejar el caso de Google OAuth
+    // Si necesitas datos del registro de Google, puedes interceptar el callback
     signIn("google", { callbackUrl: "/register-onboarding" });
   };
 
@@ -99,27 +127,6 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {/* <div>
-              <label
-                htmlFor="surname"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Surname
-              </label>
-              <input
-                id="surname"
-                type="text"
-                {...register("surname", { required: "Surname is required" })}
-                placeholder="Enter your surname"
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
-              {errors.surname && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.surname.message}
-                </p>
-              )}
-            </div> */}
-
             <div>
               <label
                 htmlFor="email"
@@ -140,49 +147,6 @@ export default function RegisterPage() {
                 </p>
               )}
             </div>
-
-            {/* <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Phone
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                {...register("phone", { required: "Phone is required" })}
-                placeholder="Enter your phone number"
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
-              {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.phone.message}
-                </p>
-              )}
-            </div> */}
-
-            {/* <div>
-              <label
-                htmlFor="birthdaydate"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Birthday Date
-              </label>
-              <input
-                id="birthdaydate"
-                type="date"
-                {...register("birthdaydate", {
-                  required: "Birthday date is required",
-                })}
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
-              {errors.birthdaydate && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.birthdaydate.message}
-                </p>
-              )}
-            </div> */}
 
             <div>
               <label
@@ -264,20 +228,6 @@ export default function RegisterPage() {
               </svg>
               Sign Up with Google
             </button>
-            {/* <button
-              onClick={handleAppleLogin}
-              className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M15.228.002a4.234 4.234 0 00-1.423.273c-1.137.52-2.222 1.624-2.885 2.806-1.284 2.296-1.018 5.438.531 6.828-1.55 1.488-3.693 4.218-3.693 7.857a.38.38 0 00.38.384h.02a.38.38 0 00.378-.365c0-.02-.002-.073.004-.153.05-.595.274-1.163.593-1.685.5-.792 1.2-1.492 2.05-2.025.86-.54 1.81-.884 2.825-.947a.363.363 0 01.37.366c0 1.25-.333 2.44-.94 3.518-.62 1.1-.986 2.373-1.02 3.655a.38.38 0 00.38.385h.02a.38.38 0 00.379-.365c.03-.83.33-1.616.824-2.285.52-.693 1.25-1.22 2.1-1.528.9-.32 1.9-.34 2.88-.06a.377.377 0 00.443-.335c.143-1.218-.184-2.618-.887-3.68-.7-.98-1.74-1.62-2.95-1.8-1.2-.18-2.4.15-3.32.84-.04.03-.09.06-.13.09.02-.03.04-.06.06-.09.84-.96 1.1-2.47.6-3.72-1.25-3.1-4.06-3.46-4.66-3.53a.36.36 0 01-.35-.27zm1.18 1.99a2.38 2.38 0 012.333 1.43c.4 1.02.16 2.25-.56 3.06-.76.83-1.95 1.09-3.03.62a2.44 2.44 0 01-1.5-2.4c.15-1.3.98-2.3 2.1-2.43.23-.02.46-.02.66 0z"></path>
-              </svg>
-              Sign in with Apple
-            </button> */}
           </div>
 
           <p className="text-center text-sm text-gray-500 mt-8">
@@ -306,19 +256,21 @@ export default function RegisterPage() {
   );
 }
 
-// Agrega esta interface al inicio del archivo o en un archivo de tipos separado
-interface RegisterAccountResponse {
-  id: string;
-  name: string;
-  email: string;
-  image: {
-    src: string;
-    height: number;
-    width: number;
-    _id: string;
+// ✅ Tipos mejorados
+interface RegisterUserResponse {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image?: {
+      src: string;
+      height: number;
+      width: number;
+      _id: string;
+    };
+    createdAt: string;
+    updatedAt: string;
   };
-  createdAt: string;
-  updatedAt: string;
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string;
+  refreshToken?: string;
 }
