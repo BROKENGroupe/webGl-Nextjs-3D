@@ -1,19 +1,17 @@
 "use client";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { CreateUserDto } from "../types/user";
 import { Button } from "@/shared/ui/button";
 import React from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { registerAccount, registerUser } from "@/services/userService";
-import { sign } from "crypto";
+import { registerUser } from "@/services/userService";
 import { signIn } from "next-auth/react";
-import { useRegisterStore } from "@/stores/registerStore"; // ✅ Import Zustand
+import { useRegisterFlow } from "@/context/RegisterContext"; // ✅ Usar Context API
 
 const schema = z.object({
   name: z
@@ -27,8 +25,8 @@ export default function RegisterPage() {
   const [isPending, startTransition] = React.useTransition();
   const router = useRouter();
   
-  // ✅ Usar Zustand store
-  const setRegisterData = useRegisterStore((state) => state.setRegisterData);
+  // ✅ Usar Context API en lugar de Zustand
+  const { saveRegistrationData, isLoading, error } = useRegisterFlow();
 
   const {
     register,
@@ -43,39 +41,27 @@ export default function RegisterPage() {
   const onSubmit = (data: any) => {
     startTransition(async () => {
       try {
-        let response = await registerUser(data);
+        const response = await registerUser(data);
         
-        if (response) {          
-          const registerDataToSave = {
-            id: response.id,
-            email: response.email,
-            name: response.name,
-            password: data.password
-          };
-
-          console.log("✅ Registration response:", registerDataToSave);
-
-          if (response.id == undefined) {
-            toast.error("Error: Missing user ID in response");
-            return 
-          }
-
-          // ✅ Mostrar toast de éxito
-          toast.success("Cuenta creada exitosamente", {
-            description: "Completa tu perfil para continuar"
-          });
-          setRegisterData(registerDataToSave);
-          // Navegar al onboarding
-          router.push("/register-onboarding");
+        console.log("📋 API Response:", response);
+        
+        if (response) {
+          // ✅ Usar función del Context para guardar datos
+          const success = saveRegistrationData(response, data);
           
-        } else {
-          throw new Error("Invalid response from server");
-        }
-        
+          if (success) {
+            toast.success("Cuenta creada exitosamente", {
+              description: "Completa tu perfil para continuar"
+            });
+            
+            router.push("/register-onboarding");
+          } else {
+            toast.error("Error al procesar datos de registro");
+          }
+        }        
       } catch (error: any) {
         console.error("❌ Error in registration:", error);
         
-        // ✅ Mostrar toast de error
         toast.error("Error al crear la cuenta", {
           description: error.message || "Intenta nuevamente"
         });
@@ -84,10 +70,15 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    // ✅ También puedes manejar el caso de Google OAuth
-    // Si necesitas datos del registro de Google, puedes interceptar el callback
     signIn("google", { callbackUrl: "/register-onboarding" });
   };
+
+  // ✅ Mostrar error del contexto si existe
+  React.useEffect(() => {
+    if (error) {
+      toast.error("Error en registro", { description: error });
+    }
+  }, [error]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">
@@ -187,9 +178,9 @@ export default function RegisterPage() {
               </label>
             </div>
 
-            <Button className="w-full" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isPending ? "Loading..." : "Sign Up"}
+            <Button className="w-full" disabled={isPending || isLoading}>
+              {(isPending || isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {(isPending || isLoading) ? "Loading..." : "Sign Up"}
             </Button>
           </form>
 
@@ -202,7 +193,8 @@ export default function RegisterPage() {
           <div className="grid grid-cols-1 gap-4">
             <button
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
+              disabled={isPending || isLoading}
+              className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors disabled:opacity-50"
             >
               <svg
                 className="w-5 h-5"
@@ -254,23 +246,4 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-}
-
-// ✅ Tipos mejorados
-interface RegisterUserResponse {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    image?: {
-      src: string;
-      height: number;
-      width: number;
-      _id: string;
-    };
-    createdAt: string;
-    updatedAt: string;
-  };
-  accessToken?: string;
-  refreshToken?: string;
 }

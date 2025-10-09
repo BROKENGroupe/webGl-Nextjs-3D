@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { registerAccount } from "@/services/userService";
+import { useRegister } from "@/context/RegisterContext"; // ✅ Usar Context API
 import OnboardingHeader from "@/modules/onb/components/onboardingHeader";
 import ProgressBar from "@/modules/onb/components/progressBar";
 import StepForm from "@/modules/onb/components/stepForm";
@@ -12,20 +13,40 @@ import { useOnboardingValidation } from "@/modules/onb/hooks/useOnboardingValida
 import NavigationButtons from "@/modules/onb/components/Navigation";
 import { OnboardingFormData } from "@/modules/onb/types/onboarding";
 import { AccountType } from "@/modules/onb/types/enum";
-import { useRegisterStore } from "@/stores/registerStore";
 
 export default function RegisterOnboardingPage() {
-  const { registerData, clearRegisterData, hasRegisterData } =
-    useRegisterStore();
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<OnboardingFormData>({
-    email: registerData.email || "",
-    id: registerData.id || "",
-    name: registerData.name || "",
-  });
+  const [form, setForm] = useState<OnboardingFormData>({});
   const [loading, setLoading] = useState(false);
-  const totalSteps = ONBOARDING_STEPS.length;
   const router = useRouter();
+
+  // ✅ Usar Context API en lugar de Zustand
+  const {
+    registerData,
+    hasRegisterData,
+    clearRegisterData,
+    validateRegistrationData,
+  } = useRegister();
+
+  // ✅ Cargar datos del contexto
+  useEffect(() => {
+    if (hasRegisterData()) {
+      console.log("🗃️ Loading register data from Context:", registerData);
+      setForm((prev) => ({
+        ...prev,
+        id: registerData.id,
+        email: registerData.email,
+        password: registerData.password,
+        name: registerData.name,
+      }));
+    } else {
+      console.log("⚠️ No register data found in Context");
+      // Opcional: redireccionar si no hay datos
+      // router.push('/auth/register');
+    }
+  }, [registerData, hasRegisterData, router]);
+
+  const totalSteps = ONBOARDING_STEPS.length;
   const { validateStep, validateFinalSubmission } = useOnboardingValidation();
 
   // ✅ Usar todas las funciones de Zustand store
@@ -69,14 +90,8 @@ export default function RegisterOnboardingPage() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (step !== totalSteps - 1) {
-      console.log("No es el último step, no ejecutar submit");
-      return;
-    }
-
-    const validationError = validateFinalSubmission(form);
-    if (validationError) {
-      alert(validationError);
+    // Validar datos de registro
+    if (!validateRegistrationData()) {
       return;
     }
 
@@ -135,9 +150,9 @@ export default function RegisterOnboardingPage() {
 
         if (signInResult?.ok) {
           console.log("✅ Login automático exitoso");
-          // ✅ Limpiar Zustand en lugar de sessionStorage
+          // ✅ Limpiar Context en lugar de localStorage
           clearRegisterData();
-          console.log("🗑️ Register data cleared from Zustand");
+          console.log("🗑️ Register data cleared from Context");
           router.push("/home");
         } else {
           throw new Error("Error en el login automático");
