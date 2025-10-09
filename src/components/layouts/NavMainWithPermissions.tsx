@@ -1,22 +1,32 @@
-import { NavMain } from "./nav-main";
+import { NavMain } from "@/shared/layout/nav-main";
+import React from "react";
 
-// ✅ Componente actualizado para usar hasPermission function
-export function NavMainWithPermissions({ items, hasPermission }: { 
-  items: any[], 
-  hasPermission: (permission: string) => boolean 
-}) {
-  return (
-    <NavMain 
-      items={items.map(section => ({
-        ...section,
-        items: section.items?.filter((item: any) => {
-          // Si no tiene permission definida, mostrarlo
-          if (!item.permission) return true;
-
-          // ✅ Usar la función hasPermission
-          return hasPermission(item.permission);
-        })
-      }))} 
-    />
-  );
+interface NavMainWithPermissionsProps {
+  items: any[];
+  hasPermission: (permission: string) => boolean;
 }
+
+export const NavMainWithPermissions = React.memo(function NavMainWithPermissions({ 
+  items, 
+  hasPermission 
+}: NavMainWithPermissionsProps) {
+  
+  // ✅ Filtrar items basado en permisos
+  const filteredItems = React.useMemo(() => 
+    items.map(section => ({
+      ...section,
+      items: section.items?.filter((item: any) => {
+        // Si no tiene permission definida, mostrarlo
+        if (!item.permission) return true;
+        
+        // Verificar si tiene el permiso
+        return hasPermission(item.permission);
+      })
+    })),
+    [items, hasPermission]
+  );
+
+  return <NavMain items={filteredItems} />;
+});
+
+NavMainWithPermissions.displayName = 'NavMainWithPermissions';
