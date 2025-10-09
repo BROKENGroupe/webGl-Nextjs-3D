@@ -41,8 +41,8 @@ export default function RegisterPage() {
       debugger
       console.log("Response from registerUser:", response);
       if (response !== "") {
-        // Guarda en sessionStorage
-        sessionStorage.setItem(
+        // Guarda en localStorage
+        localStorage.setItem(
           "registerData",
           JSON.stringify({
             id: response.user.id,

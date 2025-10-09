@@ -22,7 +22,7 @@ export default function RegisterOnboardingPage() {
   const { validateStep, validateFinalSubmission } = useOnboardingValidation();
 
   useEffect(() => {
-    const registerData = sessionStorage.getItem("registerData");
+    const registerData = localStorage.getItem("registerData");
     if (registerData) {
       try {
         const userData = JSON.parse(registerData);
