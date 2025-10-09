@@ -7,10 +7,10 @@ export function resolveAccountAction(action: string, payload: any): RegisterActi
   switch (action) {
 
     case 'create-user':
-      return { endpoint: '/account/register', method: 'POST' };
+      return { endpoint: '/accounts/register', method: 'POST' };
 
     case 'create-account':
-      return { endpoint: '/account/create', method: 'POST' };
+      return { endpoint: '/accounts/create', method: 'POST' };
 
     default:
       return null;
