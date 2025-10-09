@@ -66,7 +66,7 @@ export class ISO12354_4Engine {
     }
 
     // Añade divisiones de los openings
-    positionedOpenings.forEach(op => {
+    positionedOpenings.forEach((op: any) => {
       debugger;
 
       horizontalDivisions.add(Math.max(0, Math.min(1, op.leftEdge)));
@@ -86,7 +86,7 @@ export class ISO12354_4Engine {
     }
 
     // Añade divisiones de los openings
-    positionedOpenings.forEach(op => {
+    positionedOpenings.forEach((op: any) => {
       verticalDivisions.add(Math.max(0, Math.min(1, op.bottomEdge)));
       verticalDivisions.add(Math.max(0, Math.min(1, op.topEdge)));
     });
@@ -113,7 +113,7 @@ export class ISO12354_4Engine {
         const segmentArea = segmentLength * segmentHeight;
 
         // Encuentra qué opening(s) ocupan este segmento
-        const openingsInSegment = positionedOpenings.filter(op => {
+        const openingsInSegment = positionedOpenings.filter((op: any) => {
           const horizontalOverlap = op.leftEdge < hEnd && op.rightEdge > hStart;
           const verticalOverlap = op.bottomEdge < vEnd && op.topEdge > vStart;
           return horizontalOverlap && verticalOverlap;
@@ -125,7 +125,7 @@ export class ISO12354_4Engine {
           // Hay opening(s) en este segmento
           let totalOpeningArea = 0;
 
-          openingsInSegment.forEach(op => {
+          openingsInSegment.forEach((op: any) => {
             // Calcula el área de intersección
             const overlapHStart = Math.max(hStart, op.leftEdge);
             const overlapHEnd = Math.min(hEnd, op.rightEdge);
