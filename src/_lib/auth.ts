@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const { data } = await api.post('/account/login', {
+          const { data } = await api.post('/accounts/login', {
             email: credentials?.email,
             password: credentials?.password,
           });
