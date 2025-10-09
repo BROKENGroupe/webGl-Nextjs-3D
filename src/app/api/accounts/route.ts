@@ -1,6 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { resolveAccountAction } from "../accountActions";
+import { resolveAccountAction } from "./accountActions";
 
 export async function POST(req: NextRequest) {  
 
