@@ -5,6 +5,7 @@ interface RegisterData {
   id?: string;
   email?: string;
   password?: string;
+  name?: string;
 }
 
 interface RegisterStore {

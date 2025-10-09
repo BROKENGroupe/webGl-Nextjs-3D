@@ -15,32 +15,20 @@ import { AccountType } from "@/modules/onb/types/enum";
 import { useRegisterStore } from "@/stores/registerStore";
 
 export default function RegisterOnboardingPage() {
+  const { registerData, clearRegisterData, hasRegisterData } =
+    useRegisterStore();
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<OnboardingFormData>({});
+  const [form, setForm] = useState<OnboardingFormData>({
+    email: registerData.email || "",
+    id: registerData.id || "",
+    name: registerData.name || "",
+  });
   const [loading, setLoading] = useState(false);
   const totalSteps = ONBOARDING_STEPS.length;
   const router = useRouter();
   const { validateStep, validateFinalSubmission } = useOnboardingValidation();
-  
-  // ✅ Usar todas las funciones de Zustand store
-  const { registerData, clearRegisterData, hasRegisterData } = useRegisterStore();
 
-  // ✅ Reemplazar useEffect localStorage por Zustand
-  useEffect(() => {
-    if (hasRegisterData()) {
-      console.log('🗃️ Loading register data from Zustand:', registerData);
-      setForm((prev) => ({
-        ...prev,
-        id: registerData.id,
-        email: registerData.email,
-        password: registerData.password,
-      }));
-    } else {
-      console.log('⚠️ No register data found in Zustand store');
-      // ✅ Opcional: redireccionar si no hay datos de registro
-      // router.push('/auth/register');
-    }
-  }, [registerData, hasRegisterData, router]);
+  // ✅ Usar todas las funciones de Zustand store
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -58,6 +46,10 @@ export default function RegisterOnboardingPage() {
   };
 
   const handleNext = () => {
+    form.email = registerData.email || "";
+    form.id = registerData.id || "";
+    form.name = registerData.name || "";
+    form.password = registerData.password || "";
     const error = validateStep(step, form);
     if (error) {
       alert(error);
@@ -92,9 +84,9 @@ export default function RegisterOnboardingPage() {
 
     try {
       const onboardingData = {
-        id: form.id || "temp-id",
-        name: form.name || "",
-        email: form.email || "",
+        id: registerData.id || "temp-id",
+        name: registerData.name || "",
+        email: registerData.email || "",
         description: form.businessName
           ? `${form.businessName} - Establecimiento de tipo ${form.businessType} ubicado en ${form.city}`
           : `Establecimiento de tipo ${
@@ -170,8 +162,8 @@ export default function RegisterOnboardingPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Cargando datos de registro...</p>
-          <button 
-            onClick={() => router.push('/auth/register')}
+          <button
+            onClick={() => router.push("/auth/register")}
             className="mt-4 text-blue-600 hover:underline"
           >
             Volver al registro

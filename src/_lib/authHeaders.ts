@@ -1,5 +1,4 @@
-export function AuthHeaders(session: any) {
-    console.log('Generating Auth Headers with session:', session);
+export function AuthHeaders(session: any) {    
     return {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session?.accessToken ?? ''}`,

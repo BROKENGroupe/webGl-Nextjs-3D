@@ -6,11 +6,7 @@ import { Session } from "inspector/promises";
 
 // POST /api/tasks
 export async function POST(req: NextRequest) {
-  //const token = await getToken({ req });
-
-  // if (!token) {
-  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  // }
+  
   const userId = req.headers.get('x-user-id');
 
   if (!userId) {

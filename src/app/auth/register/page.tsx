@@ -45,26 +45,24 @@ export default function RegisterPage() {
       try {
         let response = await registerUser(data);
         
-        console.log("Response from registerUser:", response);
-        
-        if (response) {
-          // ✅ Guardar en Zustand en lugar de localStorage
+        if (response) {          
           const registerDataToSave = {
             id: response.id,
             email: response.email,
             name: response.name,
             password: data.password
           };
-          
-          console.log("🗃️ Saving register data to Zustand:", registerDataToSave);
-          
-          setRegisterData(registerDataToSave);
-          
+
+          if (response.id == null) {
+            toast.error("Error: Missing user ID in response");
+            return 
+          }
+
           // ✅ Mostrar toast de éxito
           toast.success("Cuenta creada exitosamente", {
             description: "Completa tu perfil para continuar"
           });
-
+          setRegisterData(registerDataToSave);
           // Navegar al onboarding
           router.push("/register-onboarding");
           

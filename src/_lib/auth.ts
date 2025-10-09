@@ -201,15 +201,15 @@ export const authOptions: NextAuthOptions = {
       return mapTokenToSession(token, session);
     },
 
-    async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
-      console.log('Redirecting to:', token, user);
-      // Usar el slug del workspace para la redirección
-      const slug = token?.slug || user?.slug || token?.workspaceSlug || user?.workspaceSlug;
-      if (slug) {
-        return `${baseUrl}/${slug}/home`;
-      }
-      return `${baseUrl}/home`;
-    },
+    // async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
+    //   console.log('Redirecting to:', token, user);
+    //   // Usar el slug del workspace para la redirección
+    //   const slug = token?.slug || user?.slug || token?.workspaceSlug || user?.workspaceSlug;
+    //   if (slug) {
+    //     return `${baseUrl}/${slug}/home`;
+    //   }
+    //   return `${baseUrl}/home`;
+    // },
   },
   pages: {
     signIn: '/auth/login',
