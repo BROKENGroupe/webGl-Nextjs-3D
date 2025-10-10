@@ -6,7 +6,7 @@ import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { z } from "zod";
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -17,6 +17,7 @@ const schema = z.object({
 
 export default function LoginPage() {
   const [isPending, startTransition] = React.useTransition();
+const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -33,8 +34,10 @@ export default function LoginPage() {
   });
 
   const onSubmit = (data: any) => {
+    setLoading(true);
     startTransition(async () => {
-      let response = await signIn("credentials", {
+      try {
+         let response = await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: false,
@@ -46,6 +49,13 @@ export default function LoginPage() {
       } else if (response?.error) {
         toast.error("Ups algo salió mal!");
       }
+      } catch (error) {
+        console.error("Login error:", error);
+        toast.error("An unexpected error occurred. Please try again.");
+      }finally {
+        setLoading(false);
+      }
+     
     });
   };
 
