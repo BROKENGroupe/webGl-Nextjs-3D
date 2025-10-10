@@ -21,11 +21,6 @@ export function AccessProvider({ children }: { children: ReactNode }) {
   // ✅ Agregar verificación de loading
   const isLoading = status === "loading";
 
- 
-  
-
-  
-
   // ✅ Verificar múltiples posibles estructuras de datos
   let permissions: Record<string, boolean> = {};
 

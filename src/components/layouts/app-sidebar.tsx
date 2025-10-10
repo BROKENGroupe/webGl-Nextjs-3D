@@ -25,6 +25,7 @@ import { useAccess } from "@/context/AccessContext"
 import { useTypedSession } from "@/hooks/useTypedSession"
 import { Can } from "@/app/auth/can"
 import { NavMainWithPermissions } from "./NavMainWithPermissions"
+import { AccountType } from "@/modules/onb/types/enum"
 
 // ✅ Memoizar datos estáticos que nunca cambian
 const STATIC_NAV_SECONDARY = [
@@ -56,19 +57,19 @@ export const AppSidebar = React.memo(function AppSidebar({
     Array.isArray(modules) ? modules : [], 
     [modules]
   );
-
+  console.log('Safe Modules:', workspace);
   // ✅ Memoizar datos del usuario
   const userData = React.useMemo(() => ({
     name: session?.user?.name || "Usuario",
     email: session?.user?.email || "user@example.com",
     avatar: session?.user?.image?.src || "/avatars/default.jpg",
   }), [session?.user?.name, session?.user?.email, session?.user?.image?.src]);
-
+console.log('User Data:', userData);
   // ✅ Memoizar datos de teams
   const teamsData = React.useMemo(() => [{
     name: workspace?.name || "Mi Workspace",
     logo: Home,
-    plan: workspace?.accountType === "professional" ? "Professional" : "Básico",
+    plan: workspace?.accountType === AccountType.merchant ? "Comerciante" : "Empresarial",
   }], [workspace?.name, workspace?.accountType]);
 
   // ✅ Memoizar sección de Diseño
