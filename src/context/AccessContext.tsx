@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface AccessContextProps {
@@ -11,105 +11,115 @@ interface AccessContextProps {
   user: any;
   hasPermission: (permission: string) => boolean;
   isLoading: boolean;
+  isReady: boolean;
 }
 
 const AccessContext = createContext<AccessContextProps | undefined>(undefined);
 
 export function AccessProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
-
-  // ✅ Agregar verificación de loading
+  const [isReady, setIsReady] = useState(false);
+  
+  // ✅ Estados basados en el status de NextAuth
   const isLoading = status === "loading";
+  const isAuthenticated = status === "authenticated";
+  const isUnauthenticated = status === "unauthenticated";
 
-  // ✅ Verificar múltiples posibles estructuras de datos
-  let permissions: Record<string, boolean> = {};
-
-  if (session?.user?.permissions) {
-   
-    
-    if (typeof session.user.permissions === 'object') {
-      // Si viene como array, convertir a objeto
-      if (Array.isArray(session.user.permissions)) {
-        permissions = (session.user.permissions as string[]).reduce((acc: Record<string, boolean>, perm: string) => {
-          acc[perm] = true;
-          return acc;
-        }, {});
-        
-      } else {
-        // If permissions is an array, convert to object
-        if (Array.isArray(session.user.permissions)) {
-          permissions = (session.user.permissions as string[]).reduce((acc: Record<string, boolean>, perm: string) => {
-            acc[perm] = true;
-            return acc;
-          }, {});
-          
-        } else {
-          // Convert string[] to Record<string, boolean> if necessary
-          if (Array.isArray(session.user.permissions)) {
-            permissions = (session.user.permissions as string[]).reduce((acc: Record<string, boolean>, perm: string) => {
-              acc[perm] = true;
-              return acc;
-            }, {});
-          } else {
-            permissions = Array.isArray(session.user.permissions)
-              ? (session.user.permissions as string[]).reduce((acc: Record<string, boolean>, perm: string) => {
-                  acc[perm] = true;
-                  return acc;
-                }, {})
-              : session.user.permissions;
-          }
-        }
-        
-      }
+  // ✅ Procesar datos solo cuando el status esté listo
+  useEffect(() => {
+    // ✅ Solo procesar cuando NextAuth haya terminado de cargar
+    if (status === "loading") {
+      console.log('🔄 NextAuth still loading...');
+      setIsReady(false);
+      return;
     }
-  } else {
+
+    console.log('✅ NextAuth status ready:', status);
+    console.log('📋 Session data:', session);
+
+    // ✅ Marcar como listo independientemente de si hay sesión o no
+    setIsReady(true);
+  }, [status, session]);
+
+  // ✅ Procesar permisos solo cuando esté listo
+  let permissions: Record<string, boolean> = {};
+  
+  if (isReady && session?.user?.permissions) {
+    if (Array.isArray(session.user.permissions)) {
+      // Convertir array a objeto
+      permissions = (session.user.permissions as string[]).reduce((acc: Record<string, boolean>, perm: string) => {
+        acc[perm] = true;
+        return acc;
+      }, {});
+      console.log('🔐 Permissions processed from array:', permissions);
+    } else if (typeof session.user.permissions === 'object') {
+      // Ya es un objeto
+      permissions = session.user.permissions as Record<string, boolean>;
+      console.log('🔐 Permissions processed from object:', permissions);
+    }
   }
   
-  // ✅ Modules con verificación similar
+  // ✅ Procesar módulos solo cuando esté listo
   let modules: string[] = [];
   
-  if (session?.workspace?.enabledModules) {
+  if (isReady && session?.workspace?.enabledModules) {
     if (Array.isArray(session.workspace.enabledModules)) {
       modules = session.workspace.enabledModules;
-      
-    } else {
-      console.log("🔐 enabledModules is not an array:", session.workspace.enabledModules);
-    }
-  } else {
-    
-    // ✅ Verificar otros posibles lugares
-    if (session?.workspace?.enabledModules) {
-      modules = Array.isArray(session.workspace.enabledModules) ? session.workspace.enabledModules : [];     
+      console.log('🏢 Modules processed:', modules);
     }
   }
   
-  const role = session?.user?.role || "guest";
-  const workspace = session?.workspace || {};
-  const user = session?.user || {};
+  // ✅ Datos del usuario solo cuando esté listo
+  const role = isReady ? (session?.user?.role || "guest") : "guest";
+  const workspace = isReady ? (session?.workspace || {}) : {};
+  const user = isReady ? (session?.user || {}) : {};
 
-  
-
-  // ✅ Helper function para verificar permisos con logs más claros
+  // ✅ Helper function que respeta el estado de carga
   const hasPermission = (permission: string): boolean => {
-    if (isLoading) {
-      console.log(`🔐 hasPermission("${permission}"): LOADING - returning false`);
+    // ✅ Si NextAuth aún está cargando, no dar permisos
+    if (isLoading || !isReady) {
+      console.log(`🔐 hasPermission("${permission}"): STILL LOADING - returning false`);
       return false;
     }
     
-    const result = permissions[permission] === true;    
+    // ✅ Si no está autenticado, no dar permisos
+    if (isUnauthenticated) {
+      console.log(`🔐 hasPermission("${permission}"): UNAUTHENTICATED - returning false`);
+      return false;
+    }
+    
+    // ✅ Verificar permiso
+    const result = permissions[permission] === true;
+    console.log(`🔐 hasPermission("${permission}"): ${result}`, { 
+      status, 
+      isReady, 
+      hasSession: !!session,
+      availablePermissions: Object.keys(permissions) 
+    });
     return result;
   };
 
-  // ✅ Si está cargando, proporcionar datos vacíos pero seguros
   const value = {
-    permissions: isLoading ? {} : permissions,
-    modules: isLoading ? [] : modules,
-    role: isLoading ? "guest" : role,
-    workspace: isLoading ? {} : workspace,
-    user: isLoading ? {} : user,
+    permissions: isReady ? permissions : {},
+    modules: isReady ? modules : [],
+    role,
+    workspace,
+    user,
     hasPermission,
-    isLoading
+    isLoading,
+    isReady: isReady && !isLoading // ✅ Listo cuando NextAuth terminó Y no está cargando
   };
+
+  // ✅ Log del estado actual
+  console.log('🔄 AccessContext state:', {
+    status,
+    isLoading,
+    isReady,
+    hasSession: !!session,
+    permissionsCount: Object.keys(permissions).length,
+    modulesCount: modules.length,
+    role
+  });
 
   return (
     <AccessContext.Provider value={value}>
