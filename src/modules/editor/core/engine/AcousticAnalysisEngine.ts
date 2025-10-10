@@ -319,6 +319,7 @@ export class AcousticAnalysisEngine {
       const wallStart = wallCoordinates[wallIndex];
       const wallEnd = wallCoordinates[(wallIndex + 1) % wallCoordinates.length];
       const bandsTL = ISO12354_4Engine.calcTransmissionLossBands(wall.template, wall.currentCondition);
+      const restul = ISO12354_4Engine.calcRBySegment(wall,openings);
       const avgTL = ISO12354_4Engine.calcAverageTransmissionLoss(bandsTL, bands);
       const adjacentOpenings = openings.filter(o => o.wallIndex === wallIndex);
       const openingsPenalty = adjacentOpenings.length * 2;

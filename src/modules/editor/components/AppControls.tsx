@@ -1,6 +1,6 @@
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame } from "lucide-react";
+import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame, LayoutGrid } from "lucide-react";
 
 export function AppControls({
   isClosed,
@@ -15,7 +15,8 @@ export function AppControls({
   handleAddFloor,
   handleToggleHeatmap,
   setShowAcousticModal,
-  setShowIsoConfigModal
+  setShowIsoConfigModal,
+  handleToggleSegments
 }: {
   isClosed: boolean;
   isExtruded: boolean;
@@ -30,6 +31,7 @@ export function AppControls({
   handleToggleHeatmap: () => void;
   setShowAcousticModal: (v: boolean) => void;
   setShowIsoConfigModal: (v: boolean) => void;
+  handleToggleSegments: () => void;
 }) { 
 
   return (
@@ -98,6 +100,18 @@ export function AppControls({
               </button>
             </TooltipTrigger>
             <TooltipContent>Análisis Acústico</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleToggleSegments}
+                className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
+                aria-label="Visualizar Segmentos"
+              >
+                <LayoutGrid size={22} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Visualizar Segmentos</TooltipContent>
           </Tooltip>
         </>
       )}

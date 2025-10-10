@@ -398,6 +398,126 @@ export class ISO12354_4Engine {
     return Math.min(10 * Math.log10(openingArea), 20);
   }
 
+  /**
+   * Calcula el índice de reducción acústica aparente de un segmento compuesto.
+   * @param elements Elementos que componen el segmento (muro, ventanas, etc.).
+   * @param materialsData Catálogo de materiales con sus propiedades acústicas.
+   * @returns El índice de reducción R' por banda de frecuencia.
+   */
+  static calcSegmentR(elements: any[], materialsData: any): Record<ThirdOctave, number> {
+    const totalArea = elements.reduce((sum, el) => sum + el.area, 0);
+
+    if (totalArea === 0) {
+      return {};
+    }
+
+    // Find a representative material to get the frequency bands from
+    const firstElementWithMaterial = elements.find(el => {
+      const materialId = el.material || el.template;
+      return materialsData[materialId];
+    });
+
+    if (!firstElementWithMaterial) {
+      console.error("No valid materials found for elements in segment.");
+      return {};
+    }
+    
+    const materialId = firstElementWithMaterial.material || firstElementWithMaterial.template;
+    const referenceBands = materialsData[materialId].thirdOctaveBands;
+    const frequencies = Object.keys(referenceBands).map(Number) as ThirdOctave[];
+
+    const compositeR: Record<ThirdOctave, number> = {} as any;
+
+    for (const freq of frequencies) {
+      let transmissionFactorSum = 0;
+
+      for (const element of elements) {
+        const elementMaterialId = element.material || element.template;
+        const material = materialsData[elementMaterialId];
+
+        if (!material || !material.thirdOctaveBands || typeof material.thirdOctaveBands[freq] === 'undefined') {
+          // If a material or its R value for the band is missing, treat it as a hole (R=0)
+          // A transmission factor of 1 (10^(-0/10)) means full transmission.
+          transmissionFactorSum += element.area * 1; 
+          continue;
+        }
+
+        const R_i = material.thirdOctaveBands[freq];
+        const transmissionFactor = Math.pow(10, -R_i / 10);
+        transmissionFactorSum += element.area * transmissionFactor;
+      }
+
+      const averageTransmissionFactor = transmissionFactorSum / totalArea;
+      
+      if (averageTransmissionFactor > 0) {
+        compositeR[freq] = -10 * Math.log10(averageTransmissionFactor);
+      } else {
+        // Avoid log(0) - theoretically means infinite insulation
+        compositeR[freq] = 999; // A very high R value
+      }
+    }
+
+    return compositeR;
+  }
+
+  /**
+   * Calcula la diferencia de nivel normalizada D_2m,nT para un segmento de fachada.
+   * @param R_segment Índice de reducción acústica del segmento.
+   * @param S_segment Área del segmento en m².
+   * @param V_receiver Volumen del recinto receptor (exterior, teóricamente infinito).
+   * @returns D_2m,nT por banda de frecuencia.
+   */
+  static calcD2mnT(R_segment: Record<ThirdOctave, number>, S_segment: number, V_receiver: number): Record<ThirdOctave, number> {
+    // TODO: Implementar la fórmula D_2m,nT = R' + 10 * log10(A_0 * T_0 / (S_segment * 0.16 * V_receiver))
+    // Esta fórmula es compleja para exterior, se simplificará.
+    console.log("TODO: Implementar calcD2mnT");
+    return {}; // Placeholder
+  }
+
+  /**
+   * Función principal para calcular el aislamiento acústico de una fachada según ISO 12354-4.
+   * @param wall La pared a analizar.
+   * @param openings Las aberturas en la pared.
+   * @param materialsData Catálogo de todos los materiales disponibles.
+   * @param roomData Datos del recinto emisor (volumen, tiempo de reverberación).
+   * @returns Un objeto con los resultados del cálculo.
+   */
+  static calculateFacadeSoundInsulation(
+    wall: any,
+    openings: any[],
+    materialsData: any,
+    roomData: any
+  ) {
+    // 1. Discretizar la fachada en segmentos
+    const segments = this.calcRBySegment(wall, openings);
+
+    // 2. Para cada segmento, calcular su índice de reducción acústica combinado
+    const segmentsWithR = segments.map(segment => {
+      const R_segment = this.calcSegmentR(segment.elements, materialsData);
+      return { ...segment, R_segment };
+    });
+
+    // 3. (Simplificación) Calcular un R' total para la fachada
+    // En una implementación completa, se calcularía la contribución de cada segmento a un punto receptor.
+    const totalArea = segments.reduce((sum, seg) => sum + seg.totalArea, 0);
+    const totalR = this.calcSegmentR(
+      segmentsWithR.flatMap(s => s.elements.map(e => ({...e, area: e.area}))),
+      materialsData
+    );
+
+
+    // 4. Calcular la diferencia de nivel D_2m,nT
+    // Aquí V_receiver es teóricamente infinito. Se usan simplificaciones.
+    // Por ahora, devolvemos los datos intermedios.
+    
+    console.log("Cálculo de aislamiento de fachada completado (versión simplificada).");
+
+    return {
+      totalFacadeR: totalR,
+      segments: segmentsWithR,
+    };
+  }
+
   // --- Métodos auxiliares matemáticos ---
   static distance(a: [number, number, number], b: [number, number, number]) {
     return Math.sqrt(

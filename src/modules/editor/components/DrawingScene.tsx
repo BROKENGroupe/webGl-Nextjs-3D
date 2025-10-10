@@ -42,6 +42,8 @@ import { LINE_COLORS } from "@/config/materials";
 import LineContextMenu from "./contextMenus/lineContextMenu";
 import { set } from "zod";
 import { color } from "framer-motion";
+import { ISO12354_4Engine } from "@/modules/editor/core/engineMath/ISO12354_4Engine";
+import { SegmentsVisualizer } from "./SegmentsVisualizer";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -79,6 +81,8 @@ export default function DrawingScene() {
   const [showWallsManager, setShowWallsManager] = useState(false);
   // ✅ NUEVO: State para el modal de configuración ISO
   const [showIsoConfigModal, setShowIsoConfigModal] = useState(false);
+  const [segments, setSegments] = useState<any[]>([]);
+  const [showSegments, setShowSegments] = useState(false);
 
   // ✅ NUEVO: Acceso al store de paredes
   const { walls } = useWallsStore();
@@ -616,6 +620,29 @@ export default function DrawingScene() {
   // Handler para alternar la vista del mapa de calor
   const handleToggleHeatmap = () => setShowHeatmap((prev) => !prev);
 
+  const handleToggleSegments = () => {
+    if (showSegments) {
+        setShowSegments(false);
+        setSegments([]);
+        return;
+    }
+
+    if (!isExtruded || walls.length === 0) {
+        console.log("Cannot calculate segments: Not in 3D mode or no walls.");
+        return;
+    }
+
+    console.log("Calculating segments for all walls...");
+    const allSegments = walls.flatMap(wall => {
+        if (!wall.start || !wall.end) return [];
+        return ISO12354_4Engine.calcRBySegment(wall, openings);
+    });
+
+    console.log(`Total segments calculated: ${allSegments.length}`);
+    setSegments(allSegments);
+    setShowSegments(true);
+};
+
   // Define the handler for ISO config confirmation
   const handleIsoConfigConfirm = (config: {
     height: number;
@@ -739,6 +766,7 @@ export default function DrawingScene() {
             ceilings2={ceilings}
           />
         )}
+        {showSegments && <SegmentsVisualizer segments={segments} />}
       </Canvas>
 
       {/* Controles de la aplicación */}
@@ -756,6 +784,7 @@ export default function DrawingScene() {
         handleToggleHeatmap={handleToggleHeatmap}
         setShowAcousticModal={setShowAcousticModal}
         setShowIsoConfigModal={setShowIsoConfigModal}
+        handleToggleSegments={handleToggleSegments}
       />
 
       <FacadeContextMenu
