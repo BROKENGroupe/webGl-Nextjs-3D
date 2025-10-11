@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
     id: userId,
   }
   
-  console.log('User ID from headers:', userId);
   try {
     const body = await req.json();
     const { action, payload } = body;

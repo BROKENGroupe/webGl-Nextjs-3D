@@ -36,8 +36,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           // Nueva estructura de respuesta con user y workspace separados
-          if (data && data.accessToken && data.user && data.workspace) {
-            console.log('[user auth] Credentials', data);
+          if (data && data.accessToken && data.user && data.workspace) {          
             
             const mapped = mapUserToToken({
               // Datos del usuario
@@ -187,8 +186,7 @@ export const authOptions: NextAuthOptions = {
           accessTokenExpires: newAccessTokenExpires,
           exp: Math.floor(newAccessTokenExpires / 1000),
         };
-      } catch (err) {
-        console.log('Failed to refresh token:', err);
+      } catch (err) {       
         return {
           ...token,
           error: 'RefreshAccessTokenError',

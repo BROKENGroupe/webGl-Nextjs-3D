@@ -28,11 +28,7 @@ export default function LoginPage() {
       const loginResponse = await loginUser(data);
       const { accessToken } = loginResponse.data;
 
-      console.log("LoginPage: Login API exitoso. AccessToken:", accessToken); // LOG 1
-
       await login(accessToken);
-
-      console.log("LoginPage: auth.login() ejecutado. Redirigiendo..."); // LOG 2
       router.push("/");
     } catch (error: any) {
       alert(

@@ -37,8 +37,7 @@ export const ProtectedRoute = memo(function ProtectedRoute({
   );
   
   const accessState = useMemo(() => {
-    if (isLoading) {
-      console.log('🔒 ProtectedRoute: Session is loading...');
+    if (isLoading) {      
       return { type: 'loading' as const };
     }
 
@@ -59,12 +58,9 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     });
 
     if (!hasAccess) {
-      console.log('🔒 ProtectedRoute: Access denied, will redirect to:', redirectTo);
       setTimeout(() => router.replace(redirectTo), 0);
       return { type: 'denied' as const };
     }
-
-    console.log('🔒 ProtectedRoute: ✅ Access granted');
     return { type: 'granted' as const };
     
   }, [hasPermission, userRole, isLoading, permissionsArr, rolesArr, router, redirectTo]);

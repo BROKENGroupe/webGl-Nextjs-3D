@@ -70,7 +70,7 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/register-onboarding" });
+    signIn("google", { callbackUrl: "/home" });
   };
 
   // ✅ Mostrar error del contexto si existe
