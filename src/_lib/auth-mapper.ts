@@ -23,6 +23,7 @@ export interface MappedUser {
   // Tokens
   accessToken: string | null;
   refreshToken: string | null;
+  isNewUser: boolean;
 }
 
 /**
@@ -52,6 +53,7 @@ export function mapUserToToken(user: Partial<User>, account?: any): MappedUser {
     // Tokens
     accessToken: (user as any).accessToken || account?.access_token || null,
     refreshToken: (user as any).refreshToken || null,
+    isNewUser: (user as any).isNewUser || false,
   };
 }
 
@@ -87,7 +89,7 @@ export function mapTokenToSession(token: JWT, session: any) {
 
   // Mantener slug en el nivel raíz para compatibilidad
   session.slug = (token as any).slug ?? null;
-
+  session.isNewUser = (token as any).isNewUser || false;
   return session;
 }
 

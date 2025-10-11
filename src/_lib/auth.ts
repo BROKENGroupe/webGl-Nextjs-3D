@@ -80,7 +80,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       try {
         if (account?.provider === "google") {
-          const { data } = await api.post("/auth/google", {
+          const { data } = await api.post("/accounts/google-signin", {
             email: profile?.email,
             name: profile?.name,
             image: account?.picture,

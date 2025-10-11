@@ -14,7 +14,6 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* ✅ Configurar SessionProvider para reducir updates */}
       <SessionProvider 
         refetchInterval={5 * 60}
         refetchOnWindowFocus={false}

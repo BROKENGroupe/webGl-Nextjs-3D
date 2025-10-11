@@ -32,6 +32,7 @@ declare module "next-auth" {
     
     // Mantener slug en raíz para compatibilidad
     slug?: string | null;
+    isNewUser?: boolean;
   }
 
   interface User extends DefaultUser {
@@ -52,6 +53,7 @@ declare module "next-auth" {
     // Tokens
     accessToken?: string;
     refreshToken?: string;
+    isNewUser?: boolean;
   }
 }
 
