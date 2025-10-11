@@ -9,11 +9,9 @@ import { z } from "zod";
 import React, { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Loader2 } from "lucide-react";
+import { createCredentialSchema } from "@/schemas/credential";
 
-const schema = z.object({
-  email: z.string().email({ message: "Your email is invalid." }),
-  password: z.string().min(4),
-});
+
 
 export default function LoginPage() {
   const [isPending, startTransition] = React.useTransition();
@@ -25,7 +23,7 @@ const [loading, setLoading] = useState(false);
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(createCredentialSchema),
     mode: "all",
     defaultValues: {
       email: "",

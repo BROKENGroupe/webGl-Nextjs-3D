@@ -1,8 +1,13 @@
 import { z } from "zod";
 
+// const schema = z.object({
+//   email: z.string().email({ message: "Your email is invalid." }),
+//   password: z.string().min(4),
+// });
+
 export const createCredentialSchema = z.object({
-  name: z.string().min(1).max(30),
-  value: z.string().min(1).max(1000),
+  email: z.string().email({ message: "Your email is invalid." }),
+  password: z.string().min(4),
 });
 export type CreateCredentialSchemaType = z.infer<typeof createCredentialSchema>;
 
