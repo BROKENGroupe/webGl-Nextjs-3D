@@ -9,6 +9,7 @@ export interface Establishment {
   name: string;
   type?: string;
   location?: string;
+  estudies: Study[];
 }
 
 export interface DashboardStats {
