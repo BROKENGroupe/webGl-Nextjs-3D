@@ -41,9 +41,7 @@ export default withAuth(
 
     //   Evitar onboarding si ya completó registro
     if (pathname.startsWith('/register-onboarding')) {
-      const redirectUrl = workspaceSlug 
-        ? new URL(`/${workspaceSlug}/home`, req.url)
-        : new URL('/home', req.url);
+      const redirectUrl = new URL('/home', req.url);
       console.log('[MIDDLEWARE] -> Redirecting from onboarding to app');
       return NextResponse.redirect(redirectUrl);
     }

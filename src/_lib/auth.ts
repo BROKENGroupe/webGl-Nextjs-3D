@@ -1,11 +1,16 @@
-import { NextAuthOptions } from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
-import GithubProvider from "next-auth/providers/github"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { mapUserToToken, mapTokenToSession } from "./auth-mapper"
-import api from "./axios"
+import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import GithubProvider from 'next-auth/providers/github';
+import { NextAuthOptions } from 'next-auth';
+import axios from 'axios';
+import { mapTokenToSession, mapUserToToken } from './auth-mapper';
 
-const ONE_HOUR = 60 * 60 * 1000;
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_NESTJS_API_URL,
+  withCredentials: true
+});
+
+const ONE_HOUR = 8 * 60 * 60 * 1000;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,30 +27,27 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
-        name: { label: 'Name', type: 'text' },
-        action: { label: 'Action', type: 'text' },
       },
       async authorize(credentials) {
         try {
-          const isRegister = credentials?.action === 'register';
-          const endpoint = isRegister ? '/accounts/register' : '/accounts/login';
-
-          const requestData = {
+          const { data } = await api.post('/accounts/login', {
             email: credentials?.email,
             password: credentials?.password,
-          }
+          });
 
-          const { data } = await api.post(endpoint, requestData);
-
+          // Nueva estructura de respuesta con user y workspace separados
           if (data && data.accessToken && data.user && data.workspace) {
+
             const mapped = mapUserToToken({
+              // Datos del usuario
               id: data.user.id,
               email: data.user.email,
               name: data.user.name,
               image: data.user.image ?? null,
               role: data.user.role,
               permissions: data.user.permissions ?? [],
-              registrationComplete: data.user.registrationComplete ?? false, //   Campo clave
+              registrationComplete: data.user.registrationComplete ?? false,
+              // Datos del workspace
               workspaceId: data.workspace.id,
               workspaceName: data.workspace.name,
               slug: data.workspace.slug,
@@ -54,6 +56,7 @@ export const authOptions: NextAuthOptions = {
               members: data.workspace.members,
               settings: data.workspace.settings,
               metadata: data.workspace.metadata,
+              // Tokens
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
             });
@@ -61,8 +64,8 @@ export const authOptions: NextAuthOptions = {
             return mapped as any;
           }
           return null;
-        } catch (err: any) {
-          console.error('Auth failed:', err);
+        } catch (err) {
+          console.error('Login failed:', err);
           return null;
         }
       },
@@ -73,26 +76,32 @@ export const authOptions: NextAuthOptions = {
     maxAge: ONE_HOUR,
   },
   callbacks: {
+
     async signIn({ user, account, profile }) {
       try {
         if (account?.provider === "google") {
           const { data } = await api.post("/accounts/google-signin", {
             email: profile?.email,
             name: profile?.name,
-            image: profile?.image,
+            image: account?.picture,
             sub: profile?.sub,
             idToken: account?.id_token,
           });
 
+          console.log("Google signIn response:", data);
+
+          // Nueva estructura de respuesta para Google
           if (data?.accessToken && data.user && data.workspace) {
             const mapped = mapUserToToken({
+              // Datos del usuario
               id: data.user.id,
               email: data.user.email,
               name: data.user.name,
-              image: data.user.image,
+              image: data.user.image ?? null,
               role: data.user.role,
               permissions: data.user.permissions ?? [],
-              registrationComplete: data.user.registrationComplete ?? false, //   Campo clave
+              registrationComplete: data.user.registrationComplete ?? false,
+              // Datos del workspace
               workspaceId: data.workspace.id,
               workspaceName: data.workspace.name,
               slug: data.workspace.slug,
@@ -101,6 +110,7 @@ export const authOptions: NextAuthOptions = {
               members: data.workspace.members,
               settings: data.workspace.settings,
               metadata: data.workspace.metadata,
+              // Tokens
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
             }, account);
@@ -110,60 +120,77 @@ export const authOptions: NextAuthOptions = {
           }
           return false;
         }
+
         return true;
-      } catch (err: any) {
-        console.error('SignIn failed:', err);
+      } catch (err) {
+        console.error("Google signIn failed:", err);
         return false;
       }
     },
 
-    jwt: async ({ token, user, trigger, isNewUser }) => {
+    jwt: async ({ token, user }: { token: any; user?: any; }) => {
       try {
         const accessTokenExpires = Date.now() + ONE_HOUR;
-
         if (user) {
-          console.log('[JWT] New user session:', {
-            userId: user.id,
-            registrationComplete: user.registrationComplete,
-            isNewUser: isNewUser || trigger === 'signUp'
-          });
-
-          const mapped = mapUserToToken(user, token);
-          return {
-            ...token,
-            ...mapped,
-            isNewUser: isNewUser || trigger === 'signUp', //   Usar isNewUser de NextAuth
-            accessTokenExpires,
-            exp: Math.floor(accessTokenExpires / 1000),
-          };
+          if (user) {
+            const mapped = mapUserToToken(user, token);
+            return {
+              ...token,
+              ...mapped,
+              accessTokenExpires,
+              exp: Math.floor(accessTokenExpires / 1000),
+            };
+          }
         }
 
-        if (typeof token.accessTokenExpires === "number" && Date.now() < token.accessTokenExpires) {
+        if (Date.now() < token.accessTokenExpires) {
           return token;
         }
 
-        console.log('[JWT] Refreshing token...');
+        // Refresh token - también debe manejar la nueva estructura
         const { data } = await api.post('/auth/refresh', {
           refreshToken: token.refreshToken,
         });
 
         const newAccessTokenExpires = Date.now() + ONE_HOUR;
 
+        // Si el refresh devuelve la nueva estructura completa
         if (data.user && data.workspace) {
           return {
             ...token,
+            // Actualizar tokens
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
-            registrationComplete: data.user.registrationComplete ?? token.registrationComplete,
-            isNewUser: false, //   Limpiar después del refresh
+            // Actualizar datos del usuario si cambiaron
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+            image: data.user.image,
+            role: data.user.role,
+            permissions: data.user.permissions,
+            registrationComplete: data.user.registrationComplete ?? false,  
+            // Actualizar datos del workspace si cambiaron
+            workspaceId: data.workspace.id,
+            workspaceName: data.workspace.name,
+            slug: data.workspace.slug,
+            accountType: data.workspace.accountType,
+            enabledModules: data.workspace.enabledModules,
+            members: data.workspace.members,
+            settings: data.workspace.settings,
+            metadata: data.workspace.metadata,
+            // Timestamps
             accessTokenExpires: newAccessTokenExpires,
             exp: Math.floor(newAccessTokenExpires / 1000),
           };
         }
 
-        return token;
+        return {
+          ...token,
+          accessToken: data.accessToken,
+          accessTokenExpires: newAccessTokenExpires,
+          exp: Math.floor(newAccessTokenExpires / 1000),
+        };
       } catch (err) {
-        console.error('[JWT] Refresh failed:', err);
         return {
           ...token,
           error: 'RefreshAccessTokenError',
@@ -172,49 +199,26 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    async session({ session, token }) {
-      const mappedSession = mapTokenToSession(token, session);
-
-      //   Agregar campos de estado
-      if (token.isNewUser) {
-        mappedSession.isNewUser = token.isNewUser;
-      }
-
-      console.log('[SESSION] Final session:', {
-        userId: mappedSession.user?.id,
-        registrationComplete: mappedSession.user?.registrationComplete,
-        isNewUser: mappedSession.isNewUser,
-        workspaceSlug: mappedSession.workspace?.slug
-      });
-
-      return mappedSession;
+    async session({ session, token }: { session: any; token: any }) {
+      console.log(session, token)
+      return mapTokenToSession(token, session);
     },
 
-    //   Callback de redirección basado en registrationComplete
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {      
-      return `${baseUrl}/home`;
-    },
+    // async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
+    //   console.log('[REDIRECT] Redirect callback invoked:', {
+    //     url,
+    //     baseUrl,
+    //     hasToken: token,
+    //     hasUser: user
+    //   });
+             
+    //       return `${baseUrl}/register-onboarding`;
+        
+    // },
   },
   pages: {
     signIn: '/auth/login',
     error: '/auth/login?error=AuthenticationError',
-  },
-  events: {
-    //   Eventos para audit logging
-    async signIn({ user, account, isNewUser }) {
-      console.log('[EVENT] User signed in:', {
-        userId: user.id,
-        provider: account?.provider,
-        isNewUser,
-        registrationComplete: (user as any).registrationComplete
-      });
-    },
-    async createUser({ user }) {
-      console.log('[EVENT] User created:', {
-        userId: user.id,
-        email: user.email
-      });
-    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV !== "production"

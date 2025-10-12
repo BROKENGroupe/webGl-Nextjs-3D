@@ -4,51 +4,82 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      image: any;
-      registrationComplete?: boolean;
+      name?: string;
+      email?: string;
       role?: string;
-      permissions?: Record<string, boolean>;
+      permissions?: string[] | null;
+      registrationComplete?: boolean;
+      image?: { src: string; width?: number; height?: number };
+      createdAt?: string;
+      updatedAt?: string;
     } & DefaultSession["user"];
-    workspace?: {
-      id: string;
-      name: string;
-      slug: string;
-      accountType: string;
-      enabledModules: string[];
+    
+    // ✅ Nuevo: Objeto workspace separado
+    workspace: {
+      id: string | null;
+      name: string | null;
+      slug: string | null;
+      accountType: string | null;
+      enabledModules: string[] | null;
+      members: any[] | null;
+      settings: any | null;
+      metadata: any | null;
     };
-    accessToken?: string;
-    refreshToken?: string;
-    isNewUser?: boolean;
+    
+    // Tokens y otros
+    accessToken?: string | null;
+    refreshToken?: string | null;
+    error?: string | null;
+    
+    // Mantener slug en raíz para compatibilidad
+    slug?: string | null;
   }
 
   interface User extends DefaultUser {
-    registrationComplete?: boolean;
+    id: string;
     role?: string;
-    permissions?: Record<string, boolean>;
+    permissions?: string[] | null;
+    registrationComplete?: boolean;
+    // ✅ Campos del workspace en User (para mapeo inicial)
     workspaceId?: string;
     workspaceName?: string;
+    slug?: string | null;
+    accountType?: string;
+    enabledModules?: string[];
     members?: any[];
     settings?: any;
     metadata?: any;
-    slug?: string;
-    accountType?: string;
-    enabledModules?: string[];
+    
+    // Tokens
     accessToken?: string;
     refreshToken?: string;
   }
+}
 
+declare module "next-auth/jwt" {
   interface JWT {
-    registrationComplete?: boolean;
-    isNewUser?: boolean;
+    // Datos del usuario
+    id?: string;
+    email?: string;
+    name?: string;
     role?: string;
-    permissions?: Record<string, boolean>;
-    workspaceId?: string;
-    workspaceName?: string;
-    slug?: string;
-    accountType?: string;
-    enabledModules?: string[];
+    permissions?: string[] | null;
+    image?: string | null;
+    
+    // ✅ Datos del workspace en JWT
+    workspaceId?: string | null;
+    workspaceName?: string | null;
+    slug?: string | null;
+    accountType?: string | null;
+    enabledModules?: string[] | null;
+    members?: any[] | null;
+    settings?: any | null;
+    metadata?: any | null;
+    
+    // Tokens y control
     accessToken?: string;
     refreshToken?: string;
     accessTokenExpires?: number;
+    error?: string;
   }
 }
