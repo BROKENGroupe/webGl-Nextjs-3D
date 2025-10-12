@@ -42,26 +42,20 @@ export default function RegisterPage() {
     startTransition(async () => {
       try {
         const response = await registerUser(data);
-        
-        console.log("📋 API Response:", response);
-        
         if (response) {
-          // ✅ Usar función del Context para guardar datos
-          const success = saveRegistrationData(response, data);
+          const response2 = await signIn("credentials", {
+            redirect: false,
+            email: data.email,
+            password: data.password,
+          });          
           
-          if (success) {
-            toast.success("Cuenta creada exitosamente", {
-              description: "Completa tu perfil para continuar"
-            });
-            
-            router.push("/register-onboarding");
-          } else {
-            toast.error("Error al procesar datos de registro");
+          if (response2?.error) {
+            throw new Error(response2.error);
           }
+          saveRegistrationData(response2, data);
+          router.push("/home");          
         }        
-      } catch (error: any) {
-        console.error("❌ Error in registration:", error);
-        
+      } catch (error: any) {        
         toast.error("Error al crear la cuenta", {
           description: error.message || "Intenta nuevamente"
         });
@@ -70,7 +64,7 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/home" });
+    signIn("google", {callbackUrl: '/home'});
   };
 
   // ✅ Mostrar error del contexto si existe

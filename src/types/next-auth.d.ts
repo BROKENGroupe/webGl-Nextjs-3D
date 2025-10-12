@@ -8,6 +8,7 @@ declare module "next-auth" {
       email?: string;
       role?: string;
       permissions?: string[] | null;
+      registrationComplete?: boolean;
       image?: { src: string; width?: number; height?: number };
       createdAt?: string;
       updatedAt?: string;
@@ -32,14 +33,13 @@ declare module "next-auth" {
     
     // Mantener slug en raíz para compatibilidad
     slug?: string | null;
-    isNewUser?: boolean;
   }
 
   interface User extends DefaultUser {
     id: string;
     role?: string;
     permissions?: string[] | null;
-    
+    registrationComplete?: boolean;
     // ✅ Campos del workspace en User (para mapeo inicial)
     workspaceId?: string;
     workspaceName?: string;
@@ -53,7 +53,6 @@ declare module "next-auth" {
     // Tokens
     accessToken?: string;
     refreshToken?: string;
-    isNewUser?: boolean;
   }
 }
 

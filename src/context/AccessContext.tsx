@@ -70,7 +70,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
   }
   
   // ✅ Datos del usuario solo cuando esté listo
-  const role = isReady ? (session?.user?.role || "guest") : "guest";
+  const role = isReady ? (session?.user?.role || "admin") : "admin";
   const workspace = isReady ? (session?.workspace || {}) : {};
   const user = isReady ? (session?.user || {}) : {};
 
@@ -78,24 +78,18 @@ export function AccessProvider({ children }: { children: ReactNode }) {
   const hasPermission = (permission: string): boolean => {
     // ✅ Si NextAuth aún está cargando, no dar permisos
     if (isLoading || !isReady) {
-      console.log(`🔐 hasPermission("${permission}"): STILL LOADING - returning false`);
+      
       return false;
     }
     
     // ✅ Si no está autenticado, no dar permisos
     if (isUnauthenticated) {
-      console.log(`🔐 hasPermission("${permission}"): UNAUTHENTICATED - returning false`);
+     
       return false;
     }
     
     // ✅ Verificar permiso
-    const result = permissions[permission] === true;
-    console.log(`🔐 hasPermission("${permission}"): ${result}`, { 
-      status, 
-      isReady, 
-      hasSession: !!session,
-      availablePermissions: Object.keys(permissions) 
-    });
+    const result = permissions[permission] === true;    
     return result;
   };
 

@@ -55,34 +55,11 @@ const [loading, setLoading] = useState(false);
       }
      
     });
-  };
-
-  //   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
-  //     try {
-  //       const loginResponse = await loginUser(data);
-  //       const { accessToken } = loginResponse.data;
-
-  //       console.log("LoginPage: Login API exitoso. AccessToken:", accessToken); // LOG 1
-
-  //       await login(accessToken);
-
-  //       console.log("LoginPage: auth.login() ejecutado. Redirigiendo..."); // LOG 2
-  //       router.push("/");
-  //     } catch (error: any) {
-  //       alert(
-  //         "Error: " +
-  //           (error.response?.data?.message || "Credenciales incorrectas.")
-  //       );
-  //     }
-  //   };
+  };  
 
   const handleGoogleLogin = () => {
-    //window.location.href = getGoogleAuthUrl();
-    signIn("google", { callbackUrl: "/home" });
-  };
-  const handleAppleLogin = () => {
-    alert("Apple login no implementado");
-  };
+    signIn("google", {callbackUrl: '/home'});
+  };  
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">

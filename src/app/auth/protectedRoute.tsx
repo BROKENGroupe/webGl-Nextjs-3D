@@ -46,16 +46,7 @@ export const ProtectedRoute = memo(function ProtectedRoute({
       permissionsArr.some(p => hasPermission(p));
 
     const hasRequiredRole = !rolesArr || (userRole && rolesArr.includes(userRole));
-    const hasAccess = hasRequiredPermission && hasRequiredRole;
-
-    console.log('🔒 ProtectedRoute Access Check:', {
-      requestedPermissions: permissionsArr,
-      requestedRoles: rolesArr,
-      userRole,
-      hasRequiredPermission,
-      hasRequiredRole,
-      finalAccess: hasAccess,
-    });
+    const hasAccess = hasRequiredPermission && hasRequiredRole;    
 
     if (!hasAccess) {
       setTimeout(() => router.replace(redirectTo), 0);

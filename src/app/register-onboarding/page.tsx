@@ -34,10 +34,10 @@ export default function RegisterOnboardingPage() {
       console.log("🗃️ Loading register data from Context:", registerData);
       setForm((prev) => ({
         ...prev,
-        id: registerData.id,
-        email: registerData.email,
-        password: registerData.password,
-        name: registerData.name,
+        id:  "temp-id",
+        email: 'registerData.email',
+        password: 'registerData.password',
+        name: 'registerData.name',
       }));
     } else {
       console.log("⚠️ No register data found in Context");
@@ -67,10 +67,10 @@ export default function RegisterOnboardingPage() {
   };
 
   const handleNext = () => {
-    form.email = registerData.email || "";
-    form.id = registerData.id || "";
-    form.name = registerData.name || "";
-    form.password = registerData.password || "";
+    form.email =  "";
+    form.id =  "";
+    form.name =  "";
+    form.password =  "";
     const error = validateStep(step, form);
     if (error) {
       alert(error);
@@ -99,9 +99,9 @@ export default function RegisterOnboardingPage() {
 
     try {
       const onboardingData = {
-        id: registerData.id || "temp-id",
-        name: registerData.name || "",
-        email: registerData.email || "",
+        id:  "temp-id",
+        name:  "",
+        email:  "",
         description: form.businessName
           ? `${form.businessName} - Establecimiento de tipo ${form.businessType} ubicado en ${form.city}`
           : `Establecimiento de tipo ${
@@ -153,7 +153,7 @@ export default function RegisterOnboardingPage() {
           // ✅ Limpiar Context en lugar de localStorage
           clearRegisterData();
           console.log("🗑️ Register data cleared from Context");
-          router.push("/home");
+          //router.push("/home");
         } else {
           throw new Error("Error en el login automático");
         }

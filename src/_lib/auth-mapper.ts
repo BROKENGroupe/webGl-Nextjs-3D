@@ -9,6 +9,7 @@ export interface MappedUser {
   image: string | null;
   role: string | null;
   permissions: string[] | null;
+  registrationComplete: boolean;
   
   // Datos del workspace
   workspaceId: string | null;
@@ -23,7 +24,6 @@ export interface MappedUser {
   // Tokens
   accessToken: string | null;
   refreshToken: string | null;
-  isNewUser: boolean;
 }
 
 /**
@@ -39,6 +39,7 @@ export function mapUserToToken(user: Partial<User>, account?: any): MappedUser {
     image: (user as any).image ?? null,
     role: (user as any).role ?? null,
     permissions: (user as any).permissions ?? null,
+    registrationComplete: (user as any).registrationComplete ?? false,
     
     // Datos del workspace
     workspaceId: (user as any).workspaceId ?? null,
@@ -53,7 +54,6 @@ export function mapUserToToken(user: Partial<User>, account?: any): MappedUser {
     // Tokens
     accessToken: (user as any).accessToken || account?.access_token || null,
     refreshToken: (user as any).refreshToken || null,
-    isNewUser: (user as any).isNewUser || false,
   };
 }
 
@@ -69,6 +69,7 @@ export function mapTokenToSession(token: JWT, session: any) {
   session.user.image = (token as any).image ?? null;
   session.user.role = (token as any).role ?? null;
   session.user.permissions = (token as any).permissions ?? null;
+  session.user.registrationComplete = (token as any).registrationComplete ?? false;
 
   // Datos del workspace
   session.workspace = {
@@ -89,7 +90,6 @@ export function mapTokenToSession(token: JWT, session: any) {
 
   // Mantener slug en el nivel raíz para compatibilidad
   session.slug = (token as any).slug ?? null;
-  session.isNewUser = (token as any).isNewUser || false;
   return session;
 }
 

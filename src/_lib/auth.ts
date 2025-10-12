@@ -36,8 +36,8 @@ export const authOptions: NextAuthOptions = {
           });
 
           // Nueva estructura de respuesta con user y workspace separados
-          if (data && data.accessToken && data.user && data.workspace) {          
-            
+          if (data && data.accessToken && data.user && data.workspace) {
+
             const mapped = mapUserToToken({
               // Datos del usuario
               id: data.user.id,
@@ -46,6 +46,7 @@ export const authOptions: NextAuthOptions = {
               image: data.user.image ?? null,
               role: data.user.role,
               permissions: data.user.permissions ?? [],
+              registrationComplete: data.user.registrationComplete ?? false,
               // Datos del workspace
               workspaceId: data.workspace.id,
               workspaceName: data.workspace.name,
@@ -87,6 +88,8 @@ export const authOptions: NextAuthOptions = {
             idToken: account?.id_token,
           });
 
+          console.log("Google signIn response:", data);
+
           // Nueva estructura de respuesta para Google
           if (data?.accessToken && data.user && data.workspace) {
             const mapped = mapUserToToken({
@@ -97,6 +100,7 @@ export const authOptions: NextAuthOptions = {
               image: data.user.image ?? null,
               role: data.user.role,
               permissions: data.user.permissions ?? [],
+              registrationComplete: data.user.registrationComplete ?? false,
               // Datos del workspace
               workspaceId: data.workspace.id,
               workspaceName: data.workspace.name,
@@ -164,6 +168,7 @@ export const authOptions: NextAuthOptions = {
             image: data.user.image,
             role: data.user.role,
             permissions: data.user.permissions,
+            registrationComplete: data.user.registrationComplete ?? false,  
             // Actualizar datos del workspace si cambiaron
             workspaceId: data.workspace.id,
             workspaceName: data.workspace.name,
@@ -179,14 +184,13 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
-        // Fallback si solo devuelve el accessToken
         return {
           ...token,
           accessToken: data.accessToken,
           accessTokenExpires: newAccessTokenExpires,
           exp: Math.floor(newAccessTokenExpires / 1000),
         };
-      } catch (err) {       
+      } catch (err) {
         return {
           ...token,
           error: 'RefreshAccessTokenError',
@@ -196,17 +200,20 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }: { session: any; token: any }) {
+      console.log(session, token)
       return mapTokenToSession(token, session);
     },
 
     // async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
-    //   console.log('Redirecting to:', token, user);
-    //   // Usar el slug del workspace para la redirección
-    //   const slug = token?.slug || user?.slug || token?.workspaceSlug || user?.workspaceSlug;
-    //   if (slug) {
-    //     return `${baseUrl}/${slug}/home`;
-    //   }
-    //   return `${baseUrl}/home`;
+    //   console.log('[REDIRECT] Redirect callback invoked:', {
+    //     url,
+    //     baseUrl,
+    //     hasToken: token,
+    //     hasUser: user
+    //   });
+             
+    //       return `${baseUrl}/register-onboarding`;
+        
     // },
   },
   pages: {

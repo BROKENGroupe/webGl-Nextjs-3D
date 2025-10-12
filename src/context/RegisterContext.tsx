@@ -3,10 +3,7 @@ import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 // ✅ Tipos del contexto
 export interface RegisterData {
-  id?: string;
-  email?: string;
-  name?: string;
-  password?: string;
+  status?: number;
 }
 
 interface RegisterState {
@@ -113,12 +110,12 @@ export function RegisterProvider({ children }: { children: ReactNode }) {
   // ✅ Helper functions
   const hasRegisterData = (): boolean => {
     const { registerData } = state;
-    return !!(registerData.id && registerData.email);
+    return !!(registerData.status);
   };
 
   const isComplete = (): boolean => {
     const { registerData } = state;
-    return !!(registerData.id && registerData.email && registerData.name && registerData.password);
+    return !!(registerData.status);
   };
 
   const validateRegistrationData = (): boolean => {
@@ -172,6 +169,7 @@ export function useRegisterFlow() {
 
   const saveRegistrationData = (userData: any, formData: any): boolean => {
     try {
+      debugger
       context.setLoading(true);
       
       // ✅ Validar estructura de datos
@@ -179,17 +177,14 @@ export function useRegisterFlow() {
         throw new Error("Invalid user data structure");
       }
 
-      const { email, name, id } = userData;
+      const { status } = userData;
 
-      if (!email || !name || !id) {
+      if (status !== 200) {
         throw new Error("Missing required user fields");
       }
 
       const registerDataToSave: RegisterData = {
-        id: id,
-        email: email,
-        name: name,
-        password: formData.password
+        status: userData.status,
       };
 
       console.log('💾 Context: Saving registration data:', registerDataToSave);
