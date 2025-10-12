@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
             email: credentials?.email,
             password: credentials?.password,
           }
-          
+
           const { data } = await api.post(endpoint, requestData);
 
           if (data && data.accessToken && data.user && data.workspace) {
@@ -191,29 +191,13 @@ export const authOptions: NextAuthOptions = {
     },
 
     //   Callback de redirección basado en registrationComplete
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-      try {
-        //   Verificar errores en la URL
-        const urlObj = new URL(url);
-        const error = urlObj.searchParams.get('error');
-
-        if (error) {
-          console.log('[REDIRECT] Error detected, going to login');
-          return `${baseUrl}/auth/login?error=${error}`;
-        }
-      } catch (e) {
-        // URL inválida, continuar
-      }
-
-      //   Redirección por defecto
-      console.log('[REDIRECT] -> Default home');
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {      
       return `${baseUrl}/home`;
     },
   },
   pages: {
     signIn: '/auth/login',
     error: '/auth/login?error=AuthenticationError',
-    newUser: '/register-onboarding', //   Página para nuevos usuarios
   },
   events: {
     //   Eventos para audit logging
