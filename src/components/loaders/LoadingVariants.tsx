@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 
-// ✅ Loader con efecto de onda
+//   Loader con efecto de onda
 export function WaveLoader({ message = "Cargando..." }: { message?: string }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -24,7 +24,7 @@ export function WaveLoader({ message = "Cargando..." }: { message?: string }) {
   );
 }
 
-// ✅ Loader con círculo pulsante
+//   Loader con círculo pulsante
 export function PulseLoader({ message = "Cargando..." }: { message?: string }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -39,7 +39,7 @@ export function PulseLoader({ message = "Cargando..." }: { message?: string }) {
   );
 }
 
-// ✅ Loader minimalista con línea
+//   Loader minimalista con línea
 export function LineLoader({ message = "Cargando..." }: { message?: string }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -53,7 +53,7 @@ export function LineLoader({ message = "Cargando..." }: { message?: string }) {
   );
 }
 
-// ✅ Loader con rotación suave
+//   Loader con rotación suave
 export function SoftSpinLoader({ message = "Cargando..." }: { message?: string }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

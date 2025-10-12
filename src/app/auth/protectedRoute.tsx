@@ -9,9 +9,9 @@ type ProtectedRouteProps = {
   component: () => Promise<{ default: React.ComponentType<any> }>;
   loading?: React.ReactNode;
   redirectTo?: string;
-  requireRegistrationComplete?: boolean; // ✅ Para onboarding
-  allowWithoutPermissions?: boolean; // ✅ Nueva prop para permitir sin permisos
-  allowedRoutes?: string[]; // ✅ Rutas específicas que permiten acceso sin permisos
+  requireRegistrationComplete?: boolean;
+  allowWithoutPermissions?: boolean; 
+  allowedRoutes?: string[];
 };
 
 export const ProtectedRoute = memo(function ProtectedRoute({
@@ -44,16 +44,16 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     [role]
   );
 
-  // ✅ Verificar si la ruta actual está en las rutas permitidas
-  const isAllowedRoute = useMemo(() => {
-    if (allowedRoutes.length === 0 && !allowWithoutPermissions) return false;
+  //   Verificar si la ruta actual está en las rutas permitidas
+  // const isAllowedRoute = useMemo(() => {
+  //   if (allowedRoutes.length === 0 && !allowWithoutPermissions) return false;
     
-    const currentPath = window?.location?.pathname || '';
-    return allowedRoutes.some(route => currentPath.startsWith(route)) || allowWithoutPermissions;
-  }, [allowedRoutes, allowWithoutPermissions]);
+  //   const currentPath = window?.location?.pathname || '';
+  //   return allowedRoutes.some(route => currentPath.startsWith(route)) || allowWithoutPermissions;
+  // }, [allowedRoutes, allowWithoutPermissions]);
   
   const accessState = useMemo(() => {
-    // ✅ Verificar autenticación primero
+    //   Verificar autenticación primero
     if (status === "loading" || isLoading) {
       return { type: 'loading' as const, message: 'Verificando sesión...' };
     }
@@ -63,13 +63,13 @@ export const ProtectedRoute = memo(function ProtectedRoute({
       return { type: 'denied' as const, message: 'No autenticado' };
     }   
 
-    // ✅ Si está en ruta permitida, saltar verificación de permisos
-    if (isAllowedRoute) {
+    //   Si está en ruta permitida, saltar verificación de permisos
+    if (allowWithoutPermissions) {
       console.log('🟢 Route allowed without permissions check');
       return { type: 'granted' as const, message: 'Acceso permitido sin permisos' };
     }
 
-    // ✅ Verificación normal de permisos y roles
+    //   Verificación normal de permisos y roles
     const hasRequiredPermission = 
       !permissionsArr || 
       permissionsArr.some(p => hasPermission(p));
@@ -103,10 +103,10 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     router, 
     redirectTo,
     requireRegistrationComplete,
-    isAllowedRoute
+    allowWithoutPermissions
   ]);
 
-  // ✅ Renderizado optimizado
+  //   Renderizado optimizado
   switch (accessState.type) {
     case 'loading':
       return <>{loading}</>;

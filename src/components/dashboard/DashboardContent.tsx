@@ -16,7 +16,7 @@ export default function DashboardContent() {
     createEstablishment
   } = useDashboard();
 
-  // ✅ Handlers para crear elementos
+  //   Handlers para crear elementos
   const handleCreateStudy = async () => {
     try {
       await createStudy({

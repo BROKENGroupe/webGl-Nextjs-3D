@@ -20,28 +20,28 @@ export function AccessProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const [isReady, setIsReady] = useState(false);
   
-  // ✅ Estados basados en el status de NextAuth
+  //   Estados basados en el status de NextAuth
   const isLoading = status === "loading";
   const isAuthenticated = status === "authenticated";
   const isUnauthenticated = status === "unauthenticated";
 
-  // ✅ Procesar datos solo cuando el status esté listo
+  //   Procesar datos solo cuando el status esté listo
   useEffect(() => {
-    // ✅ Solo procesar cuando NextAuth haya terminado de cargar
+    //   Solo procesar cuando NextAuth haya terminado de cargar
     if (status === "loading") {
       console.log('🔄 NextAuth still loading...');
       setIsReady(false);
       return;
     }
 
-    console.log('✅ NextAuth status ready:', status);
+    console.log('  NextAuth status ready:', status);
     console.log('📋 Session data:', session);
 
-    // ✅ Marcar como listo independientemente de si hay sesión o no
+    //   Marcar como listo independientemente de si hay sesión o no
     setIsReady(true);
   }, [status, session]);
 
-  // ✅ Procesar permisos solo cuando esté listo
+  //   Procesar permisos solo cuando esté listo
   let permissions: Record<string, boolean> = {};
   
   if (isReady && session?.user?.permissions) {
@@ -59,7 +59,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     }
   }
   
-  // ✅ Procesar módulos solo cuando esté listo
+  //   Procesar módulos solo cuando esté listo
   let modules: string[] = [];
   
   if (isReady && session?.workspace?.enabledModules) {
@@ -69,26 +69,26 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     }
   }
   
-  // ✅ Datos del usuario solo cuando esté listo
+  //   Datos del usuario solo cuando esté listo
   const role = isReady ? (session?.user?.role || "admin") : "admin";
   const workspace = isReady ? (session?.workspace || {}) : {};
   const user = isReady ? (session?.user || {}) : {};
 
-  // ✅ Helper function que respeta el estado de carga
+  //   Helper function que respeta el estado de carga
   const hasPermission = (permission: string): boolean => {
-    // ✅ Si NextAuth aún está cargando, no dar permisos
+    //   Si NextAuth aún está cargando, no dar permisos
     if (isLoading || !isReady) {
       
       return false;
     }
     
-    // ✅ Si no está autenticado, no dar permisos
+    //   Si no está autenticado, no dar permisos
     if (isUnauthenticated) {
      
       return false;
     }
     
-    // ✅ Verificar permiso
+    //   Verificar permiso
     const result = permissions[permission] === true;    
     return result;
   };
@@ -101,10 +101,10 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     user,
     hasPermission,
     isLoading,
-    isReady: isReady && !isLoading // ✅ Listo cuando NextAuth terminó Y no está cargando
+    isReady: isReady && !isLoading //   Listo cuando NextAuth terminó Y no está cargando
   };
 
-  // ✅ Log del estado actual
+  //   Log del estado actual
   console.log('🔄 AccessContext state:', {
     status,
     isLoading,

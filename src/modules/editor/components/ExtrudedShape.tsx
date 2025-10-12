@@ -14,7 +14,7 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
     return null;
   }
 
-  // ✅ CORREGIDO: Usar la altura correcta para extrusión de formas
+  //   CORREGIDO: Usar la altura correcta para extrusión de formas
   const depth = GEOMETRY_CONFIG.EXTRUDE_DEPTH; // 2.5 metros de altura
 
   // Crear múltiples meshes para construir la forma 3D manualmente
@@ -89,7 +89,7 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
       <mesh geometry={floorGeometry}>
         <meshStandardMaterial 
           color={COLORS.ceiling}
-          side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
+          side={THREE.DoubleSide}  //   CORREGIDO: Acceso directo a THREE.DoubleSide
           roughness={MATERIAL_PROPERTIES.FLOOR.roughness}
           metalness={MATERIAL_PROPERTIES.FLOOR.metalness}
           transparent={MATERIAL_PROPERTIES.FLOOR.transparent}
@@ -103,7 +103,7 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
         <mesh key={`wall-${index}`} geometry={wallGeom}>
           <meshStandardMaterial 
             color={COLORS.wall}
-            side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
+            side={THREE.DoubleSide}  //   CORREGIDO: Acceso directo a THREE.DoubleSide
             roughness={MATERIAL_PROPERTIES.WALLS.roughness}
             metalness={MATERIAL_PROPERTIES.WALLS.metalness}
             transparent={MATERIAL_PROPERTIES.WALLS.transparent}
@@ -119,7 +119,7 @@ export function ExtrudedShape({ planeCoordinates, holeCoordinates }: ExtrudedSha
       <mesh geometry={ceilingGeometry}>
         <meshStandardMaterial 
           color={COLORS.ceiling}
-          side={THREE.DoubleSide}  // ✅ CORREGIDO: Acceso directo a THREE.DoubleSide
+          side={THREE.DoubleSide}  //   CORREGIDO: Acceso directo a THREE.DoubleSide
           roughness={MATERIAL_PROPERTIES.CEILING.roughness}
           metalness={MATERIAL_PROPERTIES.CEILING.metalness}
           transparent={MATERIAL_PROPERTIES.CEILING.transparent}

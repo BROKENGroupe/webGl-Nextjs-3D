@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { registerAccount } from "@/services/userService";
 import { useRegister } from "@/context/RegisterContext";
 import { useTypedSession } from "@/hooks/useTypedSession";
@@ -15,35 +15,23 @@ import { useOnboardingValidation } from "../hooks/useOnboardingValidation";
 import NavigationButtons from "./Navigation";
 import { OnboardingFormData } from "../types/onboarding";
 import { AccountType } from "../types/enum";
-
+import { ru } from "zod/v4/locales";
 export default function OnboardingWizard() {
+  const { update } = useSession(); // ✅ Hook para actualizar sesión
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<OnboardingFormData>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // ✅ Hooks
-  const { session } = useTypedSession();
-  const {
-    registerData,
-    hasRegisterData,
-    clearRegisterData,
-    validateRegistrationData,
-  } = useRegister();
-
-  // ✅ Si ya completó el registro, redirigir
-  useEffect(() => {
-    if (session?.user?.registrationComplete === true) {
-      const workspaceSlug = session.workspace?.slug;
-      const redirectPath = workspaceSlug ? `/${workspaceSlug}/home` : "/home";
-      router.push(redirectPath);
-    }
-  }, [session, router]);
-
   const totalSteps = ONBOARDING_STEPS.length;
   const { validateStep, validateFinalSubmission } = useOnboardingValidation();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ✅ Actualizar para soportar más tipos de input
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
@@ -55,6 +43,14 @@ export default function OnboardingWizard() {
     setForm((prev) => ({
       ...prev,
       [fieldName]: value,
+    }));
+  };
+
+  // ✅ Nueva función para selección múltiple
+  const handleMultipleSelect = (fieldName: string, values: string[]) => {
+    setForm((prev) => ({
+      ...prev,
+      [fieldName]: values,
     }));
   };
 
@@ -78,73 +74,120 @@ export default function OnboardingWizard() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!validateRegistrationData()) {
-      return;
-    }
-
     setLoading(true);
 
     try {
+      // ✅ Generar nombre completo desde firstName y lastName
+      const fullName =
+        `${form.firstName || ""} ${form.lastName || ""}`.trim() || "Usuario";
+
+      // ✅ Generar descripción más rica
+      const businessTypesText =
+        form.businessTypes?.join(", ") ||
+        form.businessType ||
+        "establecimientos comerciales";
+      const description = form.businessName
+        ? `${form.businessName} - ${businessTypesText} ubicado en ${
+            form.city || "ubicación no especificada"
+          }`
+        : `Propietario/administrador de ${businessTypesText} en ${
+            form.city || "No especificada"
+          }`;
+
+      // ✅ Mapear mainRole a campos legacy
+      const mapMainRoleToLegacy = (mainRole?: string) => {
+        switch (mainRole) {
+          case "owner":
+            return "owner";
+          case "admin":
+            return "admin";
+          case "manager":
+            return "manager";
+          case "consultant":
+            return "consultant";
+          default:
+            return form.role || "admin";
+        }
+      };
+
+      // ✅ Determinar platformRole y platformUsage
+      const platformRole =
+        form.mainRole === "owner"
+          ? ("owner" as const)
+          : form.mainRole === "employee"
+          ? ("collaborator" as const)
+          : ("admin" as const);
+
+      const platformUsage =
+        form.acousticExperience === "expert" ||
+        form.acousticExperience === "advanced"
+          ? ("professional" as const)
+          : ("educational" as const);
+
+      // ✅ Generar intereses expandidos
+      const interests = [
+        ...(form.businessTypes || [form.businessType].filter(Boolean)),
+        "acustica",
+        "control-ruido",
+      ].filter(Boolean);
+
+      // ✅ Generar experiencia expandida
+      const experienceParts = [
+        form.acousticExperience &&
+          `Experiencia acústica: ${form.acousticExperience}`,
+        form.specificRole && `Rol específico: ${form.specificRole}`,
+        form.businessName && `Trabaja en: ${form.businessName}`,
+        form.establishmentCount &&
+          `Maneja ${form.establishmentCount} establecimiento(s)`,
+        form.role && `${form.role}`,
+      ].filter(Boolean);
+
+      const experience =
+        experienceParts.length > 0
+          ? experienceParts.join(". ")
+          : "Sin experiencia especificada";
+
       const onboardingData = {
         id: "temp-id",
-        name: "",
-        email: "",
-        description: form.businessName
-          ? `${form.businessName} - Establecimiento de tipo ${form.businessType} ubicado en ${form.city}`
-          : `Establecimiento de tipo ${
-              form.businessType || "comercial"
-            } ubicado en ${form.city || "No especificada"}`,
+        name: fullName, // ✅ Nombre completo generado
+        email: form.email || "",
+        phone: form.phone, // ✅ Nuevo campo
+        description,
         accountType: AccountType.merchant,
         ownerId: form.id || "temp-owner-id",
-        department: form.role || "admin",
+        department: mapMainRoleToLegacy(form.mainRole), // ✅ Mapeo mejorado
         city: form.city || "",
         gender: "other" as const,
         birthDate: "1990-01-01",
-        platformUsage:
-          form.isOwner === "owner"
-            ? ("professional" as const)
-            : ("educational" as const),
-        platformRole:
-          form.isOwner === "owner"
-            ? ("owner" as const)
-            : form.isOwner === "employee"
-            ? ("collaborator" as const)
-            : ("admin" as const),
-        interests: form.businessType
-          ? [form.businessType, "acustica", "control-ruido"]
-          : ["comercial"],
-        experience:
-          form.role && form.businessName
-            ? `${form.role} en ${form.businessName}`
-            : form.role
-            ? `${form.role}`
-            : "Sin experiencia especificada",
+        platformUsage,
+        platformRole,
+        interests,
+        experience,
         acceptTerms: true,
+
+        // ✅ Campos adicionales para referencia futura
+        businessTypes: form.businessTypes,
+        acousticExperience: form.acousticExperience,
+        mainRole: form.mainRole,
+        specificRole: form.specificRole,
+        establishmentCount: form.establishmentCount,
       };
 
       console.log("📋 Datos enviados desde el formulario:", onboardingData);
+      console.log("📝 Datos originales del formulario:", form);
 
-      const res = await registerAccount(onboardingData);
-
-      if (res.user) {
-        console.log("✅ Cuenta creada:", res.user.name);
-
-        const signInResult = await signIn("credentials", {
-          email: res.user.email,
-          password: 'registerData.password',
-          redirect: false,
-        });
-
-        if (signInResult?.ok) {
-          console.log("✅ Login automático exitoso");
-          clearRegisterData();
-          // El middleware manejará la redirección
-        } else {
-          throw new Error("Error en el login automático");
-        }
-      } else {
-        throw new Error("Error al crear la cuenta");
-      }
+       // ✅ Función para marcar registro como completado
+  
+    try {
+      await update({        
+          registrationComplete: true,
+          completedAt: new Date().toISOString() 
+      });
+      router.refresh();
+      console.log("✅ Sesión actualizada - Registration marked as complete");
+    } catch (error) {
+      console.error('❌ Error updating session:', error);
+    }
     } catch (error: any) {
       console.error("❌ Error en el onboarding:", error);
       alert(
@@ -153,25 +196,7 @@ export default function OnboardingWizard() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // ✅ Mostrar mensaje si no hay datos de registro
-//   if (!hasRegisterData()) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center bg-white">
-//         <div className="text-center">
-//           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-//           <p className="text-gray-600">Cargando datos de registro...</p>
-//           <button
-//             onClick={() => router.push("/auth/register")}
-//             className="mt-4 text-blue-600 hover:underline"
-//           >
-//             Volver al registro
-//           </button>
-//         </div>
-//       </div>
-//     );
-//   }
+  }; 
 
   return (
     <div className="min-h-screen flex bg-white">
@@ -189,6 +214,7 @@ export default function OnboardingWizard() {
               formData={form}
               onChange={handleChange}
               onSelect={handleSelect}
+              onMultipleSelect={handleMultipleSelect} 
               onSubmit={handleSubmit}
             />
           </div>

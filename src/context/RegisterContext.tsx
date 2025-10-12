@@ -1,7 +1,7 @@
 'use client';
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
-// ✅ Tipos del contexto
+//   Tipos del contexto
 export interface RegisterData {
   status?: number;
 }
@@ -12,7 +12,7 @@ interface RegisterState {
   error: string | null;
 }
 
-// ✅ Acciones del reducer
+//   Acciones del reducer
 type RegisterAction =
   | { type: 'SET_REGISTER_DATA'; payload: RegisterData }
   | { type: 'UPDATE_REGISTER_DATA'; payload: Partial<RegisterData> }
@@ -20,14 +20,14 @@ type RegisterAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null };
 
-// ✅ Estado inicial
+//   Estado inicial
 const initialState: RegisterState = {
   registerData: {},
   isLoading: false,
   error: null,
 };
 
-// ✅ Reducer
+//   Reducer
 function registerReducer(state: RegisterState, action: RegisterAction): RegisterState {
   switch (action.type) {
     case 'SET_REGISTER_DATA':
@@ -64,7 +64,7 @@ function registerReducer(state: RegisterState, action: RegisterAction): Register
   }
 }
 
-// ✅ Context interface
+//   Context interface
 interface RegisterContextType extends RegisterState {
   setRegisterData: (data: RegisterData) => void;
   updateRegisterData: (updates: Partial<RegisterData>) => void;
@@ -76,14 +76,14 @@ interface RegisterContextType extends RegisterState {
   isComplete: () => boolean;
 }
 
-// ✅ Crear el contexto
+//   Crear el contexto
 const RegisterContext = createContext<RegisterContextType | undefined>(undefined);
 
-// ✅ Provider component
+//   Provider component
 export function RegisterProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(registerReducer, initialState);
 
-  // ✅ Actions
+  //   Actions
   const setRegisterData = (data: RegisterData) => {
     console.log('🔄 Context: Setting register data:', data);
     dispatch({ type: 'SET_REGISTER_DATA', payload: data });
@@ -107,7 +107,7 @@ export function RegisterProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_ERROR', payload: error });
   };
 
-  // ✅ Helper functions
+  //   Helper functions
   const hasRegisterData = (): boolean => {
     const { registerData } = state;
     return !!(registerData.status);
@@ -152,7 +152,7 @@ export function RegisterProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ✅ Hook personalizado para usar el contexto
+//   Hook personalizado para usar el contexto
 export function useRegister() {
   const context = useContext(RegisterContext);
   
@@ -163,7 +163,7 @@ export function useRegister() {
   return context;
 }
 
-// ✅ Hook con funciones adicionales para el flujo de registro
+//   Hook con funciones adicionales para el flujo de registro
 export function useRegisterFlow() {
   const context = useRegister();
 
@@ -172,7 +172,7 @@ export function useRegisterFlow() {
       debugger
       context.setLoading(true);
       
-      // ✅ Validar estructura de datos
+      //   Validar estructura de datos
       if (!userData) {
         throw new Error("Invalid user data structure");
       }

@@ -12,12 +12,12 @@ export function useDragSystem(
 ) {
   const { scene, camera, raycaster, pointer } = useThree();
   
-  // ✅ Estados simples que funcionan
+  //   Estados simples que funcionan
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const raycastPlaneRef = useRef<THREE.Mesh | null>(null);
 
-  // ✅ Crear plano solo una vez
+  //   Crear plano solo una vez
   useEffect(() => {
     if (!raycastPlaneRef.current) {
       const geometry = new THREE.PlaneGeometry(100, 100);
@@ -42,7 +42,7 @@ export function useDragSystem(
     };
   }, [scene]);
 
-  // ✅ Snap to grid simple
+  //   Snap to grid simple
   const snapToGrid = useCallback((position: THREE.Vector3): THREE.Vector3 => {
     if (isShiftPressed) {
       return new THREE.Vector3(position.x, 0, position.z);
@@ -56,7 +56,7 @@ export function useDragSystem(
     }
   }, [isShiftPressed]);
 
-  // ✅ Update position simple
+  //   Update position simple
   const updateDragPosition = useCallback(() => {
     if (draggedIndex === null || !raycastPlaneRef.current || !onPointMove) {
       return;
@@ -72,20 +72,20 @@ export function useDragSystem(
     }
   }, [draggedIndex, raycaster, pointer, camera, onPointMove, snapToGrid]);
 
-  // ✅ Iniciar arrastre
+  //   Iniciar arrastre
   const startDrag = useCallback((index: number) => {
     setDraggedIndex(index);
     onDragStart?.();
   }, [onDragStart]);
 
-  // ✅ Finalizar arrastre
+  //   Finalizar arrastre
   const endDrag = useCallback(() => {
     setDraggedIndex(null);
     setIsShiftPressed(false);
     onDragEnd?.();
   }, [onDragEnd]);
 
-  // ✅ Effect para manejar eventos globales durante arrastre
+  //   Effect para manejar eventos globales durante arrastre
   useEffect(() => {
     if (draggedIndex === null) return;
 

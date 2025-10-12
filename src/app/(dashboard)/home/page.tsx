@@ -5,7 +5,7 @@ import { useTypedSession } from "@/hooks/useTypedSession";
 import { useAccess } from "@/context/AccessContext";
 import * as React from "react";
 
-// ✅ Importar el componente Dashboard dinámicamente
+//   Importar el componente Dashboard dinámicamente
 const DashboardContent = React.lazy(() =>
   import("@/components/dashboard/DashboardContent")
 );
@@ -27,7 +27,7 @@ export default function HomePage() {
     workspaceName: workspace?.name,
   });
 
-  // ✅ Verificar si todos los datos están listos (igual que en AppSidebar)
+  //   Verificar si todos los datos están listos (igual que en AppSidebar)
   const isDataReady = React.useMemo(() => {
     const authReady = status !== "loading";
     const accessDataReady = accessReady && !accessLoading;
@@ -44,16 +44,16 @@ export default function HomePage() {
     return authReady && accessDataReady;
   }, [status, accessReady, accessLoading]);
 
-  // ✅ Procesar lógica de redirección solo cuando todo esté listo
+  //   Procesar lógica de redirección solo cuando todo esté listo
   const redirectDecision = React.useMemo(() => {
     if (!isDataReady) {
       console.log("⏳ Dashboard HomePage data not ready, waiting...");
       return { shouldRedirect: false, path: null, reason: "loading" };
     }
 
-    console.log("✅ Processing dashboard redirect logic - everything is ready");
+    console.log("  Processing dashboard redirect logic - everything is ready");
 
-    // ✅ No autenticado -> Login
+    //   No autenticado -> Login
     if (status === "unauthenticated") {
       console.log("🚪 Not authenticated, redirecting to login");
       return {
@@ -63,7 +63,7 @@ export default function HomePage() {
       };
     }
 
-    // ✅ Autenticado -> Analizar estado de registro
+    //   Autenticado -> Analizar estado de registro
     if (status === "authenticated" && session) {
       const registrationComplete = session.user?.registrationComplete;
       const isNewUser = session.isNewUser;
@@ -78,7 +78,7 @@ export default function HomePage() {
         workspaceFromSession: session.workspace?.slug,
       });
 
-      // ✅ Decisiones de redirección basadas en estado
+      //   Decisiones de redirección basadas en estado
       // IMPORTANTE: Solo redirigir a onboarding si realmente necesita completar registro
       if (isNewUser === true) {
         console.log("👋 New user detected - redirecting to onboarding");
@@ -104,7 +104,7 @@ export default function HomePage() {
         };
       }
 
-      // ✅ Estado indefinido/null -> Onboarding por seguridad
+      //   Estado indefinido/null -> Onboarding por seguridad
       if (registrationComplete === undefined || registrationComplete === null) {
         console.log("❓ Undefined registration state, defaulting to onboarding");
         const onboardingPath = `/register-onboarding${
@@ -117,11 +117,11 @@ export default function HomePage() {
         };
       }
 
-      // ✅ Registro COMPLETO - Ahora verificar acceso al dashboard específicamente
+      //   Registro COMPLETO - Ahora verificar acceso al dashboard específicamente
       if (registrationComplete === true) {
-        console.log("✅ Registration complete, checking dashboard access");
+        console.log("  Registration complete, checking dashboard access");
 
-        // ✅ Si tiene workspace pero no permisos de dashboard, ir al workspace home
+        //   Si tiene workspace pero no permisos de dashboard, ir al workspace home
         if (workspaceSlug && !hasPermission("dashboard:view")) {
           console.log("❌ No dashboard permissions, redirecting to workspace home");
           return {
@@ -131,7 +131,7 @@ export default function HomePage() {
           };
         }
 
-        // ✅ Si no tiene workspace específico pero no tiene permisos generales de dashboard
+        //   Si no tiene workspace específico pero no tiene permisos generales de dashboard
         if (!workspaceSlug && !hasPermission("dashboard:view")) {
           console.log("❌ No dashboard permissions and no workspace, creating default redirect");
           return {
@@ -141,8 +141,8 @@ export default function HomePage() {
           };
         }
 
-        // ✅ Todo bien, puede acceder al dashboard
-        console.log("✅ Can access dashboard");
+        //   Todo bien, puede acceder al dashboard
+        console.log("  Can access dashboard");
         return {
           shouldRedirect: false,
           path: null,
@@ -151,11 +151,11 @@ export default function HomePage() {
       }
     }
 
-    // ✅ No hay redirección necesaria
+    //   No hay redirección necesaria
     return { shouldRedirect: false, path: null, reason: "no_redirect_needed" };
   }, [isDataReady, status, session, workspace, hasPermission]);
 
-  // ✅ Ejecutar redirección cuando esté lista
+  //   Ejecutar redirección cuando esté lista
   React.useEffect(() => {
     if (redirectDecision.shouldRedirect && redirectDecision.path) {
       console.log(
@@ -165,7 +165,7 @@ export default function HomePage() {
     }
   }, [redirectDecision]);
 
-  // ✅ Mostrar loading mientras espera o procesa redirección
+  //   Mostrar loading mientras espera o procesa redirección
   if (!isDataReady) {
     return (
       <LoadingComponent 
@@ -180,7 +180,7 @@ export default function HomePage() {
     );
   }
 
-  // ✅ Verificación final de permisos antes de mostrar dashboard
+  //   Verificación final de permisos antes de mostrar dashboard
   // Esta verificación es redundante pero sirve como failsafe
   if (!hasPermission("dashboard:view")) {
     console.log("❌ Final permission check failed for dashboard:view");
@@ -213,7 +213,7 @@ export default function HomePage() {
     );
   }
 
-  // ✅ Mostrar dashboard con Suspense para lazy loading
+  //   Mostrar dashboard con Suspense para lazy loading
   return (
     <React.Suspense
       fallback={<LoadingComponent />}

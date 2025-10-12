@@ -279,7 +279,7 @@ export const useWallsStore = create<WallsStore>()(
             console.log(`   💡 Las aberturas son el punto débil del aislamiento`);
           }
         } else {
-          console.log(`\n✅ Pared sin aberturas - Mantiene propiedades originales`);
+          console.log(`\n  Pared sin aberturas - Mantiene propiedades originales`);
         }
       },
 

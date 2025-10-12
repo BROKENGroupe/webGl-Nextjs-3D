@@ -8,7 +8,7 @@ import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
 import { LineBuilder } from "@/modules/editor/components/2d/LineBuilder";
 
 import React, { useState } from "react";
-import { AcousticAnalysisModal } from "@/modules/analytics/components/modals/AcousticAnalysisModal"; // ✅ NUEVO: Importar modal
+import { AcousticAnalysisModal } from "@/modules/analytics/components/modals/AcousticAnalysisModal"; //   NUEVO: Importar modal
 
 import { AppControls } from "@/modules/editor/components/AppControls";
 // import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
@@ -74,13 +74,13 @@ export default function DrawingScene() {
     updatePlaneCoordinatesFromCurrent,
   } = useDrawingStore();
 
-  // ✅ NUEVO: States para el modal de análisis acústico
+  //   NUEVO: States para el modal de análisis acústico
   const [showAcousticModal, setShowAcousticModal] = useState(false);
   const [showWallsManager, setShowWallsManager] = useState(false);
-  // ✅ NUEVO: State para el modal de configuración ISO
+  //   NUEVO: State para el modal de configuración ISO
   const [showIsoConfigModal, setShowIsoConfigModal] = useState(false);
 
-  // ✅ NUEVO: Acceso al store de paredes
+  //   NUEVO: Acceso al store de paredes
   const { walls } = useWallsStore();
 
   const defaultVisibility: LayerVisibility = {
@@ -180,9 +180,9 @@ export default function DrawingScene() {
     elementType: ElementType
   ) => {
     event.preventDefault();
-    event.stopPropagation(); // ✅ AGREGAR: Evitar que el evento se propague
+    event.stopPropagation(); //   AGREGAR: Evitar que el evento se propague
 
-    // ✅ AGREGAR: Forzar fin de drag si está activo
+    //   AGREGAR: Forzar fin de drag si está activo
     if (isDragging) {
       setDragging(false);
     }
@@ -383,7 +383,7 @@ export default function DrawingScene() {
 
     // Verificar que se guardaron correctamente
     const savedCoords = useDrawingStore.getState().planeXZCoordinates;
-    console.log("✅ Coordenadas guardadas para extrusión:", savedCoords);
+    console.log("  Coordenadas guardadas para extrusión:", savedCoords);
 
     if (savedCoords.length < 3) {
       console.error("❌ Error: coordenadas insuficientes para extrusión");
@@ -489,7 +489,7 @@ export default function DrawingScene() {
       };
 
       addOpening(newOpening);
-      console.log("✅ Abertura creada:", newOpening);
+      console.log("  Abertura creada:", newOpening);
     }
 
     if (template.type === ElementType.Wall) {
@@ -504,10 +504,10 @@ export default function DrawingScene() {
       updateFloorByIndex(wallIndex, { color: template.color, template: template });
     }
 
-    // ✅ AGREGAR: Reset completo del estado de drag
+    //   AGREGAR: Reset completo del estado de drag
     setIsDragActive(false);
     setDraggedTemplate(null);
-    setDragging(false); // ✅ También resetear isDragging del drawing store
+    setDragging(false); //   También resetear isDragging del drawing store
      
     setTimeout(() => {
       // Esto asegura que todos los event listeners se reactiven correctamente
@@ -521,9 +521,9 @@ export default function DrawingScene() {
     console.log("🚫 Drag cancelado");
     setIsDragActive(false);
     setDraggedTemplate(null);
-    setDragging(false); // ✅ También resetear isDragging del drawing store
+    setDragging(false); //   También resetear isDragging del drawing store
 
-    // ✅ AGREGAR: Forzar limpieza de cualquier estado residual
+    //   AGREGAR: Forzar limpieza de cualquier estado residual
     setTimeout(() => {
       console.log("🔄 Drag end completado");
     }, 50);
@@ -698,9 +698,9 @@ export default function DrawingScene() {
           enabled={!isDragging && !isDragActive}
           enablePan={!isDragging && !isDragActive}
           enableRotate={!isDragging && !isDragActive}
-          enableZoom={true} // ✅ Mantener zoom siempre habilitado
+          enableZoom={true} //   Mantener zoom siempre habilitado
         />
-        {/* ✅ YA ESTÁ COMENTADO - SIN CUADRÍCULA */}
+        {/*   YA ESTÁ COMENTADO - SIN CUADRÍCULA */}
         {/* <gridHelper args={[50, 50, "#888", "#ccc"]} /> */}
         <DrawingSurface onClick3D={handleClick3D} />
         {/* MODO 2D - Solo renderizar cuando NO está extruido Y hay puntos válidos */}
@@ -809,7 +809,7 @@ export default function DrawingScene() {
         onStartDrag={handleStartDrag}
       /> */}
 
-      {/* ✅ NUEVO: Modal de Análisis Acústico */}
+      {/*   NUEVO: Modal de Análisis Acústico */}
       <AcousticAnalysisModal
         isOpen={showAcousticModal}
         onClose={() => setShowAcousticModal(false)}
@@ -828,7 +828,7 @@ export default function DrawingScene() {
         />
       )}
 
-      {/* ✅ NUEVO: Indicador de estado de análisis acústico */}
+      {/*   NUEVO: Indicador de estado de análisis acústico */}
       {isExtruded && walls.length > 0 && (
         <WallsToast isExtruded={isExtruded} walls={walls} />
       )}

@@ -45,7 +45,7 @@ export const StudiesSection = memo(function StudiesSection({
   );
 });
 
-// ✅ Componente individual de estudio
+//   Componente individual de estudio
 const StudyCard = memo(function StudyCard({ study }: { study: Study }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 flex items-center gap-4 border border-neutral-200 hover:border-black transition min-h-[110px]">

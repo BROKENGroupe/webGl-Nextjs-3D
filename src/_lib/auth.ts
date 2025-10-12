@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
               image: data.user.image ?? null,
               role: data.user.role,
               permissions: data.user.permissions ?? [],
-              registrationComplete: data.user.registrationComplete ?? false, // ✅ Campo clave
+              registrationComplete: data.user.registrationComplete ?? false, //   Campo clave
               workspaceId: data.workspace.id,
               workspaceName: data.workspace.name,
               slug: data.workspace.slug,
@@ -107,7 +107,7 @@ export const authOptions: NextAuthOptions = {
               image: data.user.image ?? profile?.image ?? null,
               role: data.user.role,
               permissions: data.user.permissions ?? [],
-              registrationComplete: data.user.registrationComplete ?? false, // ✅ Campo clave
+              registrationComplete: data.user.registrationComplete ?? false, //   Campo clave
               workspaceId: data.workspace.id,
               workspaceName: data.workspace.name,
               slug: data.workspace.slug,
@@ -147,7 +147,7 @@ export const authOptions: NextAuthOptions = {
           return {
             ...token,
             ...mapped,
-            isNewUser: isNewUser || trigger === 'signUp', // ✅ Usar isNewUser de NextAuth
+            isNewUser: isNewUser || trigger === 'signUp', //   Usar isNewUser de NextAuth
             accessTokenExpires,
             exp: Math.floor(accessTokenExpires / 1000),
           };
@@ -170,7 +170,7 @@ export const authOptions: NextAuthOptions = {
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
             registrationComplete: data.user.registrationComplete ?? token.registrationComplete,
-            isNewUser: false, // ✅ Limpiar después del refresh
+            isNewUser: false, //   Limpiar después del refresh
             accessTokenExpires: newAccessTokenExpires,
             exp: Math.floor(newAccessTokenExpires / 1000),
           };
@@ -190,7 +190,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       const mappedSession = mapTokenToSession(token, session);
       
-      // ✅ Agregar campos de estado
+      //   Agregar campos de estado
       if (token.isNewUser) {
         mappedSession.isNewUser = token.isNewUser;
       }
@@ -205,10 +205,10 @@ export const authOptions: NextAuthOptions = {
       return mappedSession;
     },
 
-    // ✅ Callback de redirección basado en registrationComplete
+    //   Callback de redirección basado en registrationComplete
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       try {
-        // ✅ Verificar errores en la URL
+        //   Verificar errores en la URL
         const urlObj = new URL(url);
         const error = urlObj.searchParams.get('error');
         
@@ -220,7 +220,7 @@ export const authOptions: NextAuthOptions = {
         // URL inválida, continuar
       }
 
-      // ✅ Redirección por defecto
+      //   Redirección por defecto
       console.log('[REDIRECT] -> Default home');
       return `${baseUrl}/home`;
     },
@@ -228,10 +228,10 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/login',
     error: '/auth/login?error=AuthenticationError',
-    newUser: '/register-onboarding', // ✅ Página para nuevos usuarios
+    newUser: '/register-onboarding', //   Página para nuevos usuarios
   },
   events: {
-    // ✅ Eventos para audit logging
+    //   Eventos para audit logging
     async signIn({ user, account, isNewUser }) {
       console.log('[EVENT] User signed in:', {
         userId: user.id,

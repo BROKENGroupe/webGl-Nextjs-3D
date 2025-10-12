@@ -45,7 +45,7 @@ export const EstablishmentsSection = memo(function EstablishmentsSection({
   );
 });
 
-// ✅ Componente individual de establecimiento
+//   Componente individual de establecimiento
 const EstablishmentCard = memo(function EstablishmentCard({ 
   establishment 
 }: { 

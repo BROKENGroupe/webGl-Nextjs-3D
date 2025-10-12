@@ -16,26 +16,26 @@ export function AppInitializer({ children }: AppInitializerProps) {
     "Iniciando aplicación..."
   );
 
-  // ✅ Verificar si es página pública
+  //   Verificar si es página pública
   const isPublicPage = pathname === "/" || pathname?.startsWith("/auth/");
 
   useEffect(() => {
     const initializeApp = async () => {
-      // ✅ Si es página pública, cargar inmediatamente
+      //   Si es página pública, cargar inmediatamente
       if (isPublicPage) {
         console.log("📄 Public page - loading immediately");
         setIsReady(true);
         return;
       }
 
-      // ✅ Esperar a que NextAuth termine de cargar
+      //   Esperar a que NextAuth termine de cargar
       if (status === "loading") {
         setLoadingMessage("Verificando sesión...");
         return;
       }
 
       try {
-        // ✅ Simular carga de recursos necesarios
+        //   Simular carga de recursos necesarios
         setLoadingMessage("Preparando workspace...");
         await new Promise((resolve) => setTimeout(resolve, 800));
 
@@ -45,7 +45,7 @@ export function AppInitializer({ children }: AppInitializerProps) {
         setLoadingMessage("Finalizando...");
         await new Promise((resolve) => setTimeout(resolve, 400));
 
-        console.log("✅ App initialized successfully");
+        console.log("  App initialized successfully");
         setIsReady(true);
       } catch (error) {
         console.error("❌ Error initializing app:", error);
@@ -56,7 +56,7 @@ export function AppInitializer({ children }: AppInitializerProps) {
     initializeApp();
   }, [status, isPublicPage, pathname]);
 
-  // ✅ Mostrar loader sutil mientras no esté listo
+  //   Mostrar loader sutil mientras no esté listo
   if (!isReady && !isPublicPage) {
     return <LoadingComponent />;
   }

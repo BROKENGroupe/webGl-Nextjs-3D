@@ -30,25 +30,25 @@ export const MATERIAL_PROPERTIES = {
   WALLS: {
     roughness: 0.8,
     metalness: 0.1,
-    opacity: 0.7,           // ✅ 70% opacidad para transparencia
-    transparent: true,      // ✅ Habilitar transparencia
-    side: "DoubleSide"      // ✅ Renderizado en ambos lados
+    opacity: 0.7,           //   70% opacidad para transparencia
+    transparent: true,      //   Habilitar transparencia
+    side: "DoubleSide"      //   Renderizado en ambos lados
   },
   
   FLOOR: {
-    roughness: 0.9,         // ✅ Alta rugosidad para textura de piso
-    metalness: 0.0,         // ✅ Sin metalicidad (material orgánico)
-    opacity: 1.0,           // ✅ Completamente opaco
-    transparent: false,     // ✅ Sin transparencia
-    side: "DoubleSide"      // ✅ Renderizado en ambos lados
+    roughness: 0.9,         //   Alta rugosidad para textura de piso
+    metalness: 0.0,         //   Sin metalicidad (material orgánico)
+    opacity: 1.0,           //   Completamente opaco
+    transparent: false,     //   Sin transparencia
+    side: "DoubleSide"      //   Renderizado en ambos lados
   },
   
   CEILING: {
-    roughness: 0.6,         // ✅ Rugosidad media para techo
-    metalness: 0.0,         // ✅ Sin metalicidad
-    opacity: 0.8,           // ✅ Ligeramente transparente
-    transparent: true,      // ✅ Habilitar transparencia
-    side: "DoubleSide"      // ✅ Renderizado en ambos lados
+    roughness: 0.6,         //   Rugosidad media para techo
+    metalness: 0.0,         //   Sin metalicidad
+    opacity: 0.8,           //   Ligeramente transparente
+    transparent: true,      //   Habilitar transparencia
+    side: "DoubleSide"      //   Renderizado en ambos lados
   },
   
   FRAMES: {
@@ -116,7 +116,7 @@ export const GEOMETRY_CONFIG = {
     EXTRUDE_DEPTH: 0.1       // Profundidad de extrusión para geometría de paredes
   },
   
-  // ✅ NUEVO: Configuración específica para extrusión de formas
+  //   NUEVO: Configuración específica para extrusión de formas
   EXTRUDE_DEPTH: 2.5,       // Altura estándar para extrusión de formas (altura de habitaciones)
   
   OPENINGS: {

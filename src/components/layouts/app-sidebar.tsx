@@ -28,7 +28,7 @@ import { NavMainWithPermissions } from "./NavMainWithPermissions";
 import { AccountType } from "@/modules/onb/types/enum";
 import { LoadingComponent, SidebarSkeleton } from "@/components/atoms/loadingcomponent";
 
-// ✅ Memoizar datos estáticos que nuncan cambian
+//   Memoizar datos estáticos que nuncan cambian
 const STATIC_NAV_SECONDARY = [
   {
     title: "Soporte Técnico",
@@ -60,7 +60,7 @@ export const AppSidebar = React.memo(function AppSidebar({
   } = useAccess();
   const { session, status } = useTypedSession();
 
-  // ✅ Verificar si todo está listo
+  //   Verificar si todo está listo
   const isDataReady = React.useMemo(() => {
     const authReady = status !== "loading";
     const accessDataReady = accessReady && !accessLoading;
@@ -77,7 +77,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     return authReady && accessDataReady;
   }, [status, accessReady, accessLoading]);
 
-  // ✅ Solo procesar datos cuando todo esté listo
+  //   Solo procesar datos cuando todo esté listo
   const sidebarData = React.useMemo(() => {
     if (!isDataReady) {
       console.log("⏳ Sidebar data not ready, returning empty data");
@@ -90,13 +90,13 @@ export const AppSidebar = React.memo(function AppSidebar({
       };
     }
 
-    console.log("✅ Processing sidebar data - everything is ready");
+    console.log("  Processing sidebar data - everything is ready");
 
-    // ✅ Validar modules de forma segura
+    //   Validar modules de forma segura
     const safeModules = Array.isArray(modules) ? modules : [];
     console.log("🏢 Safe Modules:", safeModules);
 
-    // ✅ Datos del usuario
+    //   Datos del usuario
     const userData = {
       name: session?.user?.name || "Usuario",
       email: session?.user?.email || "user@example.com",
@@ -104,7 +104,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     };
     console.log("👤 User Data:", userData);
 
-    // ✅ Datos de teams
+    //   Datos de teams
     const teamsData = [
       {
         name: workspace?.name || "Mi Workspace",
@@ -117,7 +117,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     ];
     console.log("🏢 Teams Data:", teamsData);
 
-    // ✅ Sección de Diseño
+    //   Sección de Diseño
     const designSection = safeModules.includes("design")
       ? [
           {
@@ -151,7 +151,7 @@ export const AppSidebar = React.memo(function AppSidebar({
         ]
       : [];
 
-    // ✅ Sección de Biblioteca
+    //   Sección de Biblioteca
     const librarySection = safeModules.includes("library")
       ? [
           {
@@ -184,7 +184,7 @@ export const AppSidebar = React.memo(function AppSidebar({
         ]
       : [];
 
-    // ✅ Sección de Visualización
+    //   Sección de Visualización
     const renderSection = safeModules.includes("render")
       ? [
           {
@@ -217,7 +217,7 @@ export const AppSidebar = React.memo(function AppSidebar({
         ]
       : [];
 
-    // ✅ Sección de Configuración
+    //   Sección de Configuración
     const settingsSection =
       safeModules.includes("settings") ||
       ["owner", "admin"].includes(role ?? "")
@@ -252,7 +252,7 @@ export const AppSidebar = React.memo(function AppSidebar({
           ]
         : [];
 
-    // ✅ NavMain completo
+    //   NavMain completo
     const navMainItems = [
       ...designSection,
       ...librarySection,
@@ -260,7 +260,7 @@ export const AppSidebar = React.memo(function AppSidebar({
       ...settingsSection,
     ];
 
-    // ✅ Proyectos (solo si tiene permisos)
+    //   Proyectos (solo si tiene permisos)
     const projectsData = hasPermission("projects:view")
       ? [
           {
@@ -280,7 +280,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     };
   }, [isDataReady, modules, session, workspace, role, hasPermission]);
 
-  // ✅ Mostrar loading mientras espera
+  //   Mostrar loading mientras espera
   if (!isDataReady) {
     return (
       <Sidebar variant="sidebar" collapsible="icon" {...props}>
@@ -291,7 +291,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     );
   }
 
-  // ✅ Renderizar sidebar completo cuando todo esté listo
+  //   Renderizar sidebar completo cuando todo esté listo
   return (
     <Sidebar variant="sidebar" collapsible="icon" {...props}>
       <SidebarHeader>

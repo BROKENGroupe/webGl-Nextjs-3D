@@ -11,7 +11,7 @@ export const NavMainWithPermissions = React.memo(function NavMainWithPermissions
   hasPermission 
 }: NavMainWithPermissionsProps) {
   
-  // ✅ Filtrar items basado en permisos
+  //   Filtrar items basado en permisos
   const filteredItems = React.useMemo(() => 
     items.map(section => ({
       ...section,

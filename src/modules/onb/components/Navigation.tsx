@@ -1,4 +1,6 @@
 // components/onboarding/Navigation.tsx
+import { useSession } from "next-auth/react";
+
 interface NavigationProps {
   currentStep: number;
   totalSteps: number;
@@ -7,13 +9,14 @@ interface NavigationProps {
   onBack: () => void;
 }
 
-export default function Navigation({ 
-  currentStep, 
-  totalSteps, 
-  loading, 
-  onNext, 
-  onBack 
+export default function Navigation({
+  currentStep,
+  totalSteps,
+  loading,
+  onNext,
+  onBack,
 }: NavigationProps) {
+  const { update } = useSession(); // ✅ Hook para actualizar sesión
   const isLastStep = currentStep === totalSteps - 1;
 
   return (
@@ -29,7 +32,7 @@ export default function Navigation({
       ) : (
         <div />
       )}
-      
+
       {!isLastStep ? (
         <button
           type="button"
@@ -52,7 +55,16 @@ export default function Navigation({
           {loading ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" strokeDasharray="32" strokeDashoffset="32"></circle>
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray="32"
+                  strokeDashoffset="32"
+                ></circle>
               </svg>
               Creando cuenta...
             </span>

@@ -7,8 +7,8 @@ type CanProps = {
   role?: string | string[];
   children: ReactNode;
   fallback?: ReactNode;
-  loadingType?: 'button' | 'card' | 'text' | 'nav' | 'custom'; // ✅ Tipo de skeleton
-  loadingSkeleton?: ReactNode; // ✅ Skeleton personalizado
+  loadingType?: 'button' | 'card' | 'text' | 'nav' | 'custom'; //   Tipo de skeleton
+  loadingSkeleton?: ReactNode; //   Skeleton personalizado
 };
 
 export function Can({ 
@@ -21,7 +21,7 @@ export function Can({
 }: CanProps) {
   const { hasPermission, role: userRole, isLoading } = useAccess();
 
-  // ✅ Si está cargando, mostrar skeleton apropiado
+  //   Si está cargando, mostrar skeleton apropiado
   if (isLoading) {
     // Si hay skeleton personalizado, usarlo
     if (loadingSkeleton) {
@@ -62,7 +62,7 @@ export function Can({
   const permissionsArr = typeof permission === 'string' ? [permission] : permission || [];
   const rolesArr = typeof role === 'string' ? [role] : role || [];
 
-  // ✅ Verificar permisos usando la función hasPermission
+  //   Verificar permisos usando la función hasPermission
   const hasRequiredPermission =
     permissionsArr.length === 0 || // Si no se requiere permiso específico
     permissionsArr.some((p: string) => hasPermission(p)); // Verificar cada permiso
@@ -72,7 +72,7 @@ export function Can({
     rolesArr.length === 0 || // Si no se requiere rol específico
     (userRole && rolesArr.includes(userRole));
 
-  // ✅ Logs para debugging
+  //   Logs para debugging
   console.log(`🛡️ Can component check:`, {
     requestedPermissions: permissionsArr,
     requestedRoles: rolesArr,

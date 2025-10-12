@@ -107,7 +107,7 @@ const data = {
       icon: Eye,
       items: [
         {
-          title: "Vista 3D Interactiva", // ✅ Este es el texto que mencionas
+          title: "Vista 3D Interactiva", //   Este es el texto que mencionas
           url: "/viewer",
         },
         {
@@ -187,8 +187,8 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar 
-      variant="sidebar" // ✅ CAMBIAR: de "inset" a "sidebar" para comportamiento correcto
-      collapsible="icon"  // ✅ AGREGAR: permite colapsar mostrando solo iconos
+      variant="sidebar" //   CAMBIAR: de "inset" a "sidebar" para comportamiento correcto
+      collapsible="icon"  //   AGREGAR: permite colapsar mostrando solo iconos
       {...props}
     >
       <SidebarHeader>

@@ -51,7 +51,7 @@ export function ToolPanel({
   shapeCount = 4,
   currentTool = "polygon",
   onToolSelect,
-  // ✅ PROPS DE LA PALETA
+  //   PROPS DE LA PALETA
   showOpeningsPalette = false,
   onToggleOpeningsPalette,
   onStartDrag
@@ -139,7 +139,7 @@ export function ToolPanel({
 
           <Separator />
 
-          {/* ✅ SECCIÓN DE PUERTAS Y VENTANAS */}
+          {/*   SECCIÓN DE PUERTAS Y VENTANAS */}
           <Collapsible open={openingsExpanded} onOpenChange={setOpeningsExpanded}>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-accent rounded-md">
               <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export function ToolPanel({
                 {showOpeningsPalette ? "Ocultar Paleta" : "Abrir Paleta"}
               </Button>
               
-              {/* ✅ PALETA INTEGRADA EN EL PANEL */}
+              {/*   PALETA INTEGRADA EN EL PANEL */}
               {/* {showOpeningsPalette && onStartDrag && (
                 <div className="border border-border rounded-md p-2 bg-muted/50">
                   <DraggableOpeningsPalette

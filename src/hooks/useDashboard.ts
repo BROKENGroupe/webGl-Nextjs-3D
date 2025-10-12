@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Study, Establishment, DashboardStats } from '@/types/dashboard';
 
-// ✅ Datos mock - eventualmente vendrán de API
+//   Datos mock - eventualmente vendrán de API
 const MOCK_STUDIES: Study[] = [
   { id: 1, name: "Estudio Acústico Oficina", status: "ok" },
   { id: 2, name: "Estudio Restaurante", status: "review" },
@@ -17,7 +17,7 @@ export function useDashboard() {
   const [establishments, setEstablishments] = useState<Establishment[]>(MOCK_ESTABLISHMENTS);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Calcular estadísticas
+  //   Calcular estadísticas
   const stats = useMemo((): DashboardStats => {
     const studiesOk = studies.filter(s => s.status === "ok").length;
     const studiesReview = studies.filter(s => s.status === "review").length;
@@ -32,7 +32,7 @@ export function useDashboard() {
     };
   }, [studies, establishments]);
 
-  // ✅ Funciones para manejar estudios
+  //   Funciones para manejar estudios
   const createStudy = async (studyData: Omit<Study, 'id'>) => {
     setLoading(true);
     try {
@@ -85,7 +85,7 @@ export function useDashboard() {
     }
   };
 
-  // ✅ Funciones para manejar establecimientos
+  //   Funciones para manejar establecimientos
   const createEstablishment = async (establishmentData: Omit<Establishment, 'id'>) => {
     setLoading(true);
     try {

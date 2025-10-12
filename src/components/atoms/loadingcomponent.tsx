@@ -11,7 +11,7 @@ const LoadingComponent = memo(() => (
 
 LoadingComponent.displayName = 'LoadingComponent';
 
-// ✅ Componente Skeleton para el Sidebar - Más sutil
+//   Componente Skeleton para el Sidebar - Más sutil
 const SidebarSkeleton = memo(() => {
   return (
     <div className="flex flex-col h-full">

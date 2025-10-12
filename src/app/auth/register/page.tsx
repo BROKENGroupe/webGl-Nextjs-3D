@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { registerUser } from "@/services/userService";
 import { signIn } from "next-auth/react";
-import { useRegisterFlow } from "@/context/RegisterContext"; // ✅ Usar Context API
+import { useRegisterFlow } from "@/context/RegisterContext"; //   Usar Context API
 
 const schema = z.object({
   name: z
@@ -25,7 +25,7 @@ export default function RegisterPage() {
   const [isPending, startTransition] = React.useTransition();
   const router = useRouter();
   
-  // ✅ Usar Context API en lugar de Zustand
+  //   Usar Context API en lugar de Zustand
   const { saveRegistrationData, isLoading, error } = useRegisterFlow();
 
   const {
@@ -67,7 +67,7 @@ export default function RegisterPage() {
     signIn("google", {callbackUrl: '/home'});
   };
 
-  // ✅ Mostrar error del contexto si existe
+  //   Mostrar error del contexto si existe
   React.useEffect(() => {
     if (error) {
       toast.error("Error en registro", { description: error });

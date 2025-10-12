@@ -6,12 +6,12 @@ import { LoadingComponent } from "@/components/atoms/loadingcomponent";
 export default function HomePage() {
   const { data: session, status } = useSession();
 
-  // ✅ Mostrar loader mientras verifica sesión
+  //   Mostrar loader mientras verifica sesión
   if (status === "loading") {
     return <LoadingComponent />;
   }
 
-  // ✅ Redireccionar basado en sesión
+  //   Redireccionar basado en sesión
   if (session) {
     redirect("/home");
   } else {

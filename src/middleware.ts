@@ -13,15 +13,16 @@ export default withAuth(
       registrationComplete: token?.registrationComplete
     });
 
-    // ✅ Si no hay token, NextAuth manejará login
+    //   Si no hay token, NextAuth manejará login
     if (!token) {
       return NextResponse.next();
     }
 
     const registrationComplete = token.registrationComplete;
+    console.log('[MIDDLEWARE] Registration Complete:', registrationComplete);
     const workspaceSlug = token.slug;
 
-    // ✅ REGLA: Si registrationComplete !== true, SOLO onboarding
+    //   REGLA: Si registrationComplete !== true, SOLO onboarding
     if (registrationComplete !== true) {
       if (pathname.startsWith('/register-onboarding') ||
           pathname.startsWith('/auth/') ||
@@ -30,15 +31,15 @@ export default withAuth(
         return NextResponse.next();
       }
 
-      // ✅ Redirección simple sin parámetros
+      //   Redirección simple sin parámetros
       console.log(`[MIDDLEWARE] -> Forcing onboarding from ${pathname}`);
       return NextResponse.redirect(new URL('/register-onboarding', req.url));
     }
 
-    // ✅ registrationComplete === true
+    //   registrationComplete === true
     console.log('[MIDDLEWARE] -> Registration complete, full access');
 
-    // ✅ Evitar onboarding si ya completó registro
+    //   Evitar onboarding si ya completó registro
     if (pathname.startsWith('/register-onboarding')) {
       const redirectUrl = workspaceSlug 
         ? new URL(`/${workspaceSlug}/home`, req.url)
@@ -47,7 +48,7 @@ export default withAuth(
       return NextResponse.redirect(redirectUrl);
     }
 
-    // ✅ Redirección desde root
+    //   Redirección desde root
     if (pathname === '/') {
       const redirectUrl = workspaceSlug 
         ? new URL(`/${workspaceSlug}/home`, req.url)
@@ -63,7 +64,7 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
         
-        // ✅ Rutas públicas
+        //   Rutas públicas
         const publicRoutes = [
           '/auth/',
           '/api/auth/',
@@ -75,7 +76,7 @@ export default withAuth(
           return true;
         }
 
-        // ✅ Requerir token para rutas protegidas
+        //   Requerir token para rutas protegidas
         return !!token;
       },
     },

@@ -56,7 +56,7 @@ export interface Wall {
   width: number;  // en metros
 }
 
-// ✅ TEMPLATES SIMPLES
+//   TEMPLATES SIMPLES
 
 
 // ...materiales definidos arriba...

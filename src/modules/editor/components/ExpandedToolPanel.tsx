@@ -80,7 +80,7 @@ export function ExpandedToolPanel({
     >
       <TooltipProvider>
         <div className="flex items-start">
-          {/* ✅ PANEL EXPANDIDO */}
+          {/*   PANEL EXPANDIDO */}
           {isExpanded && (
             <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-xl shadow-2xl p-4 mr-2 min-h-[500px] w-64">
               <div className="space-y-4">
@@ -398,7 +398,7 @@ export function ExpandedToolPanel({
             </div>
           )}
 
-          {/* ✅ BOTÓN TOGGLE CIRCULAR */}
+          {/*   BOTÓN TOGGLE CIRCULAR */}
           <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-full shadow-lg">
             <Tooltip>
               <TooltipTrigger asChild>

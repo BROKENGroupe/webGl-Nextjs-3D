@@ -35,7 +35,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             </Breadcrumb>
           </div>
 
-          {/* ✅ BOTONES EN EL HEADER - DONDE SEÑALASTE */}
+          {/*   BOTONES EN EL HEADER - DONDE SEÑALASTE */}
           <div className="flex items-center gap-2 px-4">
             <Button 
               variant="default" 
@@ -94,7 +94,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         </div>
       </SidebarInset>
       
-      {/* ✅ TOOL PANEL */}
+      {/*   TOOL PANEL */}
       {/* <ToolPanel 
         isOpen={isToolPanelOpen}
         onClose={() => setIsToolPanelOpen(false)}

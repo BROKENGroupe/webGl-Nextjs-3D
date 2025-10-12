@@ -7,8 +7,8 @@ export default function EditorPage() {
   return (
     <ProtectedRoute
       permission="render:view"
-      component={editorComponent} // ✅ Referencia estable
-      loading={<LoadingComponent />} // ✅ Componente memoizado
+      component={editorComponent} //   Referencia estable
+      loading={<LoadingComponent />} //   Componente memoizado
     />
   );
 }

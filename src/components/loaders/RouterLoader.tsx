@@ -13,12 +13,12 @@ export function RouterLoader({ children }: RouterLoaderProps) {
   const [previousPath, setPreviousPath] = useState(pathname);
 
   useEffect(() => {
-    // ✅ Detectar cambio de ruta
+    //   Detectar cambio de ruta
     if (previousPath !== pathname) {
       setIsLoading(true);
       setPreviousPath(pathname);
 
-      // ✅ Simular tiempo de carga de página
+      //   Simular tiempo de carga de página
       const timer = setTimeout(() => {
         setIsLoading(false);
       }, 300);
@@ -27,7 +27,7 @@ export function RouterLoader({ children }: RouterLoaderProps) {
     }
   }, [pathname, previousPath]);
 
-  // ✅ Mostrar loader durante navegación
+  //   Mostrar loader durante navegación
   if (isLoading) {
     return <LoadingComponent />;
   }
