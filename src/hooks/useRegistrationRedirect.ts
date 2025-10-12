@@ -17,21 +17,16 @@ export function useRegistrationRedirect(options?: {
     }
 
     const registrationComplete = session.user?.registrationComplete;
-    const isNewUser = session.isNewUser;
     const workspaceSlug = session.workspace?.slug;
 
     console.log('[REGISTRATION_REDIRECT] Analyzing state:', {
       registrationComplete,
-      isNewUser,
       workspaceSlug
     });
 
     let redirectPath: string | null = null;
 
-    if (isNewUser === true || registrationComplete === false) {
-      // Necesita completar onboarding
-      redirectPath = `/register-onboarding${workspaceSlug ? `?workspace=${workspaceSlug}` : ''}`;
-    } else if (registrationComplete === true && workspaceSlug) {
+    if (registrationComplete === true && workspaceSlug) {
       // Registro completo -> Workspace
       redirectPath = `/${workspaceSlug}/home`;
     } else if (registrationComplete === true) {
@@ -50,7 +45,6 @@ export function useRegistrationRedirect(options?: {
     isLoading: status === 'loading',
     isAuthenticated: status === 'authenticated',
     registrationComplete: session?.user?.registrationComplete,
-    isNewUser: session?.isNewUser,
     workspaceSlug: session?.workspace?.slug,
   };
 }

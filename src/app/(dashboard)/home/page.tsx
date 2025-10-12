@@ -66,31 +66,15 @@ export default function HomePage() {
     //   Autenticado -> Analizar estado de registro
     if (status === "authenticated" && session) {
       const registrationComplete = session.user?.registrationComplete;
-      const isNewUser = session.isNewUser;
       const workspaceSlug = workspace?.slug || session.workspace?.slug;
 
       console.log("🔍 Dashboard user state analysis:", {
         registrationComplete,
-        isNewUser,
         workspaceSlug,
         userId: session.user?.id,
         workspaceFromContext: workspace?.slug,
         workspaceFromSession: session.workspace?.slug,
-      });
-
-      //   Decisiones de redirección basadas en estado
-      // IMPORTANTE: Solo redirigir a onboarding si realmente necesita completar registro
-      if (isNewUser === true) {
-        console.log("👋 New user detected - redirecting to onboarding");
-        const onboardingPath = `/register-onboarding${
-          workspaceSlug ? `?workspace=${workspaceSlug}` : ""
-        }`;
-        return {
-          shouldRedirect: true,
-          path: onboardingPath,
-          reason: "new_user",
-        };
-      }
+      });      
 
       if (registrationComplete === false) {
         console.log("📝 Registration incomplete - redirecting to onboarding");
