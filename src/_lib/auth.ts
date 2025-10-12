@@ -23,33 +23,18 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
         name: { label: 'Name', type: 'text' },
-        workspaceName: { label: 'Workspace Name', type: 'text' },
-        accountType: { label: 'Account Type', type: 'text' },
         action: { label: 'Action', type: 'text' },
       },
       async authorize(credentials) {
         try {
           const isRegister = credentials?.action === 'register';
-          const endpoint = isRegister ? '/auth/register' : '/auth/login';
-          
-          let requestData;
-          if (isRegister) {
-            requestData = {
-              email: credentials?.email,
-              password: credentials?.password,
-              name: credentials?.name,
-              workspaceName: credentials?.workspaceName,
-              accountType: credentials?.accountType || 'standard',
-            };
-          } else {
-            requestData = {
-              email: credentials?.email,
-              password: credentials?.password,
-            };
+          const endpoint = isRegister ? '/accounts/register' : '/accounts/login';
+
+          const requestData = {
+            email: credentials?.email,
+            password: credentials?.password,
           }
-
-          console.log(`[${isRegister ? 'REGISTER' : 'LOGIN'}] Request:`, { endpoint });
-
+          
           const { data } = await api.post(endpoint, requestData);
 
           if (data && data.accessToken && data.user && data.workspace) {
@@ -135,7 +120,7 @@ export const authOptions: NextAuthOptions = {
     jwt: async ({ token, user, trigger, isNewUser }) => {
       try {
         const accessTokenExpires = Date.now() + ONE_HOUR;
-        
+
         if (user) {
           console.log('[JWT] New user session:', {
             userId: user.id,
@@ -189,19 +174,19 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       const mappedSession = mapTokenToSession(token, session);
-      
+
       //   Agregar campos de estado
       if (token.isNewUser) {
         mappedSession.isNewUser = token.isNewUser;
       }
-      
+
       console.log('[SESSION] Final session:', {
         userId: mappedSession.user?.id,
         registrationComplete: mappedSession.user?.registrationComplete,
         isNewUser: mappedSession.isNewUser,
         workspaceSlug: mappedSession.workspace?.slug
       });
-      
+
       return mappedSession;
     },
 
@@ -211,7 +196,7 @@ export const authOptions: NextAuthOptions = {
         //   Verificar errores en la URL
         const urlObj = new URL(url);
         const error = urlObj.searchParams.get('error');
-        
+
         if (error) {
           console.log('[REDIRECT] Error detected, going to login');
           return `${baseUrl}/auth/login?error=${error}`;
