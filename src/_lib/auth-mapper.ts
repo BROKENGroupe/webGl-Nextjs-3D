@@ -10,6 +10,8 @@ export interface MappedUser {
   role: string | null;
   permissions: string[] | null;
   registrationComplete: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
   
   // Datos del workspace
   workspaceId: string | null;
@@ -40,6 +42,8 @@ export function mapUserToToken(user: Partial<User>, account?: any): MappedUser {
     role: (user as any).role ?? null,
     permissions: (user as any).permissions ?? null,
     registrationComplete: (user as any).registrationComplete ?? false,
+    createdAt: (user as any).createdAt ?? null,
+    updatedAt: (user as any).updatedAt ?? null,
     
     // Datos del workspace
     workspaceId: (user as any).workspaceId ?? null,
@@ -70,6 +74,8 @@ export function mapTokenToSession(token: JWT, session: any) {
   session.user.role = (token as any).role ?? null;
   session.user.permissions = (token as any).permissions ?? null;
   session.user.registrationComplete = (token as any).registrationComplete ?? false;
+  session.user.createdAt = (token as any).createdAt ?? null;
+  session.user.updatedAt = (token as any).updatedAt ?? null;
 
   // Datos del workspace
   session.workspace = {

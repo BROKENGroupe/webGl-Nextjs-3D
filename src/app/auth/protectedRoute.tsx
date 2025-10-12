@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useMemo, memo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccess } from '@/context/AccessContext';
+import { useTypedSession } from '@/hooks/useTypedSession';
 
 type ProtectedRouteProps = {
   permission?: string | string[];
@@ -8,6 +9,9 @@ type ProtectedRouteProps = {
   component: () => Promise<{ default: React.ComponentType<any> }>;
   loading?: React.ReactNode;
   redirectTo?: string;
+  requireRegistrationComplete?: boolean; // ✅ Para onboarding
+  allowWithoutPermissions?: boolean; // ✅ Nueva prop para permitir sin permisos
+  allowedRoutes?: string[]; // ✅ Rutas específicas que permiten acceso sin permisos
 };
 
 export const ProtectedRoute = memo(function ProtectedRoute({
@@ -15,11 +19,15 @@ export const ProtectedRoute = memo(function ProtectedRoute({
   role,
   component,
   loading = <div>Cargando...</div>,
-  redirectTo = '/home'
+  redirectTo = '/home',
+  requireRegistrationComplete = true,
+  allowWithoutPermissions = false,
+  allowedRoutes = []
 }: ProtectedRouteProps) {
   const { hasPermission, role: userRole, isLoading } = useAccess();
-  const router = useRouter();  
- 
+  const { session, status } = useTypedSession();
+  const router = useRouter();
+  
   const LazyComponentRef = useRef<React.LazyExoticComponent<React.ComponentType<any>> | null>(null);
   
   if (!LazyComponentRef.current) {
@@ -35,26 +43,68 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     role ? Array.isArray(role) ? role : [role] : undefined,
     [role]
   );
+
+  // ✅ Verificar si la ruta actual está en las rutas permitidas
+  const isAllowedRoute = useMemo(() => {
+    if (allowedRoutes.length === 0 && !allowWithoutPermissions) return false;
+    
+    const currentPath = window?.location?.pathname || '';
+    return allowedRoutes.some(route => currentPath.startsWith(route)) || allowWithoutPermissions;
+  }, [allowedRoutes, allowWithoutPermissions]);
   
   const accessState = useMemo(() => {
-    if (isLoading) {      
-      return { type: 'loading' as const };
+    // ✅ Verificar autenticación primero
+    if (status === "loading" || isLoading) {
+      return { type: 'loading' as const, message: 'Verificando sesión...' };
     }
 
+    if (status === "unauthenticated") {
+      setTimeout(() => router.replace('/auth/login'), 0);
+      return { type: 'denied' as const, message: 'No autenticado' };
+    }   
+
+    // ✅ Si está en ruta permitida, saltar verificación de permisos
+    if (isAllowedRoute) {
+      console.log('🟢 Route allowed without permissions check');
+      return { type: 'granted' as const, message: 'Acceso permitido sin permisos' };
+    }
+
+    // ✅ Verificación normal de permisos y roles
     const hasRequiredPermission = 
       !permissionsArr || 
       permissionsArr.some(p => hasPermission(p));
 
     const hasRequiredRole = !rolesArr || (userRole && rolesArr.includes(userRole));
-    const hasAccess = hasRequiredPermission && hasRequiredRole;    
+    const hasAccess = hasRequiredPermission && hasRequiredRole;
 
     if (!hasAccess) {
+      console.log('🔴 Access denied:', { 
+        requiredPermissions: permissionsArr, 
+        requiredRoles: rolesArr, 
+        userRole,
+        hasRequiredPermission,
+        hasRequiredRole 
+      });
       setTimeout(() => router.replace(redirectTo), 0);
-      return { type: 'denied' as const };
+      return { type: 'denied' as const, message: 'Permisos insuficientes' };
     }
-    return { type: 'granted' as const };
+
+    console.log('🟢 Access granted with permissions');
+    return { type: 'granted' as const, message: 'Acceso concedido' };
     
-  }, [hasPermission, userRole, isLoading, permissionsArr, rolesArr, router, redirectTo]);
+  }, [
+    hasPermission, 
+    userRole, 
+    isLoading, 
+    status,
+    session,
+    permissionsArr, 
+    rolesArr, 
+    router, 
+    redirectTo,
+    requireRegistrationComplete,
+    isAllowedRoute
+  ]);
 
   // ✅ Renderizado optimizado
   switch (accessState.type) {
@@ -67,7 +117,10 @@ export const ProtectedRoute = memo(function ProtectedRoute({
           <div className="text-center">
             <div>Verificando permisos...</div>
             <div className="text-sm text-gray-500 mt-2">
-              Redirigiendo a {redirectTo}
+              {accessState.message}
+            </div>
+            <div className="text-xs text-gray-400 mt-1">
+              Redirigiendo...
             </div>
           </div>
         </div>

@@ -100,7 +100,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     const userData = {
       name: session?.user?.name || "Usuario",
       email: session?.user?.email || "user@example.com",
-      avatar: session?.user?.image?.src || "/avatars/default.jpg",
+      avatar: session?.user?.image || "/avatars/default.jpg",
     };
     console.log("👤 User Data:", userData);
 

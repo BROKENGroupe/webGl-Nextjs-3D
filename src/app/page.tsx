@@ -12,7 +12,7 @@ export default function HomePage() {
   }
 
   // ✅ Redireccionar basado en sesión
-  if (session?.user.registrationComplete === true) {
+  if (session) {
     redirect("/home");
   } else {
     redirect("/auth/login");

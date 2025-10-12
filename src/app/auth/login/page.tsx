@@ -42,7 +42,7 @@ const [loading, setLoading] = useState(false);
       });
       if (response?.ok) {
         toast.success("Login Successful");
-        window.location.assign("/home");
+        //window.location.assign("/home");
         reset();
       } else if (response?.error) {
         toast.error("Ups algo salió mal!");
