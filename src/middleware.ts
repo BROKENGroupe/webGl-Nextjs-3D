@@ -64,15 +64,23 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
         
-        //   Rutas públicas
+        //   ✅ Rutas públicas (incluyendo imágenes y assets)
         const publicRoutes = [
           '/auth/',
           '/api/auth/',
           '/_next/',
-          '/favicon.ico'
+          '/favicon.ico',
+          '/assets/',
+          '/images/', 
+          '/static/', 
+          '/public/', 
         ];
         
-        if (publicRoutes.some(route => pathname.startsWith(route))) {
+        // ✅ Permitir archivos de imagen por extensión
+        const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico'];
+        const isImageFile = imageExtensions.some(ext => pathname.toLowerCase().endsWith(ext));
+        
+        if (publicRoutes.some(route => pathname.startsWith(route)) || isImageFile) {
           return true;
         }
 
@@ -85,6 +93,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
+    // ✅ Excluir más rutas de archivos estáticos e imágenes
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|assets|images|static|public|.*\\.(png|jpg|jpeg|gif|svg|webp|ico)).*)',
   ],
 };
