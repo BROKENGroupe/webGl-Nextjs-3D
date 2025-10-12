@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           const isRegister = credentials?.action === 'register';
-          const endpoint = isRegister ? '/accounts/register' : '/accounts/login';
+          const endpoint = isRegister ? '/auth/register' : '/auth/login';
           
           let requestData;
           if (isRegister) {
@@ -104,7 +104,7 @@ export const authOptions: NextAuthOptions = {
               id: data.user.id,
               email: data.user.email,
               name: data.user.name,
-              image: data.user.image ?? profile?.image ?? null,
+              image: data.user.image,
               role: data.user.role,
               permissions: data.user.permissions ?? [],
               registrationComplete: data.user.registrationComplete ?? false, //   Campo clave

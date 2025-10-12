@@ -4,6 +4,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      image: any;
       registrationComplete?: boolean;
       role?: string;
       permissions?: Record<string, boolean>;
