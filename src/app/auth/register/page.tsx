@@ -44,7 +44,7 @@ export default function RegisterPage() {
         const response = await registerUser(data);
         if (response) {
           const response2 = await signIn("credentials", {
-            redirect: true,
+            redirect: false,
             email: data.email,
             password: data.password,
           });          
@@ -53,7 +53,7 @@ export default function RegisterPage() {
             throw new Error(response2.error);
           }
           saveRegistrationData(response2, data);
-          //router.push("/home");          
+          router.push("/home");          
         }        
       } catch (error: any) {        
         toast.error("Error al crear la cuenta", {

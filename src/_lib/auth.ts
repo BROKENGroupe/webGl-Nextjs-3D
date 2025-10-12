@@ -88,8 +88,6 @@ export const authOptions: NextAuthOptions = {
             idToken: account?.id_token,
           });
 
-          console.log("Google signIn response:", data);
-
           // Nueva estructura de respuesta para Google
           if (data?.accessToken && data.user && data.workspace) {
             const mapped = mapUserToToken({
@@ -123,62 +121,65 @@ export const authOptions: NextAuthOptions = {
 
         return true;
       } catch (err) {
-        console.error("Google signIn failed:", err);
         return false;
       }
     },
 
-    jwt: async ({ token, user }: { token: any; user?: any; }) => {
+    jwt: async ({ token, user, trigger, session }: { token: any; user?: any; trigger?: string; session?: any }) => {
       try {
         const accessTokenExpires = Date.now() + ONE_HOUR;
+        
+        // ✅ En login inicial
         if (user) {
-          if (user) {
-            const mapped = mapUserToToken(user, token);
-            return {
-              ...token,
-              ...mapped,
-              accessTokenExpires,
-              exp: Math.floor(accessTokenExpires / 1000),
-            };
-          }
+          console.log('[JWT] Initial login, user data:', {
+            id: user.id,
+            email: user.email,
+            registrationComplete: user.registrationComplete
+          });
+          
+          const mapped = mapUserToToken(user, token);
+          return {
+            ...token,
+            ...mapped,
+            registrationComplete: user.registrationComplete ?? false, // ✅ Asegurar que se incluya
+            accessTokenExpires,
+            exp: Math.floor(accessTokenExpires / 1000),
+          };
         }
 
+        // ✅ En actualización manual de sesión
+        if (trigger === "update" && session) {
+          console.log('[JWT] Session update triggered:', session);
+          
+          return {
+            ...token,
+            registrationComplete: session.user?.registrationComplete ?? token.registrationComplete,
+            // Otros campos que puedan actualizarse
+          };
+        }
+
+        // ✅ Token válido, no necesita refresh
         if (Date.now() < token.accessTokenExpires) {
-          return token;
+          return {
+            ...token,
+            registrationComplete: token.registrationComplete ?? false, // ✅ Preservar valor
+          };
         }
 
-        // Refresh token - también debe manejar la nueva estructura
+        // ✅ Refresh token
         const { data } = await api.post('/auth/refresh', {
           refreshToken: token.refreshToken,
         });
 
         const newAccessTokenExpires = Date.now() + ONE_HOUR;
 
-        // Si el refresh devuelve la nueva estructura completa
         if (data.user && data.workspace) {
           return {
             ...token,
-            // Actualizar tokens
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
-            // Actualizar datos del usuario si cambiaron
-            id: data.user.id,
-            email: data.user.email,
-            name: data.user.name,
-            image: data.user.image,
-            role: data.user.role,
-            permissions: data.user.permissions,
-            registrationComplete: data.user.registrationComplete ?? false,  
-            // Actualizar datos del workspace si cambiaron
-            workspaceId: data.workspace.id,
-            workspaceName: data.workspace.name,
-            slug: data.workspace.slug,
-            accountType: data.workspace.accountType,
-            enabledModules: data.workspace.enabledModules,
-            members: data.workspace.members,
-            settings: data.workspace.settings,
-            metadata: data.workspace.metadata,
-            // Timestamps
+            registrationComplete: data.user.registrationComplete ?? false, // ✅ Del refresh
+            // ... otros campos
             accessTokenExpires: newAccessTokenExpires,
             exp: Math.floor(newAccessTokenExpires / 1000),
           };
@@ -186,13 +187,16 @@ export const authOptions: NextAuthOptions = {
 
         return {
           ...token,
+          registrationComplete: token.registrationComplete ?? false, // ✅ Preservar
           accessToken: data.accessToken,
           accessTokenExpires: newAccessTokenExpires,
           exp: Math.floor(newAccessTokenExpires / 1000),
         };
       } catch (err) {
+        console.error('[JWT] Error:', err);
         return {
           ...token,
+          registrationComplete: token.registrationComplete ?? false, // ✅ Preservar en error
           error: 'RefreshAccessTokenError',
           exp: Math.floor(Date.now() / 1000),
         };
@@ -200,21 +204,23 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }: { session: any; token: any }) {
-      console.log(session, token)
       return mapTokenToSession(token, session);
     },
 
-    // async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
-    //   console.log('[REDIRECT] Redirect callback invoked:', {
-    //     url,
-    //     baseUrl,
-    //     hasToken: token,
-    //     hasUser: user
-    //   });
-             
-    //       return `${baseUrl}/register-onboarding`;
-        
-    // },
+    async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
+      console.log('[REDIRECT] Redirect callback invoked:', {
+        url,
+        baseUrl,
+        hasToken: token,
+        hasUser: user
+      });
+
+      if (user && !user.registrationComplete) {
+        return `${baseUrl}/register-onboarding`;
+      }
+
+      return url;
+    },
   },
   pages: {
     signIn: '/auth/login',

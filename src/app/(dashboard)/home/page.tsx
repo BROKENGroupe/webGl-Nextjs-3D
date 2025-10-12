@@ -76,17 +76,17 @@ export default function HomePage() {
         workspaceFromSession: session.workspace?.slug,
       });      
 
-      if (registrationComplete === false) {
-        console.log("📝 Registration incomplete - redirecting to onboarding");
-        const onboardingPath = `/register-onboarding${
-          workspaceSlug ? `?workspace=${workspaceSlug}` : ""
-        }`;
-        return {
-          shouldRedirect: true,
-          path: onboardingPath,
-          reason: "registration_incomplete",
-        };
-      }
+      // if (registrationComplete === false) {
+      //   console.log("📝 Registration incomplete - redirecting to onboarding");
+      //   const onboardingPath = `/register-onboarding${
+      //     workspaceSlug ? `?workspace=${workspaceSlug}` : ""
+      //   }`;
+      //   return {
+      //     shouldRedirect: true,
+      //     path: onboardingPath,
+      //     reason: "registration_incomplete",
+      //   };
+      // }
 
       //   Estado indefinido/null -> Onboarding por seguridad
       if (registrationComplete === undefined || registrationComplete === null) {

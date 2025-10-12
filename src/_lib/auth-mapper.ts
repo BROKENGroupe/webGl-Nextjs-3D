@@ -41,7 +41,7 @@ export function mapUserToToken(user: Partial<User>, account?: any): MappedUser {
     image: (user as any).image ?? null,
     role: (user as any).role ?? null,
     permissions: (user as any).permissions ?? null,
-    registrationComplete: (user as any).registrationComplete ?? false,
+    registrationComplete: user.registrationComplete ?? false, // ✅ Incluir siempre
     createdAt: (user as any).createdAt ?? null,
     updatedAt: (user as any).updatedAt ?? null,
     
