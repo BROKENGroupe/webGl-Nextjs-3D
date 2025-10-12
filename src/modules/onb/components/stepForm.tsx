@@ -34,6 +34,7 @@ export default function StepForm({
   onMultipleSelect,
   onSubmit 
 }: StepFormProps) {
+  
   const {
     register,
     handleSubmit,
@@ -57,6 +58,7 @@ export default function StepForm({
       return defaults;
     })(),
   });
+
   useEffect(() => {
     step.fields.forEach(field => {
       const value = formData[field.name as keyof OnboardingFormData];
@@ -65,6 +67,7 @@ export default function StepForm({
       }
     });
   }, [formData, step.fields, setValue]);
+
   const watchedValues = watch();
   
   useEffect(() => {
@@ -89,9 +92,11 @@ export default function StepForm({
       }
     });
   }, [watchedValues]);
+
   const handleFieldBlur = async (fieldName: string, value: string) => {
     await trigger(fieldName as any);
   };
+
   const onFormSubmit = (data: any) => {
     const event = { preventDefault: () => {} } as React.FormEvent;
     onSubmit(event);
@@ -156,6 +161,7 @@ export default function StepForm({
       case 'text':
       case 'email':
       case 'tel':
+      case 'date':
       default:
         return (
           <TextInput
@@ -175,63 +181,112 @@ export default function StepForm({
   };
 
   return (
-    <form
-      id="onboarding-form"
-      className="w-full max-w-2xl"
-      onSubmit={handleSubmit(onFormSubmit, onFormError)}
-      autoComplete="off"
-    >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={stepIndex}
-          variants={variants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.4 }}
-          className="flex flex-col gap-8"
-        >
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2">{step.title}</h2>
-            {step.subtitle && (
-              <h4 className="text-gray-600">{step.subtitle}</h4>
-            )}
-            
-            {/* ✅ Indicador de validación */}
-            {Object.keys(touchedFields).length > 0 && (
-              <div className="mt-5 flex items-center text-sm">
-                {isValid ? (
-                  <div className="flex items-center text-green-600">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Información válida ✓
-                  </div>
-                ) : (
-                  <div className="flex items-center text-amber-600">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    Completa la información requerida
-                  </div>
+    <div className="w-full max-w-4xl mx-auto px-6">
+      <form
+        id="onboarding-form"
+        className="w-full"
+        onSubmit={handleSubmit(onFormSubmit, onFormError)}
+        autoComplete="off"
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={stepIndex}
+            variants={variants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className="space-y-8"
+          >
+            {/* ✅ Header reorganizado como en la imagen */}
+            <div className="flex items-start justify-between mt-20">
+              {/* Lado izquierdo - Paso y título */}
+              <div className="flex-1">
+               
+                
+                {/* <div className="border-b-2 border-gray-900 pb-2 mb-4 max-w-md">
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {step.title}
+                  </h1>
+                </div> */}
+                
+                {step.subtitle && (
+                  <h4 className="text-sm text-gray-600 max-w-lg font-bold">
+                    {step.subtitle}
+                  </h4>
                 )}
               </div>
-            )}
-          </div>
-          
-          <div className="space-y-6">
-            {step.fields.map((field) => (
-              <div key={field.name}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {field.label}
-                  {field.required && <span className="text-red-500 ml-1">*</span>}
-                </label>
-                {renderField(field)}
+
+              {/* Lado derecho - Indicadores de progreso */}
+              {/* <div className="flex flex-col items-end">
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: 7 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
+                        i <= stepIndex ? 'bg-black' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div> */}
+            </div>
+
+            {/* ✅ Campos del formulario */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+              {step.fields.map((field) => {
+                const isFullWidth = ['select-cards', 'select-cards-multiple', 'textarea'].includes(field.type);
+                
+                return (
+                  <div 
+                    key={field.name}
+                    className={`space-y-3 ${isFullWidth ? 'md:col-span-2' : ''}`}
+                  >
+                    <label className="block text-sm font-medium text-gray-700">
+                      {field.label}
+                      {field.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </label>
+                    
+                    {renderField(field)}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ✅ Indicador de validación */}
+            {Object.keys(touchedFields).length > 0 && (
+              <div className="flex justify-center mt-8">
+                <div className={`
+                  px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-2 transition-all duration-300
+                  ${isValid 
+                    ? 'bg-green-50 text-green-700 border border-green-200' 
+                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                  }
+                `}>
+                  {isValid ? (
+                    <>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Información completa</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <span>Completa los campos requeridos</span>
+                    </>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    </form>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </form>
+    </div>
   );
 }

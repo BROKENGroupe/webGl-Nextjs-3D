@@ -10,7 +10,7 @@ export default function ProgressBar({ currentStep, totalSteps }: ProgressBarProp
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   return (
-    <div className="absolute top-32 left-0 right-0 z-10">
+    <div className="absolute top-32 left-0 right-0 z-10 mb-6">
       <div className="w-full flex justify-center">
         <div className="w-[520px] flex items-center gap-4">
           <div className="flex-1 h-1 bg-neutral-200 rounded-full overflow-hidden">

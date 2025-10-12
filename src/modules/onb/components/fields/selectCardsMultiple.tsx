@@ -74,7 +74,7 @@ export default function SelectCardsMultiple({ field, value = [], onSelect }: Sel
       </div>
       
       {/* ✅ Resumen más compacto */}
-      {value.length > 0 && (
+      {/* {value.length > 0 && (
         <div className="mt-3 p-2.5 bg-blue-50 rounded-lg border border-blue-200">
           <div className="text-xs text-blue-700 font-medium mb-1.5">
             Seleccionados ({value.length}):
@@ -104,7 +104,7 @@ export default function SelectCardsMultiple({ field, value = [], onSelect }: Sel
             })}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

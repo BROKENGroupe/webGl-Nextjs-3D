@@ -66,7 +66,7 @@ export default function TextInput({
   const shouldShowError = showError && hasBeenTouched && (hasError || error);
 
   return (
-    <div className="mt-2">
+    <div className="space-y-2">
       <input
         type={getInputType()}
         placeholder={field.placeholder}
@@ -75,19 +75,20 @@ export default function TextInput({
         onBlur={handleBlur}
         onFocus={handleFocus}
         className={`
-          w-full px-4 py-3 border rounded-lg focus:ring-2 focus:border-transparent transition-all duration-200
-          ${hasError || (error && hasBeenTouched)
-            ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500 text-red-900 placeholder-red-400' 
-            : 'border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400'
+          w-full px-4 py-3 border rounded-xl transition-all duration-200 text-gray-900
+          focus:ring-2 focus:border-transparent focus:outline-none
+          ${shouldShowError
+            ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
+            : 'border-gray-200 bg-white focus:ring-gray-900 focus:border-gray-900 hover:border-gray-300'
           }
         `}
+        name={field.name}
         {...inputProps}
       />
       
-      {/* ✅ Mensaje de error al perder el foco */}
       {shouldShowError && (
-        <div className="mt-1 text-sm text-red-600 flex items-start animate-fadeIn">
-          <svg className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <div className="flex items-start space-x-2 text-sm text-red-600 animate-fadeIn">
+          <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
           <span>{error?.message || 'Campo requerido'}</span>
