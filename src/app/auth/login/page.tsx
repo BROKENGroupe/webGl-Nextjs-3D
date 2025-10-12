@@ -5,17 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import { z } from "zod";
 import React, { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Loader2 } from "lucide-react";
-import { createCredentialSchema } from "@/schemas/credential";
-
-
+import { loginCredentialSchema } from "@/schemas/loginCredentials.schema";
 
 export default function LoginPage() {
   const [isPending, startTransition] = React.useTransition();
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -23,7 +20,7 @@ const [loading, setLoading] = useState(false);
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(createCredentialSchema),
+    resolver: zodResolver(loginCredentialSchema),
     mode: "all",
     defaultValues: {
       email: "",
@@ -35,31 +32,29 @@ const [loading, setLoading] = useState(false);
     setLoading(true);
     startTransition(async () => {
       try {
-         let response = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-      if (response?.ok) {
-        toast.success("Login Successful");
-        //window.location.assign("/home");
-        reset();
-      } else if (response?.error) {
-        toast.error("Ups algo salió mal!");
-      }
+        let response = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: true,
+          callbackUrl: "/home",
+        });
+        if (response?.ok) {
+          toast.success("Login Successful");
+        } else if (response?.error) {
+          toast.error("Ups algo salió mal!");
+        }
       } catch (error) {
         console.error("Login error:", error);
         toast.error("An unexpected error occurred. Please try again.");
-      }finally {
+      } finally {
         setLoading(false);
       }
-     
     });
-  };  
+  };
 
   const handleGoogleLogin = () => {
-    signIn("google", {callbackUrl: '/home'});
-  };  
+    signIn("google", { callbackUrl: "/home" });
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">

@@ -1,12 +1,9 @@
 // src/modules/onb/components/OnboardingWizard.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
-import { registerAccount } from "@/services/userService";
-import { useRegister } from "@/context/RegisterContext";
-import { useTypedSession } from "@/hooks/useTypedSession";
+import { useSession } from "next-auth/react";
 import OnboardingHeader from "./onboardingHeader";
 import ProgressBar from "./progressBar";
 import StepForm from "./stepForm";
@@ -15,9 +12,8 @@ import { useOnboardingValidation } from "../hooks/useOnboardingValidation";
 import NavigationButtons from "./Navigation";
 import { OnboardingFormData } from "../types/onboarding";
 import { AccountType } from "../types/enum";
-import { ru } from "zod/v4/locales";
 export default function OnboardingWizard() {
-  const { update } = useSession(); // ✅ Hook para actualizar sesión
+  const { update } = useSession();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<OnboardingFormData>({});
   const [loading, setLoading] = useState(false);

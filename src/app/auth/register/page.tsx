@@ -8,23 +8,15 @@ import React from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { registerUser } from "@/services/userService";
 import { signIn } from "next-auth/react";
-import { useRegisterFlow } from "@/context/RegisterContext"; //   Usar Context API
-
-const schema = z.object({
-  name: z
-    .string()
-    .min(3, { message: "Name must be at least 3 characters." }),
-  email: z.string().email({ message: "Your email is invalid." }),
-  password: z.string().min(4),
-});
+import { useRegisterFlow } from "@/context/RegisterContext";
+import { createCredentialSchema } from "@/schemas/registerCredentials.schema";
 
 export default function RegisterPage() {
   const [isPending, startTransition] = React.useTransition();
   const router = useRouter();
-  
+
   //   Usar Context API en lugar de Zustand
   const { saveRegistrationData, isLoading, error } = useRegisterFlow();
 
@@ -34,37 +26,43 @@ export default function RegisterPage() {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(createCredentialSchema),
     mode: "all",
   });
 
   const onSubmit = (data: any) => {
     startTransition(async () => {
       try {
-        const response = await registerUser(data);
-        if (response) {
-          const response2 = await signIn("credentials", {
+        const res = await registerUser(data);
+
+        if (res) {
+          const response = await signIn("credentials", {
             redirect: false,
             email: data.email,
             password: data.password,
-          });          
-          
-          if (response2?.error) {
-            throw new Error(response2.error);
+          });
+          saveRegistrationData(response, data);
+
+          router.push(
+            !res?.user.registrationComplete
+              ? "/register-onboarding"
+              : "/home"
+          );
+
+          if (response?.error) {
+            throw new Error(response.error);
           }
-          saveRegistrationData(response2, data);
-          router.push("/home");          
-        }        
-      } catch (error: any) {        
+        }
+      } catch (error: any) {
         toast.error("Error al crear la cuenta", {
-          description: error.message || "Intenta nuevamente"
+          description: error.message || "Intenta nuevamente",
         });
       }
     });
   };
 
   const handleGoogleLogin = () => {
-    signIn("google", {callbackUrl: '/home'});
+    signIn("google", { callbackUrl: "/home" });
   };
 
   //   Mostrar error del contexto si existe
@@ -173,8 +171,10 @@ export default function RegisterPage() {
             </div>
 
             <Button className="w-full" disabled={isPending || isLoading}>
-              {(isPending || isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {(isPending || isLoading) ? "Loading..." : "Sign Up"}
+              {(isPending || isLoading) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isPending || isLoading ? "Loading..." : "Sign Up"}
             </Button>
           </form>
 

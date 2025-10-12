@@ -127,9 +127,8 @@ export const authOptions: NextAuthOptions = {
 
     jwt: async ({ token, user, trigger, session }: { token: any; user?: any; trigger?: string; session?: any }) => {
       try {
-        const accessTokenExpires = Date.now() + ONE_HOUR;
+        const accessTokenExpires = Date.now() + ONE_HOUR;        
         
-        // ✅ En login inicial
         if (user) {
           console.log('[JWT] Initial login, user data:', {
             id: user.id,
@@ -141,7 +140,7 @@ export const authOptions: NextAuthOptions = {
           return {
             ...token,
             ...mapped,
-            registrationComplete: user.registrationComplete ?? false, // ✅ Asegurar que se incluya
+            registrationComplete: user.registrationComplete ?? false, 
             accessTokenExpires,
             exp: Math.floor(accessTokenExpires / 1000),
           };
@@ -162,11 +161,10 @@ export const authOptions: NextAuthOptions = {
         if (Date.now() < token.accessTokenExpires) {
           return {
             ...token,
-            registrationComplete: token.registrationComplete ?? false, // ✅ Preservar valor
+            registrationComplete: token.registrationComplete ?? false, 
           };
         }
 
-        // ✅ Refresh token
         const { data } = await api.post('/auth/refresh', {
           refreshToken: token.refreshToken,
         });
@@ -178,7 +176,7 @@ export const authOptions: NextAuthOptions = {
             ...token,
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
-            registrationComplete: data.user.registrationComplete ?? false, // ✅ Del refresh
+            registrationComplete: data.user.registrationComplete ?? false, 
             // ... otros campos
             accessTokenExpires: newAccessTokenExpires,
             exp: Math.floor(newAccessTokenExpires / 1000),
@@ -187,7 +185,7 @@ export const authOptions: NextAuthOptions = {
 
         return {
           ...token,
-          registrationComplete: token.registrationComplete ?? false, // ✅ Preservar
+          registrationComplete: token.registrationComplete ?? false, 
           accessToken: data.accessToken,
           accessTokenExpires: newAccessTokenExpires,
           exp: Math.floor(newAccessTokenExpires / 1000),
@@ -196,7 +194,7 @@ export const authOptions: NextAuthOptions = {
         console.error('[JWT] Error:', err);
         return {
           ...token,
-          registrationComplete: token.registrationComplete ?? false, // ✅ Preservar en error
+          registrationComplete: token.registrationComplete ?? false, 
           error: 'RefreshAccessTokenError',
           exp: Math.floor(Date.now() / 1000),
         };
@@ -205,21 +203,6 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }: { session: any; token: any }) {
       return mapTokenToSession(token, session);
-    },
-
-    async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
-      console.log('[REDIRECT] Redirect callback invoked:', {
-        url,
-        baseUrl,
-        hasToken: token,
-        hasUser: user
-      });
-
-      if (user && !user.registrationComplete) {
-        return `${baseUrl}/register-onboarding`;
-      }
-
-      return url;
     },
   },
   pages: {

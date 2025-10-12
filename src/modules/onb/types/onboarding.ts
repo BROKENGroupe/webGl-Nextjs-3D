@@ -21,7 +21,7 @@ export interface OnboardingField {
   label: string;
   name: string;
   placeholder?: string;
-  type: "text" | "email" | "tel" | "radio" | "select" | "select-cards" | "select-cards-multiple" | "textarea";
+  type: "text" | "email" | "tel" | "radio" | "select" | "select-cards" | "select-cards-multiple" | "date" | "textarea";
   required?: boolean;
   description?: string; // ✅ Para descripciones en las cards
   options?: Array<{ 

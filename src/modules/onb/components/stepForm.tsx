@@ -1,10 +1,13 @@
 // components/onboarding/StepForm.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from "framer-motion";
 import TextInput from './fields/textInput';
 import SelectCards from './fields/selectCards';
 import SelectCardsMultiple from './fields/selectCardsMultiple';
 import { OnboardingStep, OnboardingFormData } from '../types/onboarding';
+import { stepSchemas } from '../../../schemas/onboarding.schema';
 
 interface StepFormProps {
   step: OnboardingStep;
@@ -31,40 +34,124 @@ export default function StepForm({
   onMultipleSelect,
   onSubmit 
 }: StepFormProps) {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    trigger,
+    formState: { errors, isValid, touchedFields },
+  } = useForm({
+    resolver: zodResolver(stepSchemas[stepIndex]), 
+    mode: "onBlur", 
+    defaultValues: (() => {     
+      const defaults: any = {};
+      step.fields.forEach(field => {
+        const value = formData[field.name as keyof OnboardingFormData];
+        if (field.type === 'select-cards-multiple') {
+          defaults[field.name] = Array.isArray(value) ? value : [];
+        } else {
+          defaults[field.name] = value || '';
+        }
+      });
+      return defaults;
+    })(),
+  });
+  useEffect(() => {
+    step.fields.forEach(field => {
+      const value = formData[field.name as keyof OnboardingFormData];
+      if (value !== undefined) {
+        setValue(field.name as any, value);
+      }
+    });
+  }, [formData, step.fields, setValue]);
+  const watchedValues = watch();
   
-  const renderField = (field: any) => {
-    const value = formData[field.name as keyof OnboardingFormData];
-    
-    console.log(`🔍 Rendering field: ${field.name}, type: ${field.type}, value:`, value); // ✅ Debug
+  useEffect(() => {
+    Object.keys(watchedValues).forEach(key => {
+      const value = watchedValues[key as keyof typeof watchedValues];
+      const currentValue = formData[key as keyof OnboardingFormData];
+      
+      if (JSON.stringify(value) !== JSON.stringify(currentValue)) {
+        if (Array.isArray(value)) {
+          onMultipleSelect(key, value);
+        } else if (typeof value === 'string') {
+          const field = step.fields.find(f => f.name === key);
+          if (field?.type?.includes('select')) {
+            onSelect(key, value);
+          } else {
+            const event = {
+              target: { name: key, value: value }
+            } as React.ChangeEvent<HTMLInputElement>;
+            onChange(event);
+          }
+        }
+      }
+    });
+  }, [watchedValues]);
+  const handleFieldBlur = async (fieldName: string, value: string) => {
+    await trigger(fieldName as any);
+  };
+  const onFormSubmit = (data: any) => {
+    const event = { preventDefault: () => {} } as React.FormEvent;
+    onSubmit(event);
+  };
 
+  const onFormError = (errors: any) => {
+    console.log(`❌ Step ${stepIndex} validation failed:`, errors);
+  };
+
+  const renderField = (field: any) => {
+    const fieldName = typeof field.name === 'string' ? field.name : String(field.name);
+    const error = errors[fieldName];
+    const hasError = !!error;
+    
     switch (field.type) {
       case 'select-cards-multiple':
-        console.log(`🎯 SelectCardsMultiple - field: ${field.name}, onMultipleSelect:`, !!onMultipleSelect); // ✅ Debug
         return (
-          <SelectCardsMultiple
-            field={field}
-            value={Array.isArray(value) ? value : []}
-            onSelect={onMultipleSelect}
-          />
+          <div>
+            <SelectCardsMultiple
+              field={field}
+              value={watchedValues[field.name] || []}
+              onSelect={(fieldName, values) => {
+                setValue(fieldName as any, values);
+                onMultipleSelect(fieldName, values);
+                trigger(fieldName as any);
+              }}
+            />
+            {error && touchedFields[field.name] && (
+              <div className="mt-2 text-sm text-red-600 flex items-center animate-fadeIn">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {typeof error?.message === 'string' ? error.message : null}
+              </div>
+            )}
+          </div>
         );
       
       case 'select-cards':
         return (
-          <SelectCards
-            field={field}
-            value={typeof value === 'string' ? value : ''}
-            onSelect={onSelect}
-          />
+          <div>
+            <SelectCards
+              field={field}
+              value={watchedValues[field.name] || ''}
+              onSelect={(fieldName, value) => {
+                setValue(fieldName as any, value);
+                onSelect(fieldName, value);
+                trigger(fieldName as any);
+              }}
+            />
+            {error && touchedFields[field.name] && (
+              <div className="mt-2 text-sm text-red-600 flex items-center animate-fadeIn">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {typeof error?.message === 'string' ? error.message : null}
+              </div>
+            )}
+          </div>
         );
-      
-      // case 'select':
-      //   return (
-      //     <SelectInput
-      //       field={field}
-      //       value={typeof value === 'string' ? value : ''}
-      //       onChange={onChange}
-      //     />
-      //   );
         
       case 'text':
       case 'email':
@@ -73,8 +160,15 @@ export default function StepForm({
         return (
           <TextInput
             field={field}
-            value={typeof value === 'string' ? value : ''}
-            onChange={onChange}
+            value={watchedValues[field.name] || ''}
+            onChange={(e) => {
+              setValue(field.name as any, e.target.value);
+              onChange(e);
+            }}
+            hasError={hasError}
+            error={error && typeof error === 'object' && 'type' in error ? error as import('react-hook-form').FieldError : undefined}
+            register={register}
+            onBlur={handleFieldBlur}
           />
         );
     }
@@ -84,7 +178,7 @@ export default function StepForm({
     <form
       id="onboarding-form"
       className="w-full max-w-2xl"
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit(onFormSubmit, onFormError)}
       autoComplete="off"
     >
       <AnimatePresence mode="wait">
@@ -100,7 +194,28 @@ export default function StepForm({
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2">{step.title}</h2>
             {step.subtitle && (
-              <p className="text-gray-600">{step.subtitle}</p>
+              <h4 className="text-gray-600">{step.subtitle}</h4>
+            )}
+            
+            {/* ✅ Indicador de validación */}
+            {Object.keys(touchedFields).length > 0 && (
+              <div className="mt-5 flex items-center text-sm">
+                {isValid ? (
+                  <div className="flex items-center text-green-600">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Información válida ✓
+                  </div>
+                ) : (
+                  <div className="flex items-center text-amber-600">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Completa la información requerida
+                  </div>
+                )}
+              </div>
             )}
           </div>
           
