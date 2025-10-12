@@ -92,8 +92,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: [
-    // ✅ Excluir más rutas de archivos estáticos e imágenes
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|assets|images|static|public|.*\\.(png|jpg|jpeg|gif|svg|webp|ico)).*)',
-  ],
+  matcher: [],
 };
