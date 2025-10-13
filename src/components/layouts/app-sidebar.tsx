@@ -10,6 +10,8 @@ import {
   Layers,
   Move3D,
   Eye,
+  MapPin,
+  Building2,
 } from "lucide-react";
 import { NavProjects } from "@/shared/layout/nav-projects";
 import { NavSecondary } from "@/shared/layout/nav-secondary";
@@ -26,7 +28,10 @@ import { useTypedSession } from "@/hooks/useTypedSession";
 import { Can } from "@/app/auth/can";
 import { NavMainWithPermissions } from "./NavMainWithPermissions";
 import { AccountType } from "@/modules/onb/types/enum";
-import { LoadingComponent, SidebarSkeleton } from "@/components/atoms/loadingcomponent";
+import {
+  LoadingComponent,
+  SidebarSkeleton,
+} from "@/components/atoms/loadingcomponent";
 
 //   Memoizar datos estáticos que nuncan cambian
 const STATIC_NAV_SECONDARY = [
@@ -184,6 +189,44 @@ export const AppSidebar = React.memo(function AppSidebar({
         ]
       : [];
 
+    //   Sección de Places (Establecimientos)
+    const placesSection = safeModules.includes("places")
+      ? [
+          {
+            title: "Mis Establecimientos",
+            url: "#",
+            icon: Building2,
+            items: [
+              {
+                title: "Lista de Establecimientos",
+                url: "/places",
+                permission: "places:view",
+              },
+              {
+                title: "Mapa de Ubicaciones",
+                url: "/places/map",
+                permission: "places:view",
+              },
+              {
+                title: "Análisis Acústicos",
+                url: "/places/studies",
+                permission: "places:view",
+              },
+              {
+                title: "Reportes y Métricas",
+                url: "/places/reports",
+                permission: "places:view",
+              },
+              {
+                title: "Configurar Establecimiento",
+                url: "/places/create",
+                permission: "places:view",
+              },
+            ],
+          },
+        ]
+      : [];
+
     //   Sección de Visualización
     const renderSection = safeModules.includes("render")
       ? [
@@ -196,6 +239,11 @@ export const AppSidebar = React.memo(function AppSidebar({
                 title: "Vista 3D Interactiva",
                 url: "/viewer",
                 permission: "render:view",
+              },
+              {
+                title: "Editor 3D",
+                url: "/editor",
+                permission: "render:edit",
               },
               {
                 title: "Renderizado Avanzado",
@@ -256,6 +304,7 @@ export const AppSidebar = React.memo(function AppSidebar({
     const navMainItems = [
       ...designSection,
       ...librarySection,
+      ...placesSection,
       ...renderSection,
       ...settingsSection,
     ];
@@ -267,6 +316,21 @@ export const AppSidebar = React.memo(function AppSidebar({
             name: "Casa Moderna Minimalista",
             url: "/projects/modern-house",
             icon: Home,
+          },
+          {
+            name: "Club Poblado Elite",
+            url: "/projects/club-poblado",
+            icon: Building2,
+          },
+          {
+            name: "Teatro Metropolitano",
+            url: "/projects/teatro-metro",
+            icon: Building2,
+          },
+          {
+            name: "Centro Comercial Santafé",
+            url: "/projects/santafe-mall",
+            icon: Building2,
           },
         ]
       : [];

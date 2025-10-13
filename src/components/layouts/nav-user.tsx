@@ -25,6 +25,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { LogoutButton } from "../atoms/LogoutButton";
+import Link from "next/link";
 
 export function NavUser({
   user,
@@ -86,7 +87,7 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <BadgeCheck />
-                Cuenta
+                <Link href="/profile">Cuenta</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCard />

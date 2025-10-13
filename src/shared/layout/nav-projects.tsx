@@ -28,7 +28,7 @@ export function NavProjects({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>🏢 Proyectos Recientes</SidebarGroupLabel>
+      <SidebarGroupLabel>Estudios recientes</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
