@@ -8,8 +8,8 @@ const MOCK_STUDIES: Study[] = [
 ];
 
 const MOCK_ESTABLISHMENTS: Establishment[] = [
-  { id: 1, name: "Oficina Central", type: "office" },
-  { id: 2, name: "Restaurante Sur", type: "restaurant" },
+  { id: 1, name: "Oficina Central", type: "office", estudies: [] },
+  { id: 2, name: "Restaurante Sur", type: "restaurant", estudies: [] },
 ];
 
 export function useDashboard() {

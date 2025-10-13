@@ -9,6 +9,7 @@ export default function EditorPage() {
       permission="render:view"
       component={editorComponent} 
       loading={<LoadingComponent />} 
+      allowWithoutPermissions={true}
     />
   );
 }
