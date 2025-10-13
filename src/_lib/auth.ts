@@ -30,23 +30,35 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const { data: user } = await api.post('/auth/login', {
+          const { data } = await api.post('/accounts/login', {
             email: credentials?.email,
             password: credentials?.password,
           });
 
-          if (user && user.accessToken) {
-            //console.log('[user auth] Credentials', user);
-            
+          // Nueva estructura de respuesta con user y workspace separados
+          if (data && data.accessToken && data.user && data.workspace) {
+
             const mapped = mapUserToToken({
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              image: user.image ?? null,
-              accessToken: user.accessToken,
-              refreshToken: user.refreshToken,
-              permissions: user.permissions ?? [],
-              slug: '5454554545454545', // <-- agrega esto si lo tienes
+              // Datos del usuario
+              id: data.user.id,
+              email: data.user.email,
+              name: data.user.name,
+              image: data.user.image ?? null,
+              role: data.user.role,
+              permissions: data.user.permissions ?? [],
+              registrationComplete: data.user.registrationComplete ?? false,
+              // Datos del workspace
+              workspaceId: data.workspace.id,
+              workspaceName: data.workspace.name,
+              slug: data.workspace.slug,
+              accountType: data.workspace.accountType,
+              enabledModules: data.workspace.enabledModules,
+              members: data.workspace.members,
+              settings: data.workspace.settings,
+              metadata: data.workspace.metadata,
+              // Tokens
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
             });
 
             return mapped as any;
@@ -68,7 +80,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       try {
         if (account?.provider === "google") {
-          const { data } = await api.post("/auth/google", {
+          const { data } = await api.post("/accounts/google-signin", {
             email: profile?.email,
             name: profile?.name,
             image: account?.picture,
@@ -76,16 +88,29 @@ export const authOptions: NextAuthOptions = {
             idToken: account?.id_token,
           });
 
-          if (data?.accessToken) {
-
+          // Nueva estructura de respuesta para Google
+          if (data?.accessToken && data.user && data.workspace) {
             const mapped = mapUserToToken({
-              id: data.id,
-              email: data.email,
-              name: data.name,
-              image: data.image ?? null,
+              // Datos del usuario
+              id: data.user.id,
+              email: data.user.email,
+              name: data.user.name,
+              image: data.user.image ?? null,
+              role: data.user.role,
+              permissions: data.user.permissions ?? [],
+              registrationComplete: data.user.registrationComplete ?? false,
+              // Datos del workspace
+              workspaceId: data.workspace.id,
+              workspaceName: data.workspace.name,
+              slug: data.workspace.slug,
+              accountType: data.workspace.accountType,
+              enabledModules: data.workspace.enabledModules,
+              members: data.workspace.members,
+              settings: data.workspace.settings,
+              metadata: data.workspace.metadata,
+              // Tokens
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
-              permissions: data.permissions ?? [],
             }, account);
 
             Object.assign(user, mapped);
@@ -96,29 +121,48 @@ export const authOptions: NextAuthOptions = {
 
         return true;
       } catch (err) {
-        console.error("Google signIn failed:", err);
         return false;
       }
     },
 
-    jwt: async ({ token, user }: { token: any; user?: any; }) => {
+    jwt: async ({ token, user, trigger, session }: { token: any; user?: any; trigger?: string; session?: any }) => {
       try {
-        const accessTokenExpires = Date.now() + ONE_HOUR;
+        const accessTokenExpires = Date.now() + ONE_HOUR;        
+        
         if (user) {
-
-          if (user) {
-            const mapped = mapUserToToken(user, token);
-            return {
-              ...token,
-              ...mapped,
-              accessTokenExpires,
-              exp: Math.floor(accessTokenExpires / 1000),
-            };
-          }
+          console.log('[JWT] Initial login, user data:', {
+            id: user.id,
+            email: user.email,
+            registrationComplete: user.registrationComplete
+          });
+          
+          const mapped = mapUserToToken(user, token);
+          return {
+            ...token,
+            ...mapped,
+            registrationComplete: user.registrationComplete ?? false, 
+            accessTokenExpires,
+            exp: Math.floor(accessTokenExpires / 1000),
+          };
         }
 
+        // ✅ En actualización manual de sesión
+        if (trigger === "update" && session) {
+          console.log('[JWT] Session update triggered:', session);
+          
+          return {
+            ...token,
+            registrationComplete: session.user?.registrationComplete ?? token.registrationComplete,
+            // Otros campos que puedan actualizarse
+          };
+        }
+
+        // ✅ Token válido, no necesita refresh
         if (Date.now() < token.accessTokenExpires) {
-          return token;
+          return {
+            ...token,
+            registrationComplete: token.registrationComplete ?? false, 
+          };
         }
 
         const { data } = await api.post('/auth/refresh', {
@@ -127,31 +171,39 @@ export const authOptions: NextAuthOptions = {
 
         const newAccessTokenExpires = Date.now() + ONE_HOUR;
 
+        if (data.user && data.workspace) {
+          return {
+            ...token,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            registrationComplete: data.user.registrationComplete ?? false, 
+            // ... otros campos
+            accessTokenExpires: newAccessTokenExpires,
+            exp: Math.floor(newAccessTokenExpires / 1000),
+          };
+        }
+
         return {
           ...token,
+          registrationComplete: token.registrationComplete ?? false, 
           accessToken: data.accessToken,
           accessTokenExpires: newAccessTokenExpires,
           exp: Math.floor(newAccessTokenExpires / 1000),
         };
       } catch (err) {
-        console.log('Failed to refresh token:', err);
+        console.error('[JWT] Error:', err);
         return {
           ...token,
+          registrationComplete: token.registrationComplete ?? false, 
           error: 'RefreshAccessTokenError',
           exp: Math.floor(Date.now() / 1000),
         };
       }
     },
+
     async session({ session, token }: { session: any; token: any }) {
       return mapTokenToSession(token, session);
     },
-
-    // async redirect({ url, baseUrl, token, user }: { url: string; baseUrl: string; token?: any; user?: any }) {
-    //   console.log('Redirecting to:', token, user);
-    //   // If there is a slug in the token or user, redirect to their dashboard
-    //   const slug = token?.slug || user?.slug || "david-velez";
-    //   return `${baseUrl}/${slug}/home`;
-    // },
   },
   pages: {
     signIn: '/auth/login',

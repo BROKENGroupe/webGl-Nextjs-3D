@@ -33,7 +33,7 @@ export class LineEventHandler {
       onPointerDown: (e: any) => {
         e.stopPropagation();
         
-        // ✅ VERIFICAR: ¿Este callback se está llamando?
+        //   VERIFICAR: ¿Este callback se está llamando?
         console.log('🔥 Vertex pointerDown:', vertexIndex); // DEBUG
         
         if (e.button === 2) {

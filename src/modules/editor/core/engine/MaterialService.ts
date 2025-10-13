@@ -192,7 +192,7 @@ export class MaterialService {
   static getCeilingMaterial(): THREE.MeshStandardMaterial {
     if (!this.materials.has('ceiling')) {
       const material = new THREE.MeshStandardMaterial({
-        // ✅ USAR COLOR ESPECÍFICO en lugar de COLORS.CEILING
+        //   USAR COLOR ESPECÍFICO en lugar de COLORS.CEILING
         color: "#CCCCCC", // Gris claro que tenías antes
         // O si quieres mantener la referencia:
         // color: COLORS.CEILING,
@@ -223,14 +223,14 @@ export class MaterialService {
       
       switch (state) {
         case 'normal':
-          color = "#FFD700"; // ✅ MANTENER: Dorado original
+          color = "#FFD700"; //   MANTENER: Dorado original
           break;
         case 'hover':
-          color = "#FFD700"; // ✅ MANTENER: Mismo dorado (sin cambio en hover)
+          color = "#FFD700"; //   MANTENER: Mismo dorado (sin cambio en hover)
           break;
         case 'dragging':
-          color = "#FF4444"; // ✅ MANTENER: Rojo original
-          opacity = 0.8;     // ✅ MANTENER: Transparencia original
+          color = "#FF4444"; //   MANTENER: Rojo original
+          opacity = 0.8;     //   MANTENER: Transparencia original
           break;
         default:
           color = "#FFD700";
@@ -262,16 +262,16 @@ export class MaterialService {
       
       switch (type) {
         case 'indicator':
-          color = "#FFFFFF";  // ✅ MANTENER: Blanco original para indicator
+          color = "#FFFFFF";  //   MANTENER: Blanco original para indicator
           opacity = 1.0;
           break;
         case 'line':
-          color = "#FF4444";  // ✅ MANTENER: Rojo original para líneas
-          opacity = 0.5;      // ✅ MANTENER: Transparencia original
+          color = "#FF4444";  //   MANTENER: Rojo original para líneas
+          opacity = 0.5;      //   MANTENER: Transparencia original
           transparent = true;
           break;
         case 'ghost':
-          color = "#00FF00";  // ✅ MANTENER: Verde original para ghost
+          color = "#00FF00";  //   MANTENER: Verde original para ghost
           opacity = 1.0;
           break;
       }

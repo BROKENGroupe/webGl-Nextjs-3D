@@ -1,207 +1,383 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   BookOpen,
-  Bot,
-  Command,
-  Frame,
   LifeBuoy,
-  Map,
-  PieChart,
   Send,
   Settings2,
-  SquareTerminal,
   Home,
   Layers,
   Move3D,
-  Palette,
-  Grid3X3,
-  Download,
-  Upload,
-  Ruler,
-  Eye
-} from "lucide-react"
-
-import { NavMain } from "@/shared/layout/nav-main"
-import { NavProjects } from "@/shared/layout/nav-projects"
-import { NavSecondary } from "@/shared/layout/nav-secondary"
-import { NavUser } from "@/shared/layout/nav-user"
-import { TeamSwitcher } from "@/shared/layout/team-switcher"
+  Eye,
+  MapPin,
+  Building2,
+} from "lucide-react";
+import { NavProjects } from "@/shared/layout/nav-projects";
+import { NavSecondary } from "@/shared/layout/nav-secondary";
+import { NavUser } from "@/shared/layout/nav-user";
+import { TeamSwitcher } from "@/shared/layout/team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader
-} from "@/shared/ui/sidebar"
+  SidebarHeader,
+} from "@/shared/ui/sidebar";
+import { useAccess } from "@/context/AccessContext";
+import { useTypedSession } from "@/hooks/useTypedSession";
+import { Can } from "@/app/auth/can";
+import { NavMainWithPermissions } from "./NavMainWithPermissions";
+import { AccountType } from "@/modules/onb/types/enum";
+import {
+  LoadingComponent,
+  SidebarSkeleton,
+} from "@/components/atoms/loadingcomponent";
 
-const data = {
-  user: {
-    name: "Arquitecto 3D ff",
-    email: "admin@webgl3d.com",
-    avatar: "/avatars/shadcn.jpg",
+//   Memoizar datos estáticos que nuncan cambian
+const STATIC_NAV_SECONDARY = [
+  {
+    title: "Soporte Técnico",
+    url: "#",
+    icon: LifeBuoy,
   },
-  teams: [
-    {
-      name: "David´s workspace",
-      logo: Home,
-      plan: "Professional",
-    },
-    // {
-    //   name: "Architecture Studio", 
-    //   logo: Home,
-    //   plan: "Premium",
-    // },
-  ],
-  navMain: [
-    {
-      title: "Herramientas de Diseño",
-      url: "#",
-      icon: Move3D,
-      isActive: true,
-      items: [
-        {
-          title: "Creador de Formas",
-          url: "/",
-        },
-        {
-          title: "Editor de Líneas",
-          url: "/line-builder",
-        },
-        {
-          title: "Manipulador 3D",
-          url: "/3d-manipulator",
-        },
-        {
-          title: "Generador de Planos",
-          url: "/floor-plans",
-        },
-      ],
-    },
-    {
-      title: "Biblioteca",
-      url: "#",
-      icon: Layers,
-      items: [
-        {
-          title: "Plantillas de Edificios",
-          url: "/templates",
-        },
-        {
-          title: "Elementos Arquitectónicos", 
-          url: "/elements",
-        },
-        {
-          title: "Materiales y Texturas",
-          url: "/materials",
-        },
-        {
-          title: "Componentes Reutilizables",
-          url: "/components",
-        },
-      ],
-    },
-    {
-      title: "Visualización",
-      url: "#",
-      icon: Eye,
-      items: [
-        {
-          title: "Vista 3D Interactiva", // ✅ Este es el texto que mencionas
-          url: "/viewer",
-        },
-        {
-          title: "Renderizado Avanzado",
-          url: "/render",
-        },
-        {
-          title: "Recorridos Virtuales",
-          url: "/walkthrough",
-        },
-        {
-          title: "Análisis de Iluminación",
-          url: "/lighting",
-        },
-      ],
-    },
-    {
-      title: "Configuración",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "Preferencias de Dibujo",
-          url: "/settings/drawing",
-        },
-        {
-          title: "Configuración de Render",
-          url: "/settings/render",
-        },
-        {
-          title: "Atajos de Teclado",
-          url: "/settings/shortcuts",
-        },
-        {
-          title: "Exportar/Importar", 
-          url: "/settings/export",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Soporte Técnico",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Documentación API",
-      url: "#", 
-      icon: BookOpen,
-    },
-    {
-      title: "Enviar Feedback",
-      url: "#",
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Casa Moderna Minimalista",
-      url: "/projects/modern-house",
-      icon: Home,
-    },
-    // {
-    //   name: "Edificio Corporativo",
-    //   url: "/projects/corporate-building", 
-    //   icon: Frame,
-    // },
-    // {
-    //   name: "Complejo Residencial",
-    //   url: "/projects/residential-complex",
-    //   icon: Grid3X3,
-    // },
-  ],
-}
+  {
+    title: "Documentación API",
+    url: "#",
+    icon: BookOpen,
+  },
+  {
+    title: "Enviar Feedback",
+    url: "#",
+    icon: Send,
+  },
+];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export const AppSidebar = React.memo(function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const {
+    modules,
+    hasPermission,
+    role,
+    workspace,
+    isReady: accessReady,
+    isLoading: accessLoading,
+  } = useAccess();
+  const { session, status } = useTypedSession();
+
+  //   Verificar si todo está listo
+  const isDataReady = React.useMemo(() => {
+    const authReady = status !== "loading";
+    const accessDataReady = accessReady && !accessLoading;
+
+    console.log("🔍 Sidebar readiness check:", {
+      authStatus: status,
+      authReady,
+      accessReady,
+      accessLoading,
+      accessDataReady,
+      finalReady: authReady && accessDataReady,
+    });
+
+    return authReady && accessDataReady;
+  }, [status, accessReady, accessLoading]);
+
+  //   Solo procesar datos cuando todo esté listo
+  const sidebarData = React.useMemo(() => {
+    if (!isDataReady) {
+      console.log("⏳ Sidebar data not ready, returning empty data");
+      return {
+        user: { name: "", email: "", avatar: "" },
+        teams: [],
+        navMain: [],
+        navSecondary: STATIC_NAV_SECONDARY,
+        projects: [],
+      };
+    }
+
+    console.log("  Processing sidebar data - everything is ready");
+
+    //   Validar modules de forma segura
+    const safeModules = Array.isArray(modules) ? modules : [];
+    console.log("🏢 Safe Modules:", safeModules);
+
+    //   Datos del usuario
+    const userData = {
+      name: session?.user?.name || "Usuario",
+      email: session?.user?.email || "user@example.com",
+      avatar: session?.user?.image || "/avatars/default.jpg",
+    };
+    console.log("👤 User Data:", userData);
+
+    //   Datos de teams
+    const teamsData = [
+      {
+        name: workspace?.name || "Mi Workspace",
+        logo: Home,
+        plan:
+          workspace?.accountType === AccountType.merchant
+            ? "Comerciante"
+            : "Empresarial",
+      },
+    ];
+    console.log("🏢 Teams Data:", teamsData);
+
+    //   Sección de Diseño
+    const designSection = safeModules.includes("design")
+      ? [
+          {
+            title: "Herramientas de Diseño",
+            url: "#",
+            icon: Move3D,
+            isActive: true,
+            items: [
+              {
+                title: "Creador de Formas",
+                url: "/",
+                permission: "design:create",
+              },
+              {
+                title: "Editor de Líneas",
+                url: "/line-builder",
+                permission: "design:edit",
+              },
+              {
+                title: "Manipulador 3D",
+                url: "/3d-manipulator",
+                permission: "3d:manipulate",
+              },
+              {
+                title: "Generador de Planos",
+                url: "/floor-plans",
+                permission: "design:plans",
+              },
+            ],
+          },
+        ]
+      : [];
+
+    //   Sección de Biblioteca
+    const librarySection = safeModules.includes("library")
+      ? [
+          {
+            title: "Biblioteca",
+            url: "#",
+            icon: Layers,
+            items: [
+              {
+                title: "Plantillas de Edificios",
+                url: "/templates",
+                permission: "library:read",
+              },
+              {
+                title: "Elementos Arquitectónicos",
+                url: "/elements",
+                permission: "library:read",
+              },
+              {
+                title: "Materiales y Texturas",
+                url: "/materials",
+                permission: "library:materials",
+              },
+              {
+                title: "Componentes Reutilizables",
+                url: "/components",
+                permission: "library:components",
+              },
+            ],
+          },
+        ]
+      : [];
+
+    //   Sección de Places (Establecimientos)
+    const placesSection = safeModules.includes("places")
+      ? [
+          {
+            title: "Mis Establecimientos",
+            url: "#",
+            icon: Building2,
+            items: [
+              {
+                title: "Lista de Establecimientos",
+                url: "/places",
+                permission: "places:view",
+              },
+              {
+                title: "Mapa de Ubicaciones",
+                url: "/places/map",
+                permission: "places:view",
+              },
+              {
+                title: "Análisis Acústicos",
+                url: "/places/studies",
+                permission: "places:view",
+              },
+              {
+                title: "Reportes y Métricas",
+                url: "/places/reports",
+                permission: "places:view",
+              },
+              {
+                title: "Configurar Establecimiento",
+                url: "/places/create",
+                permission: "places:view",
+              },
+            ],
+          },
+        ]
+      : [];
+
+    //   Sección de Visualización
+    const renderSection = safeModules.includes("render")
+      ? [
+          {
+            title: "Visualización",
+            url: "#",
+            icon: Eye,
+            items: [
+              {
+                title: "Vista 3D Interactiva",
+                url: "/viewer",
+                permission: "render:view",
+              },
+              {
+                title: "Editor 3D",
+                url: "/editor",
+                permission: "render:edit",
+              },
+              {
+                title: "Renderizado Avanzado",
+                url: "/render",
+                permission: "render:view",
+              },
+              {
+                title: "Recorridos Virtuales",
+                url: "/walkthrough",
+                permission: "render:view",
+              },
+              {
+                title: "Análisis de Iluminación",
+                url: "/lighting",
+                permission: "render:view",
+              },
+            ],
+          },
+        ]
+      : [];
+
+    //   Sección de Configuración
+    const settingsSection =
+      safeModules.includes("settings") ||
+      ["owner", "admin"].includes(role ?? "")
+        ? [
+            {
+              title: "Configuración",
+              url: "#",
+              icon: Settings2,
+              items: [
+                {
+                  title: "Preferencias de Dibujo",
+                  url: "/settings/drawing",
+                  permission: "settings:drawing",
+                },
+                {
+                  title: "Configuración de Render",
+                  url: "/settings/render",
+                  permission: "settings:render",
+                },
+                {
+                  title: "Atajos de Teclado",
+                  url: "/settings/shortcuts",
+                  permission: "settings:shortcuts",
+                },
+                {
+                  title: "Exportar/Importar",
+                  url: "/settings/export",
+                  permission: "settings:export",
+                },
+              ],
+            },
+          ]
+        : [];
+
+    //   NavMain completo
+    const navMainItems = [
+      ...designSection,
+      ...librarySection,
+      ...placesSection,
+      ...renderSection,
+      ...settingsSection,
+    ];
+
+    //   Proyectos (solo si tiene permisos)
+    const projectsData = hasPermission("projects:view")
+      ? [
+          {
+            name: "Casa Moderna Minimalista",
+            url: "/projects/modern-house",
+            icon: Home,
+          },
+          {
+            name: "Club Poblado Elite",
+            url: "/projects/club-poblado",
+            icon: Building2,
+          },
+          {
+            name: "Teatro Metropolitano",
+            url: "/projects/teatro-metro",
+            icon: Building2,
+          },
+          {
+            name: "Centro Comercial Santafé",
+            url: "/projects/santafe-mall",
+            icon: Building2,
+          },
+        ]
+      : [];
+
+    return {
+      user: userData,
+      teams: teamsData,
+      navMain: navMainItems,
+      navSecondary: STATIC_NAV_SECONDARY,
+      projects: projectsData,
+    };
+  }, [isDataReady, modules, session, workspace, role, hasPermission]);
+
+  //   Mostrar loading mientras espera
+  if (!isDataReady) {
+    return (
+      <Sidebar variant="sidebar" collapsible="icon" {...props}>
+        <div className="flex items-center justify-center h-full">
+          <SidebarSkeleton />
+        </div>
+      </Sidebar>
+    );
+  }
+
+  //   Renderizar sidebar completo cuando todo esté listo
   return (
-    <Sidebar 
-      variant="sidebar" // ✅ CAMBIAR: de "inset" a "sidebar" para comportamiento correcto
-      collapsible="icon"  // ✅ AGREGAR: permite colapsar mostrando solo iconos
-      {...props}
-    >
+    <Sidebar variant="sidebar" collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={sidebarData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMainWithPermissions
+          items={sidebarData.navMain}
+          hasPermission={hasPermission}
+        />
+
+        <Can permission="projects:view">
+          <NavProjects projects={sidebarData.projects} />
+        </Can>
+
+        <NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={sidebarData.user} />
       </SidebarFooter>
     </Sidebar>
-  )
-}
+  );
+});
+
+AppSidebar.displayName = "AppSidebar";

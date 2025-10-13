@@ -5,18 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import { z } from "zod";
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Loader2 } from "lucide-react";
-
-const schema = z.object({
-  email: z.string().email({ message: "Your email is invalid." }),
-  password: z.string().min(4),
-});
+import { loginCredentialSchema } from "@/schemas/loginCredentials.schema";
 
 export default function LoginPage() {
   const [isPending, startTransition] = React.useTransition();
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -24,7 +20,7 @@ export default function LoginPage() {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(loginCredentialSchema),
     mode: "all",
     defaultValues: {
       email: "",
@@ -33,47 +29,31 @@ export default function LoginPage() {
   });
 
   const onSubmit = (data: any) => {
+    setLoading(true);
     startTransition(async () => {
-      let response = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-      if (response?.ok) {
-        toast.success("Login Successful");
-        window.location.assign("/home");
-        reset();
-      } else if (response?.error) {
-        toast.error("Ups algo salió mal!");
+      try {
+        let response = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: true,
+          callbackUrl: "/home",
+        });
+        if (response?.ok) {
+          toast.success("Login Successful");
+        } else if (response?.error) {
+          toast.error("Ups algo salió mal!");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        toast.error("An unexpected error occurred. Please try again.");
+      } finally {
+        setLoading(false);
       }
     });
   };
 
-  //   const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
-  //     try {
-  //       const loginResponse = await loginUser(data);
-  //       const { accessToken } = loginResponse.data;
-
-  //       console.log("LoginPage: Login API exitoso. AccessToken:", accessToken); // LOG 1
-
-  //       await login(accessToken);
-
-  //       console.log("LoginPage: auth.login() ejecutado. Redirigiendo..."); // LOG 2
-  //       router.push("/");
-  //     } catch (error: any) {
-  //       alert(
-  //         "Error: " +
-  //           (error.response?.data?.message || "Credenciales incorrectas.")
-  //       );
-  //     }
-  //   };
-
   const handleGoogleLogin = () => {
-    //window.location.href = getGoogleAuthUrl();
     signIn("google", { callbackUrl: "/home" });
-  };
-  const handleAppleLogin = () => {
-    alert("Apple login no implementado");
   };
 
   return (

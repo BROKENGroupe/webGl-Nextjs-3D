@@ -62,7 +62,7 @@ export function LineBuilder({
   const [hoveredVertexIndex, setHoveredVertexIndex] = useState<number | null>(null);
   const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
   
-  // ✅ VERIFICAR: ¿El hook se está ejecutando?
+  //   VERIFICAR: ¿El hook se está ejecutando?
   console.log('🔥 LineBuilder render, points:', points.length); // DEBUG
   
   // Hook de sistema de arrastre

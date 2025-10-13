@@ -172,7 +172,7 @@ export const useDrawingStore = create<DrawingState>()(
           ? xzCoordinates.slice(0, -1) // Remover último punto duplicado
           : xzCoordinates;
 
-        console.log('✅ Coordenadas XZ guardadas:', cleanCoordinates);
+        console.log('  Coordenadas XZ guardadas:', cleanCoordinates);
 
         set({
           planeXZCoordinates: cleanCoordinates,
@@ -277,7 +277,7 @@ export const useDrawingStore = create<DrawingState>()(
           if (error) {
             console.error('❌ Error al cargar datos desde localStorage:', error);
           } else if (state) {
-            console.log('✅ Datos cargados exitosamente desde localStorage');
+            console.log('  Datos cargados exitosamente desde localStorage');
 
             // Reconstruir Vector3 desde objetos planos
             state.currentPoints = (state.currentPoints as any[])?.map(ensureVector3) || [];

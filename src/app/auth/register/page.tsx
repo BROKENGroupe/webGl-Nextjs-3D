@@ -1,78 +1,76 @@
 "use client";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { CreateUserDto } from "../types/user";
 import { Button } from "@/shared/ui/button";
 import React from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import router from "next/router";
 import { registerUser } from "@/services/userService";
-import { sign } from "crypto";
 import { signIn } from "next-auth/react";
+import { useRegisterFlow } from "@/context/RegisterContext";
+import { createCredentialSchema } from "@/schemas/registerCredentials.schema";
 
-const schema = z.object({
-  name: z
-    .string()
-    .min(3, { message: "Name must be at least 3 characters." }),
-  email: z.string().email({ message: "Your email is invalid." }),
-  password: z.string().min(4),
-});
 export default function RegisterPage() {
   const [isPending, startTransition] = React.useTransition();
+  const router = useRouter();
+
+  //   Usar Context API en lugar de Zustand
+  const { saveRegistrationData, isLoading, error } = useRegisterFlow();
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(createCredentialSchema),
     mode: "all",
   });
 
-  // const onSubmit: SubmitHandler<CreateUserDto> = async (data) => {
-  //   try {
-  //     await registerUser(data);
-  //     alert("¡Registro exitoso! Serás redirigido para iniciar sesión.");
-  //     await loginUser({ email: data.email, password: data.password });
-  //     router.push("/");
-  //   } catch (error: any) {
-  //     const errorMessages = error.response?.data?.message || [error.message];
-  //     alert("Error en el registro: " + [].concat(errorMessages).join("\n"));
-  //   }
-  // };
-
   const onSubmit = (data: any) => {
     startTransition(async () => {
-      let response = await registerUser(data);
-      debugger;
-      if (response != "") {
-        const data = response;
-        let responseLogin = await signIn("credentials", {
-          email: data.email,
-          password: data.password,
-          redirect: false,
-        });
-        if (responseLogin?.ok) {
-          toast.success("Login Successful login 2");
-          window.location.assign("/register-onboarding");
-          reset();
-        } else if (responseLogin?.error) {
-          toast.error(responseLogin?.error);
+      try {
+        const res = await registerUser(data);
+
+        if (res) {
+          const response = await signIn("credentials", {
+            redirect: false,
+            email: data.email,
+            password: data.password,
+          });
+          saveRegistrationData(response, data);
+
+          router.push(
+            !res?.user.registrationComplete
+              ? "/register-onboarding"
+              : "/home"
+          );
+
+          if (response?.error) {
+            throw new Error(response.error);
+          }
         }
-      } else {
-        toast.error(response?.message);
+      } catch (error: any) {
+        toast.error("Error al crear la cuenta", {
+          description: error.message || "Intenta nuevamente",
+        });
       }
     });
   };
 
   const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/register-onboarding" });
-  }; 
+    signIn("google", { callbackUrl: "/home" });
+  };
+
+  //   Mostrar error del contexto si existe
+  React.useEffect(() => {
+    if (error) {
+      toast.error("Error en registro", { description: error });
+    }
+  }, [error]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">
@@ -87,9 +85,7 @@ export default function RegisterPage() {
               height={70}
               className="mb-8"
             />
-            <h3 className="text-2xl text-gray-800 mb-8">
-              Crear cuenta
-            </h3>
+            <h3 className="text-2xl text-gray-800 mb-8">Crear cuenta</h3>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -114,27 +110,6 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {/* <div>
-              <label
-                htmlFor="surname"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Surname
-              </label>
-              <input
-                id="surname"
-                type="text"
-                {...register("surname", { required: "Surname is required" })}
-                placeholder="Enter your surname"
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
-              {errors.surname && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.surname.message}
-                </p>
-              )}
-            </div> */}
-
             <div>
               <label
                 htmlFor="email"
@@ -155,49 +130,6 @@ export default function RegisterPage() {
                 </p>
               )}
             </div>
-
-            {/* <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Phone
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                {...register("phone", { required: "Phone is required" })}
-                placeholder="Enter your phone number"
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
-              {errors.phone && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.phone.message}
-                </p>
-              )}
-            </div> */}
-
-            {/* <div>
-              <label
-                htmlFor="birthdaydate"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Birthday Date
-              </label>
-              <input
-                id="birthdaydate"
-                type="date"
-                {...register("birthdaydate", {
-                  required: "Birthday date is required",
-                })}
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
-              {errors.birthdaydate && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.birthdaydate.message}
-                </p>
-              )}
-            </div> */}
 
             <div>
               <label
@@ -238,9 +170,11 @@ export default function RegisterPage() {
               </label>
             </div>
 
-            <Button className="w-full" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isPending ? "Loading..." : "Sign Up"}
+            <Button className="w-full" disabled={isPending || isLoading}>
+              {(isPending || isLoading) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isPending || isLoading ? "Loading..." : "Sign Up"}
             </Button>
           </form>
 
@@ -253,7 +187,8 @@ export default function RegisterPage() {
           <div className="grid grid-cols-1 gap-4">
             <button
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
+              disabled={isPending || isLoading}
+              className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors disabled:opacity-50"
             >
               <svg
                 className="w-5 h-5"
@@ -279,20 +214,6 @@ export default function RegisterPage() {
               </svg>
               Sign Up with Google
             </button>
-            {/* <button
-              onClick={handleAppleLogin}
-              className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M15.228.002a4.234 4.234 0 00-1.423.273c-1.137.52-2.222 1.624-2.885 2.806-1.284 2.296-1.018 5.438.531 6.828-1.55 1.488-3.693 4.218-3.693 7.857a.38.38 0 00.38.384h.02a.38.38 0 00.378-.365c0-.02-.002-.073.004-.153.05-.595.274-1.163.593-1.685.5-.792 1.2-1.492 2.05-2.025.86-.54 1.81-.884 2.825-.947a.363.363 0 01.37.366c0 1.25-.333 2.44-.94 3.518-.62 1.1-.986 2.373-1.02 3.655a.38.38 0 00.38.385h.02a.38.38 0 00.379-.365c.03-.83.33-1.616.824-2.285.52-.693 1.25-1.22 2.1-1.528.9-.32 1.9-.34 2.88-.06a.377.377 0 00.443-.335c.143-1.218-.184-2.618-.887-3.68-.7-.98-1.74-1.62-2.95-1.8-1.2-.18-2.4.15-3.32.84-.04.03-.09.06-.13.09.02-.03.04-.06.06-.09.84-.96 1.1-2.47.6-3.72-1.25-3.1-4.06-3.46-4.66-3.53a.36.36 0 01-.35-.27zm1.18 1.99a2.38 2.38 0 012.333 1.43c.4 1.02.16 2.25-.56 3.06-.76.83-1.95 1.09-3.03.62a2.44 2.44 0 01-1.5-2.4c.15-1.3.98-2.3 2.1-2.43.23-.02.46-.02.66 0z"></path>
-              </svg>
-              Sign in with Apple
-            </button> */}
           </div>
 
           <p className="text-center text-sm text-gray-500 mt-8">

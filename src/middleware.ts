@@ -1,48 +1,94 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+// src/middleware.ts
+import { withAuth } from "next-auth/middleware"
+import { NextResponse } from "next/server"
 
 export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
-    const { pathname } = req.nextUrl;
+    const pathname = req.nextUrl.pathname;
 
-    // Permitir archivos estáticos y públicos
-    if (
-      pathname.startsWith("/_next") ||         // Next.js internals
-      pathname.startsWith("/favicon.ico") ||   // favicon
-      pathname.startsWith("/assets") ||        // tu carpeta /public/assets/*
-      pathname.endsWith(".svg") ||             // SVGs en public root
-      pathname.endsWith(".png") ||             // PNGs directos en public
-      pathname.endsWith(".jpg") ||             // JPGs si usas alguno
-      pathname.endsWith(".jpeg") ||            // JPEGs
-      pathname.endsWith(".webp")               // WebP
-    ) {
-      return NextResponse.next();
-    }
+    // console.log('[MIDDLEWARE] Request:', {
+    //   pathname,
+    //   hasToken: !!token,
+    //   registrationComplete: token?.registrationComplete
+    // });
 
-    // Si está logueado e intenta entrar al login → redirigir al dashboard
-    if (token && pathname === "/auth/login") {
-      return NextResponse.redirect(new URL("/home", req.url));
-    }
+    // //   Si no hay token, NextAuth manejará login
+    // if (!token) {
+    //   return NextResponse.next();
+    // }
 
-    // Si entra a raíz (/) → decidir según sesión
-    if (pathname === "/") {
-      return NextResponse.redirect(
-        new URL(token ? "/home" : "/auth/login", req.url)
-      );
-    }
+    // const registrationComplete = token.registrationComplete;
+    // console.log('[MIDDLEWARE] Registration Complete:', registrationComplete);
+    // const workspaceSlug = token.slug;
+
+    // //   REGLA: Si registrationComplete !== true, SOLO onboarding
+    // if (registrationComplete !== true) {
+    //   if (pathname.startsWith('/register-onboarding') ||
+    //       pathname.startsWith('/auth/') ||
+    //       pathname.startsWith('/api/')) {
+    //     console.log('[MIDDLEWARE] -> Allowing access to:', pathname);
+    //     return NextResponse.next();
+    //   }
+
+    //   //   Redirección simple sin parámetros
+    //   console.log(`[MIDDLEWARE] -> Forcing onboarding from ${pathname}`);
+    //   return NextResponse.redirect(new URL('/register-onboarding', req.url));
+    // }
+
+    // //   registrationComplete === true
+    // console.log('[MIDDLEWARE] -> Registration complete, full access');
+
+    // //   Evitar onboarding si ya completó registro
+    // if (pathname.startsWith('/register-onboarding')) {
+    //   const redirectUrl = new URL('/home', req.url);
+    //   console.log('[MIDDLEWARE] -> Redirecting from onboarding to app');
+    //   return NextResponse.redirect(redirectUrl);
+    // }
+
+    // //   Redirección desde root
+    // if (pathname === '/') {
+    //   const redirectUrl = workspaceSlug 
+    //     ? new URL(`/${workspaceSlug}/home`, req.url)
+    //     : new URL('/home', req.url);
+    //   console.log('[MIDDLEWARE] -> Root redirect');
+    //   return NextResponse.redirect(redirectUrl);
+    // }
 
     return NextResponse.next();
   },
   {
-    pages: {
-      signIn: "/auth/login",
-    },
+    // callbacks: {
+    //   authorized: ({ token, req }) => {
+    //     const { pathname } = req.nextUrl;
+        
+    //     //   ✅ Rutas públicas (incluyendo imágenes y assets)
+    //     const publicRoutes = [
+    //       '/auth/',
+    //       '/api/auth/',
+    //       '/_next/',
+    //       '/favicon.ico',
+    //       '/assets/',
+    //       '/images/', 
+    //       '/static/', 
+    //       '/public/', 
+    //     ];
+        
+    //     // ✅ Permitir archivos de imagen por extensión
+    //     const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico'];
+    //     const isImageFile = imageExtensions.some(ext => pathname.toLowerCase().endsWith(ext));
+        
+    //     if (publicRoutes.some(route => pathname.startsWith(route)) || isImageFile) {
+    //       return true;
+    //     }
+
+    //     //   Requerir token para rutas protegidas
+    //     return !!token;
+    //   },
+    // },
   }
 );
 
 export const config = {
-  matcher: [
-    "/((?!auth/register|api|_next/static|_next/image|favicon.ico|assets|.*\\.svg$|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.webp$).*)",
-  ],
+  matcher: [],
 };
