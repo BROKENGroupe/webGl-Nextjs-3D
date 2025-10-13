@@ -38,6 +38,10 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
   // Verificar si tiene estudios
   const hasStudies = establishment.studies && establishment.studies.length > 0;
 
+  const handlerNavigateToEditor = (establishmentId: string) => {
+    router.push(`/editor/${establishmentId}`);
+  }
+
   // Datos para los popovers de cada barra de progreso
   const progressData = {
     iso: {
@@ -207,10 +211,7 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
             </button>
           ) : (
             <button 
-              onClick={() => {
-                // Aquí puedes agregar la lógica para iniciar un nuevo estudio
-                console.log('Iniciar estudio para:', establishment.name);
-              }}
+              onClick={() => handlerNavigateToEditor(establishment.id)}
               className="w-full px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
               <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
