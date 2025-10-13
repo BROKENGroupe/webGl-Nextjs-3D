@@ -11,205 +11,295 @@ import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/Acousti
 
 export class ISO12354_4Engine {
 
-  static calcRBySegment(wall: any, openings: any) {
+  static calcRBySegment(element: any, openings: any[]) {
+    // Type guard for vertical walls
 
     debugger;
-    const openingsInFace = openings.filter((op: any) => op.wallIndex === wall.wallIndex);
+    if (element.start && element.end && typeof element.height !== 'undefined') {
+        const wall = element;
+        const { start, end, height } = wall;
 
-    const { start, end, height } = wall;
+        const openingsInFace = openings.filter((op: any) => op.wallIndex === wall.wallIndex);
 
-    // Calcula dimensiones de la pared
-    const dx = end.x - start.x;
-    const dz = end.z - start.z;
-    const wallLength = Math.sqrt(dx * dx + dz * dz);
-    const totalWallArea = wallLength * height;
+        const dx = end.x - start.x;
+        const dz = end.z - start.z;
+        const wallLength = Math.sqrt(dx * dx + dz * dz);
 
-    // Define el tamaño mínimo de segmento según ISO 12354-4
-    // Típicamente se recomienda segmentos de aproximadamente 0.5m - 1m
-    const minSegmentSize = 0.5; // metros
+        const minSegmentSize = 0.5;
+        const numHorizontalSegments = Math.max(2, Math.ceil(wallLength / minSegmentSize));
+        const numVerticalSegments = Math.max(2, Math.ceil(height / minSegmentSize));
 
-    // Calcula número de segmentos basado en las dimensiones de la pared
-    const numHorizontalSegments = Math.max(2, Math.ceil(wallLength / minSegmentSize));
-    const numVerticalSegments = Math.max(2, Math.ceil(height / minSegmentSize));
-
-    // Calcula posiciones relativas y añade coordenadas 3D a los openings
-    const positionedOpenings = openingsInFace.map((op: any) => {
-
-      debugger;
-
-      const relPos = op.position ?? 0.5;
-      const x = start.x + dx * relPos;
-      const z = start.z + dz * relPos;
-      const y = (op.bottomOffset ?? 0) + (op.height ?? 0) / 2;
-
-      return {
-        ...op,
-        relativePosition: { x, y, z },
-        // Posiciones horizontales en la pared (0 a 1)
-        leftEdge: relPos - (op.width / 2) / wallLength,
-        rightEdge: relPos + (op.width / 2) / wallLength,
-        // Posiciones verticales (0 = suelo, 1 = techo)
-        bottomEdge: (op.bottomOffset ?? 0) / height,
-        topEdge: ((op.bottomOffset ?? 0) + op.height) / height
-      };
-    });
-    debugger;
-
-    // Recolecta todos los puntos de división horizontal
-    const horizontalDivisions = new Set<number>([0, 1]);
-
-    // Añade divisiones uniformes base
-    for (let i = 1; i < numHorizontalSegments; i++) {
-      debugger;
-
-      horizontalDivisions.add(i / numHorizontalSegments);
-    }
-
-    // Añade divisiones de los openings
-    positionedOpenings.forEach(op => {
-      debugger;
-
-      horizontalDivisions.add(Math.max(0, Math.min(1, op.leftEdge)));
-      horizontalDivisions.add(Math.max(0, Math.min(1, op.rightEdge)));
-    });
-    debugger;
-
-    const sortedHorizontalDivisions = Array.from(horizontalDivisions).sort((a, b) => a - b);
-
-    // Recolecta todos los puntos de división vertical
-    const verticalDivisions = new Set<number>([0, 1]);
-    debugger;
-
-    // Añade divisiones uniformes base
-    for (let i = 1; i < numVerticalSegments; i++) {
-      verticalDivisions.add(i / numVerticalSegments);
-    }
-
-    // Añade divisiones de los openings
-    positionedOpenings.forEach(op => {
-      verticalDivisions.add(Math.max(0, Math.min(1, op.bottomEdge)));
-      verticalDivisions.add(Math.max(0, Math.min(1, op.topEdge)));
-    });
-
-    const sortedVerticalDivisions = Array.from(verticalDivisions).sort((a, b) => a - b);
-
-    // Crea una matriz de segmentos (horizontal x vertical)
-    const segments: any[] = [];
-    let segmentIndex = 0;
-
-    for (let h = 0; h < sortedHorizontalDivisions.length - 1; h++) {
-      debugger;
-
-      const hStart = sortedHorizontalDivisions[h];
-      const hEnd = sortedHorizontalDivisions[h + 1];
-      const segmentLength = (hEnd - hStart) * wallLength;
-
-      for (let v = 0; v < sortedVerticalDivisions.length - 1; v++) {
-        debugger;
-
-        const vStart = sortedVerticalDivisions[v];
-        const vEnd = sortedVerticalDivisions[v + 1];
-        const segmentHeight = (vEnd - vStart) * height;
-        const segmentArea = segmentLength * segmentHeight;
-
-        // Encuentra qué opening(s) ocupan este segmento
-        const openingsInSegment = positionedOpenings.filter(op => {
-          const horizontalOverlap = op.leftEdge < hEnd && op.rightEdge > hStart;
-          const verticalOverlap = op.bottomEdge < vEnd && op.topEdge > vStart;
-          return horizontalOverlap && verticalOverlap;
+        const positionedOpenings = openingsInFace.map((op: any) => {
+            const relPos = op.position ?? 0.5;
+            return {
+                ...op,
+                leftEdge: relPos - (op.width / 2) / wallLength,
+                rightEdge: relPos + (op.width / 2) / wallLength,
+                bottomEdge: (op.bottomOffset ?? 0) / height,
+                topEdge: ((op.bottomOffset ?? 0) + op.height) / height
+            };
         });
 
-        const elements: any[] = [];
+        const horizontalDivisions = new Set<number>([0, 1]);
+        for (let i = 1; i < numHorizontalSegments; i++) {
+            horizontalDivisions.add(i / numHorizontalSegments);
+        }
+        positionedOpenings.forEach(op => {
+            horizontalDivisions.add(Math.max(0, Math.min(1, op.leftEdge)));
+            horizontalDivisions.add(Math.max(0, Math.min(1, op.rightEdge)));
+        });
+        const sortedHorizontalDivisions = Array.from(horizontalDivisions).sort((a, b) => a - b);
 
-        if (openingsInSegment.length > 0) {
-          // Hay opening(s) en este segmento
-          let totalOpeningArea = 0;
+        const verticalDivisions = new Set<number>([0, 1]);
+        for (let i = 1; i < numVerticalSegments; i++) {
+            verticalDivisions.add(i / numVerticalSegments);
+        }
+        positionedOpenings.forEach(op => {
+            verticalDivisions.add(Math.max(0, Math.min(1, op.bottomEdge)));
+            verticalDivisions.add(Math.max(0, Math.min(1, op.topEdge)));
+        });
+        const sortedVerticalDivisions = Array.from(verticalDivisions).sort((a, b) => a - b);
 
-          openingsInSegment.forEach(op => {
-            // Calcula el área de intersección
-            const overlapHStart = Math.max(hStart, op.leftEdge);
-            const overlapHEnd = Math.min(hEnd, op.rightEdge);
-            const overlapVStart = Math.max(vStart, op.bottomEdge);
-            const overlapVEnd = Math.min(vEnd, op.topEdge);
+        const segments: any[] = [];
+        let segmentIndex = 0;
 
-            const overlapLength = (overlapHEnd - overlapHStart) * wallLength;
-            const overlapHeight = (overlapVEnd - overlapVStart) * height;
-            const overlapArea = overlapLength * overlapHeight;
+        for (let h = 0; h < sortedHorizontalDivisions.length - 1; h++) {
+            const hStart = sortedHorizontalDivisions[h];
+            const hEnd = sortedHorizontalDivisions[h + 1];
+            const segmentLength = (hEnd - hStart) * wallLength;
 
-            totalOpeningArea += overlapArea;
+            for (let v = 0; v < sortedVerticalDivisions.length - 1; v++) {
+                const vStart = sortedVerticalDivisions[v];
+                const vEnd = sortedVerticalDivisions[v + 1];
+                const segmentHeight = (vEnd - vStart) * height;
+                const segmentArea = segmentLength * segmentHeight;
 
-            elements.push({
-              type: op.type,
-              id: op.id,
-              title: op.title,
-              area: overlapArea,
-              template: op.template,
-              currentCondition: op.currentCondition
-            });
-          });
+                const openingsInSegment = positionedOpenings.filter(op => {
+                    const horizontalOverlap = op.leftEdge < hEnd && op.rightEdge > hStart;
+                    const verticalOverlap = op.bottomEdge < vEnd && op.topEdge > vStart;
+                    return horizontalOverlap && verticalOverlap;
+                });
 
-          // El resto del segmento es pared
-          const wallAreaInSegment = segmentArea - totalOpeningArea;
-          if (wallAreaInSegment > 0.001) { // Tolerancia para errores numéricos
-            elements.push({
-              type: 'wall',
-              area: wallAreaInSegment,
-              material: wall.material || 'default'
-            });
-          }
-        } else {
-          // No hay openings, todo el segmento es pared
-          elements.push({
-            type: 'wall',
-            area: segmentArea,
-            material: wall.material || 'default'
-          });
+                const elements: any[] = [];
+                if (openingsInSegment.length > 0) {
+                    let totalOpeningArea = 0;
+                    openingsInSegment.forEach(op => {
+                        const overlapHStart = Math.max(hStart, op.leftEdge);
+                        const overlapHEnd = Math.min(hEnd, op.rightEdge);
+                        const overlapVStart = Math.max(vStart, op.bottomEdge);
+                        const overlapVEnd = Math.min(vEnd, op.topEdge);
+                        const overlapLength = (overlapHEnd - overlapHStart) * wallLength;
+                        const overlapHeight = (overlapVEnd - overlapVStart) * height;
+                        const overlapArea = overlapLength * overlapHeight;
+                        totalOpeningArea += overlapArea;
+                        elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template, currentCondition: op.currentCondition });
+                    });
+                    const wallAreaInSegment = segmentArea - totalOpeningArea;
+                    if (wallAreaInSegment > 0.001) {
+                        elements.push({ type: 'wall', area: wallAreaInSegment, material: wall.material || 'default' });
+                    }
+                } else {
+                    elements.push({ type: 'wall', area: segmentArea, material: wall.material || 'default' });
+                }
+
+                segments.push({
+                    wallIndex: wall.wallIndex,
+                    segmentIndex: segmentIndex++,
+                    startPosH: hStart,
+                    endPosH: hEnd,
+                    startPosV: vStart,
+                    endPosV: vEnd,
+                    length: segmentLength,
+                    height: segmentHeight,
+                    totalArea: segmentArea,
+                    elements: elements,
+                    center: { x: start.x + dx * ((hStart + hEnd) / 2), y: height * ((vStart + vEnd) / 2), z: start.z + dz * ((hStart + hEnd) / 2) },
+                    corners: {
+                        bottomLeft: { x: start.x + dx * hStart, y: height * vStart, z: start.z + dz * hStart },
+                        bottomRight: { x: start.x + dx * hEnd, y: height * vStart, z: start.z + dz * hEnd },
+                        topLeft: { x: start.x + dx * hStart, y: height * vEnd, z: start.z + dz * hStart },
+                        topRight: { x: start.x + dx * hEnd, y: height * vEnd, z: start.z + dz * hEnd }
+                    }
+                });
+            }
+        }
+        return segments;
+    }
+
+    // Type guard for horizontal surfaces
+    else if (element.coordinates && typeof element.baseHeight !== 'undefined') {
+
+      debugger;
+        const surface = element;
+        const { coordinates, baseHeight, type, material, id } = surface;
+
+        if (!coordinates || coordinates.length < 3) {
+            return [];
         }
 
-        segments.push({
-          wallIndex: wall.wallIndex,
-          segmentIndex: segmentIndex++,
-          // Posición horizontal (0 a 1)
-          startPosH: hStart,
-          endPosH: hEnd,
-          // Posición vertical (0 a 1)
-          startPosV: vStart,
-          endPosV: vEnd,
-          // Dimensiones físicas
-          length: segmentLength,
-          height: segmentHeight,
-          totalArea: segmentArea,
-          // Elementos que componen el segmento
-          elements: elements,
-          // Centro del segmento en coordenadas 3D
-          center: {
-            x: start.x + dx * ((hStart + hEnd) / 2),
-            y: height * ((vStart + vEnd) / 2),
-            z: start.z + dz * ((hStart + hEnd) / 2)
-          },
-          // Coordenadas 3D de las 4 esquinas del segmento
-          corners: {
-            bottomLeft: { x: start.x + dx * hStart, y: height * vStart, z: start.z + dz * hStart },
-            bottomRight: { x: start.x + dx * hEnd, y: height * vStart, z: start.z + dz * hEnd },
-            topLeft: { x: start.x + dx * hStart, y: height * vEnd, z: start.z + dz * hStart },
-            topRight: { x: start.x + dx * hEnd, y: height * vEnd, z: start.z + dz * hEnd }
-          }
+        let openingsInFace: any[] = [];
+        if (type === 'ceiling' && typeof surface.ceilingIndex !== 'undefined') {
+            openingsInFace = openings.filter(op => op.ceilingIndex === surface.ceilingIndex);
+        } else if (type === 'floor' && typeof surface.floorIndex !== 'undefined') {
+            openingsInFace = openings.filter(op => op.floorIndex === surface.floorIndex);
+        }
+
+        const xs = coordinates.map((c: any) => c.x);
+        const zs = coordinates.map((c: any) => c.z);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minZ = Math.min(...zs);
+        const maxZ = Math.max(...zs);
+
+        const surfaceWidth = maxX - minX;
+        const surfaceDepth = maxZ - minZ;
+        const minSegmentSize = 0.5;
+        const numHorizontalSegments = Math.max(2, Math.ceil(surfaceWidth / minSegmentSize));
+        const numVerticalSegments = Math.max(2, Math.ceil(surfaceDepth / minSegmentSize));
+
+        const positionedOpenings = openingsInFace.map((op: any) => {
+            const opCenterX = op.x ?? (minX + surfaceWidth / 2);
+            const opCenterZ = op.z ?? (minZ + surfaceDepth / 2);
+            const opWidth = op.width ?? 1;
+            const opDepth = op.depth ?? 1;
+
+            return {
+                ...op,
+                leftEdge: (opCenterX - opWidth / 2 - minX) / surfaceWidth,
+                rightEdge: (opCenterX + opWidth / 2 - minX) / surfaceWidth,
+                bottomEdge: (opCenterZ - opDepth / 2 - minZ) / surfaceDepth,
+                topEdge: (opCenterZ + opDepth / 2 - minZ) / surfaceDepth,
+            };
         });
-      }
+
+        const horizontalDivisions = new Set<number>([0, 1]);
+        for (let i = 1; i < numHorizontalSegments; i++) {
+            horizontalDivisions.add(i / numHorizontalSegments);
+        }
+        positionedOpenings.forEach(op => {
+            horizontalDivisions.add(Math.max(0, Math.min(1, op.leftEdge)));
+            horizontalDivisions.add(Math.max(0, Math.min(1, op.rightEdge)));
+        });
+        const sortedHorizontalDivisions = Array.from(horizontalDivisions).sort((a, b) => a - b);
+
+        const verticalDivisions = new Set<number>([0, 1]);
+        for (let i = 1; i < numVerticalSegments; i++) {
+            verticalDivisions.add(i / numVerticalSegments);
+        }
+        positionedOpenings.forEach(op => {
+            verticalDivisions.add(Math.max(0, Math.min(1, op.bottomEdge)));
+            verticalDivisions.add(Math.max(0, Math.min(1, op.topEdge)));
+        });
+        const sortedVerticalDivisions = Array.from(verticalDivisions).sort((a, b) => a - b);
+
+        const segments: any[] = [];
+        let segmentIndex = 0;
+
+        for (let h = 0; h < sortedHorizontalDivisions.length - 1; h++) {
+            const hStart = sortedHorizontalDivisions[h];
+            const hEnd = sortedHorizontalDivisions[h + 1];
+            const segmentWidth = (hEnd - hStart) * surfaceWidth;
+
+            for (let v = 0; v < sortedVerticalDivisions.length - 1; v++) {
+                const vStart = sortedVerticalDivisions[v];
+                const vEnd = sortedVerticalDivisions[v + 1];
+                const segmentDepth = (vEnd - vStart) * surfaceDepth;
+                const segmentArea = segmentWidth * segmentDepth;
+                const centerX = minX + ((hStart + hEnd) / 2) * surfaceWidth;
+                const centerZ = minZ + ((vStart + vEnd) / 2) * surfaceDepth;
+
+                if (!ISO12354_4Engine.pointInPolygon({ x: centerX, z: centerZ }, coordinates)) {
+                    continue;
+                }
+
+                const openingsInSegment = positionedOpenings.filter(op => {
+                    const horizontalOverlap = op.leftEdge < hEnd && op.rightEdge > hStart;
+                    const verticalOverlap = op.bottomEdge < vEnd && op.topEdge > vStart;
+                    return horizontalOverlap && verticalOverlap;
+                });
+
+                const elements: any[] = [];
+                if (openingsInSegment.length > 0) {
+                    let totalOpeningArea = 0;
+                    openingsInSegment.forEach(op => {
+                        const overlapHStart = Math.max(hStart, op.leftEdge);
+                        const overlapHEnd = Math.min(hEnd, op.rightEdge);
+                        const overlapVStart = Math.max(vStart, op.bottomEdge);
+                        const overlapVEnd = Math.min(vEnd, op.topEdge);
+                        const overlapWidth = (overlapHEnd - overlapHStart) * surfaceWidth;
+                        const overlapDepth = (overlapVEnd - overlapVStart) * surfaceDepth;
+                        const overlapArea = overlapWidth * overlapDepth;
+                        totalOpeningArea += overlapArea;
+                        elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template, currentCondition: op.currentCondition });
+                    });
+                    const surfaceAreaInSegment = segmentArea - totalOpeningArea;
+                    if (surfaceAreaInSegment > 0.001) {
+                        elements.push({ type: surface.type, area: surfaceAreaInSegment, material: surface.material || 'default' });
+                    }
+                } else {
+                    elements.push({ type: surface.type, area: segmentArea, material: surface.material || 'default' });
+                }
+
+                const x1 = minX + hStart * surfaceWidth;
+                const x2 = minX + hEnd * surfaceWidth;
+                const z1 = minZ + vStart * surfaceDepth;
+                const z2 = minZ + vEnd * surfaceDepth;
+
+                const newSegment: any = {
+                    segmentIndex: segmentIndex++,
+                    startPosH: hStart,
+                    endPosH: hEnd,
+                    startPosV: vStart,
+                    endPosV: vEnd,
+                    length: segmentWidth,
+                    height: segmentDepth,
+                    totalArea: segmentArea,
+                    elements: elements,
+                    center: { x: centerX, y: baseHeight, z: centerZ },
+                    corners: {
+                        bottomLeft: { x: x1, y: baseHeight, z: z1 },
+                        bottomRight: { x: x2, y: baseHeight, z: z1 },
+                        topLeft: { x: x1, y: baseHeight, z: z2 },
+                        topRight: { x: x2, y: baseHeight, z: z2 }
+                    }
+                };
+
+
+                if (type === 'ceiling') {
+                    newSegment.ceilingIndex = surface.ceilingIndex;
+                } else if (type === 'floor') {
+                    newSegment.floorIndex = surface.floorIndex;
+                }
+
+                segments.push(newSegment);
+            }
+        }
+        return segments;
     }
+    else {
+        console.warn("calcRBySegment: Could not determine element type.", element);
+        return [];
+    }
+  }
 
-    console.log('Wall dimensions:', { length: wallLength.toFixed(2), height: height.toFixed(2) });
-    console.log('Segmentation grid:', { horizontal: sortedHorizontalDivisions.length - 1, vertical: sortedVerticalDivisions.length - 1 });
-    console.log('Total segments created:', segments.length);
-    console.log('Segments:', segments);
+  /**
+   * Checks if a point is inside a polygon using the ray-casting algorithm.
+   * @param point The point to check {x, z}.
+   * @param polygon An array of vertices [{x, z}, ...].
+   * @returns True if the point is inside the polygon.
+   */
+  static pointInPolygon(point: { x: number; z: number }, polygon: Array<{ x: number; z: number }>): boolean {
+    let isInside = false;
+    // The polygon needs to be closed, so we assume the last point connects to the first.
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x, zi = polygon[i].z;
+        const xj = polygon[j].x, zj = polygon[j].z;
 
-    // Verificación: la suma de áreas debe ser igual al área total
-    const totalCalculatedArea = segments.reduce((sum, seg) => sum + seg.totalArea, 0);
-    console.log('Total wall area:', totalWallArea.toFixed(4));
-    console.log('Sum of segment areas:', totalCalculatedArea.toFixed(4));
-    console.log('Difference:', Math.abs(totalWallArea - totalCalculatedArea).toFixed(6));
-
-    return segments;
+        const intersect = ((zi > point.z) !== (zj > point.z))
+            && (point.x < (xj - xi) * (point.z - zi) / (zj - zi) + xi);
+        if (intersect) isInside = !isInside;
+    }
+    return isInside;
   }
 
 

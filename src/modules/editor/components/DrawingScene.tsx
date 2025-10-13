@@ -622,26 +622,43 @@ export default function DrawingScene() {
 
   const handleToggleSegments = () => {
     if (showSegments) {
-        setShowSegments(false);
-        setSegments([]);
-        return;
+      setShowSegments(false);
+      setSegments([]);
+      return;
     }
 
-    if (!isExtruded || walls.length === 0) {
-        console.log("Cannot calculate segments: Not in 3D mode or no walls.");
-        return;
+    if (!isExtruded) {
+      console.log("Cannot calculate segments: Not in 3D mode.");
+      return;
     }
 
-    console.log("Calculating segments for all walls...");
-    const allSegments = walls.flatMap(wall => {
-        if (!wall.start || !wall.end) return [];
-        return ISO12354_4Engine.calcRBySegment(wall, openings);
-    });
+    console.log("Calculating segments for all surfaces...");
+
+    const wallSegments = walls.flatMap((wall) =>
+      ISO12354_4Engine.calcRBySegment(wall, openings)
+    );
+    console.log(`Wall segments calculated: ${wallSegments.length}`);
+
+    const ceilingSegments = ceilings.flatMap((ceiling) =>
+      ISO12354_4Engine.calcRBySegment(ceiling, openings)
+    );
+    console.log(`Ceiling segments calculated: ${ceilingSegments.length}`);
+
+    const floorSegments = floors.flatMap((floor) =>
+      ISO12354_4Engine.calcRBySegment(floor, openings)
+    );
+    console.log(`Floor segments calculated: ${floorSegments.length}`);
+
+    const allSegments = [
+      // ...wallSegments,
+      ...ceilingSegments,
+      ...floorSegments,
+    ];
 
     console.log(`Total segments calculated: ${allSegments.length}`);
     setSegments(allSegments);
     setShowSegments(true);
-};
+  };
 
   // Define the handler for ISO config confirmation
   const handleIsoConfigConfirm = (config: {
