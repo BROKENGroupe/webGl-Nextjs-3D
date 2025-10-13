@@ -33,7 +33,8 @@ export default function DashboardContent() {
     try {
       await createEstablishment({
         name: `Establecimiento ${establishments.length + 1}`,
-        type: 'office'
+        type: 'office',
+        estudies: []
       });
       toast.success('Establecimiento creado exitosamente');
     } catch (error) {
