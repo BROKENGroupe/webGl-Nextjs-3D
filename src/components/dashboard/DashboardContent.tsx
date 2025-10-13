@@ -58,7 +58,6 @@ export default function DashboardContent() {
       <EstablishmentsSection 
         establishments={establishments}
         onCreateEstablishment={handleCreateEstablishment}
-        loading={loading}
       />
     </main>
   );

@@ -45,14 +45,11 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
             <h1 className="text-lg font-semibold text-gray-900">
               Control Acústico & Estudios ISO
             </h1>
-            <p className="text-sm text-gray-500">
-              Análisis de aislamiento sonoro según norma ISO 12354-4
-            </p>
           </div>
 
           <button
             onClick={() => setShowOnboardingModal(true)}
-            className="inline-flex items-center px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+            className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-900 to-[#0FA0CE] hover:from-gray-800 hover:to-[#0c8bb0] text-white text-sm font-medium rounded-lg transition-all duration-200"
           >
             <svg
               className="w-4 h-4 mr-2"

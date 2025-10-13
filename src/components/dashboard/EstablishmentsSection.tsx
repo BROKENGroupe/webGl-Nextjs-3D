@@ -1,29 +1,21 @@
 import React, { memo } from 'react';
+import { Plus } from 'lucide-react';
 import { Establishment } from '@/types/dashboard';
 
 interface EstablishmentsSectionProps {
   establishments: Establishment[];
   onCreateEstablishment: () => void;
-  loading?: boolean;
 }
 
 export const EstablishmentsSection = memo(function EstablishmentsSection({ 
   establishments, 
   onCreateEstablishment,
-  loading = false 
 }: EstablishmentsSectionProps) {
   return (
     <section>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-semibold text-neutral-900">Mis Establecimientos</h2>
-        <button 
-          onClick={onCreateEstablishment}
-          disabled={loading}
-          className="flex items-center gap-2 px-5 py-2 bg-black text-white rounded-lg shadow-sm hover:bg-neutral-800 transition font-medium text-base disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span className="text-xl font-bold">+</span> 
-          {loading ? 'Creando...' : 'Nuevo establecimiento'}
-        </button>
+        
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -31,21 +23,34 @@ export const EstablishmentsSection = memo(function EstablishmentsSection({
           <EstablishmentCard key={establishment.id} establishment={establishment} />
         ))}
         
-        {/* Card para crear nuevo */}
+        {/* Card para crear nuevo - estilo botón de login */}
         <button 
           onClick={onCreateEstablishment}
-          disabled={loading}
-          className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-400 rounded-2xl p-6 hover:bg-neutral-100 transition min-h-[110px] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group relative flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white rounded-2xl p-6 min-h-[110px] transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-2xl hover:shadow-slate-900/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
         >
-          <span className="text-3xl text-neutral-800 font-bold">+</span>
-          <span className="text-sm text-neutral-700 mt-1">Nuevo establecimiento</span>
+          {/* Gradiente de hover */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" />
+          
+          {/* Brillo sutil */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" />
+          
+          {/* Contenido */}
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm mb-3 group-hover:bg-white/20 transition-colors duration-300">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-sm font-medium text-gray-100 group-hover:text-white transition-colors duration-300">
+              
+            </span>
+          </div>
+          
         </button>
       </div>
     </section>
   );
 });
 
-//   Componente individual de establecimiento
+// Componente individual de establecimiento
 const EstablishmentCard = memo(function EstablishmentCard({ 
   establishment 
 }: { 

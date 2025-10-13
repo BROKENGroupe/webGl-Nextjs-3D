@@ -45,7 +45,7 @@ export default function DashboardLayout({
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <button
+          {/* <button
             className="flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-lg shadow-sm hover:bg-neutral-800 transition font-medium text-sm mr-4"
             onClick={() => {
               if (isEditor) {
@@ -57,7 +57,7 @@ export default function DashboardLayout({
           >
             <span className="text-lg font-bold">{isEditor ? "⎋" : "+"}</span>
             {isEditor ? "Salir" : "Iniciar estudio"}
-          </button>
+          </button> */}
         </header>
         <div className="flex flex-1 flex-col gap-4 pt-0">
           {children}
