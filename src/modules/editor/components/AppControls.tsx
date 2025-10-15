@@ -1,6 +1,22 @@
-
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame } from "lucide-react";
+import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame, Copy } from "lucide-react";
+
+interface AppControlsProps {
+  isClosed: boolean;
+  isExtruded: boolean;
+  walls: any[];
+  handleExtrude: () => void;
+  handleBackTo2D: () => void;
+  handleFixExtrusion: () => void;
+  handleNewDrawing: () => void;
+  handleClearStorage: () => void;
+  handleCleanAndReset: () => void;
+  handleAddFloor: () => void;
+  handleToggleHeatmap: () => void;
+  setShowAcousticModal: (v: boolean) => void;
+  setShowIsoConfigModal: (v: boolean) => void;
+  setShowFloorReplicationModal: (show: boolean) => void; // NUEVO
+}
 
 export function AppControls({
   isClosed,
@@ -15,22 +31,9 @@ export function AppControls({
   handleAddFloor,
   handleToggleHeatmap,
   setShowAcousticModal,
-  setShowIsoConfigModal
-}: {
-  isClosed: boolean;
-  isExtruded: boolean;
-  walls: any[];
-  handleExtrude: () => void;
-  handleBackTo2D: () => void;
-  handleFixExtrusion: () => void;
-  handleNewDrawing: () => void;
-  handleClearStorage: () => void;
-  handleCleanAndReset: () => void;
-  handleAddFloor: () => void;
-  handleToggleHeatmap: () => void;
-  setShowAcousticModal: (v: boolean) => void;
-  setShowIsoConfigModal: (v: boolean) => void;
-}) { 
+  setShowIsoConfigModal,
+  setShowFloorReplicationModal, // NUEVO
+}: AppControlsProps) { 
 
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
@@ -162,6 +165,16 @@ export function AppControls({
         <TooltipContent>Mapa de Calor</TooltipContent>
       </Tooltip>
       
+      {/* NUEVO: Botón de replicación de plantas */}
+      {isExtruded && (
+        <button
+          onClick={() => setShowFloorReplicationModal(true)}
+          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg shadow-lg transition-all duration-200"
+        >
+          <Copy className="w-4 h-4" />
+          <span>Replicar Planta</span>
+        </button>
+      )}
     </div>
   );
 }
