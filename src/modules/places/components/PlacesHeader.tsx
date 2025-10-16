@@ -42,7 +42,7 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
       <div className="bg-white border-b border-gray-200 px-8 py-6">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold text-gray-900">
-            Control Acústico & Estudios ISO
+            Establecimentos y mediciones
           </h1>
           <button
             onClick={() => setShowOnboardingModal(true)}
