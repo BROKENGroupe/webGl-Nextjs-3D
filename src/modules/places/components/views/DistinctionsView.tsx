@@ -27,19 +27,19 @@ export const DistinctionsView: React.FC = () => {
             {earnedBadges.map((badge) => (
               <motion.div
                 key={badge.id}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className={`relative ${badge.bgColor} ${badge.borderColor} border-2 rounded-xl p-6 text-center hover:shadow-lg transition-all duration-200`}
+                className="relative bg-white border-2 border-gray-900 rounded-xl p-6 text-center hover:shadow-lg transition-all duration-200"
               >
-                {/* Badge Icon */}
-                <div className="text-4xl mb-3">{badge.icon}</div>
+                {/* Badge Icon (sin emoji, solo icono SVG si tienes) */}
+                <div className="text-4xl mb-3 text-gray-900">{badge.icon}</div>
                 
                 {/* Badge Info */}
-                <h4 className={`font-bold text-lg ${badge.color} mb-2`}>{badge.name}</h4>
+                <h4 className="font-bold text-lg text-gray-900 mb-2">{badge.name}</h4>
                 <p className="text-sm text-gray-600 mb-3">{badge.description}</p>
                 
                 {/* Achievement Details */}
-                <div className="bg-white bg-opacity-60 rounded-lg p-3 mb-3">
+                <div className="bg-gray-50 rounded-lg p-3 mb-3">
                   <div className="text-xs text-gray-500 mb-1">Requisito:</div>
                   <div className="text-sm font-medium text-gray-700">{badge.requirement}</div>
                 </div>
@@ -55,16 +55,21 @@ export const DistinctionsView: React.FC = () => {
                 )}
 
                 {/* Ribbon */}
-                <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-                  ✓
+                <div className="absolute -top-2 -right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                  Completada
                 </div>
               </motion.div>
             ))}
           </div>
         ) : (
           <div className="text-center py-8">
-            <div className="text-6xl mb-4">🏅</div>
-            <h4 className="font-semibold text-gray-900 mb-2">¡Comienza tu colección!</h4>
+            <div className="mb-4">
+              <svg className="mx-auto w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01" />
+              </svg>
+            </div>
+            <h4 className="font-semibold text-gray-900 mb-2">Comienza tu colección</h4>
             <p className="text-gray-600">Cumple los requisitos para obtener tu primera distinción.</p>
           </div>
         )}
@@ -82,15 +87,15 @@ export const DistinctionsView: React.FC = () => {
             {availableToEarn.map((badge) => (
               <motion.div
                 key={badge.id}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative bg-gray-50 border-2 border-gray-200 rounded-xl p-6 text-center opacity-75 hover:opacity-90 transition-all duration-200"
+                className="relative bg-gray-50 border-2 border-gray-200 rounded-xl p-6 text-center opacity-80 hover:opacity-100 transition-all duration-200"
               >
                 {/* Badge Icon - Grayscale */}
-                <div className="text-4xl mb-3 grayscale">{badge.icon}</div>
+                <div className="text-4xl mb-3 text-gray-400 grayscale">{badge.icon}</div>
                 
                 {/* Badge Info */}
-                <h4 className="font-bold text-lg text-gray-600 mb-2">{badge.name}</h4>
+                <h4 className="font-bold text-lg text-gray-700 mb-2">{badge.name}</h4>
                 <p className="text-sm text-gray-500 mb-3">{badge.description}</p>
                 
                 {/* Achievement Requirements */}
@@ -100,7 +105,7 @@ export const DistinctionsView: React.FC = () => {
                 </div>
 
                 <div className="text-xs text-gray-400">
-                  🔒 Requisito no cumplido
+                  Requisito no cumplido
                 </div>
 
                 {/* Lock overlay */}
@@ -114,8 +119,13 @@ export const DistinctionsView: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <div className="text-6xl mb-4">🎉</div>
-            <h4 className="font-semibold text-gray-900 mb-2">¡Colección Completa!</h4>
+            <div className="mb-4">
+              <svg className="mx-auto w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01" />
+              </svg>
+            </div>
+            <h4 className="font-semibold text-gray-900 mb-2">Colección Completa</h4>
             <p className="text-gray-600">Has obtenido todas las distinciones disponibles.</p>
           </div>
         )}
@@ -132,23 +142,23 @@ export const DistinctionsView: React.FC = () => {
           </div>
           <LinearProgress 
             percentage={(earnedBadges.length / availableBadges.length) * 100} 
-            color="green"
+            color="black"
             height="h-3"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-          <div className="p-4 bg-yellow-50 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">{earnedBadges.length}</div>
-            <div className="text-sm text-yellow-700">Obtenidas</div>
+          <div className="p-4 border rounded-lg bg-white">
+            <div className="text-2xl font-bold text-gray-900">{earnedBadges.length}</div>
+            <div className="text-sm text-gray-700">Obtenidas</div>
           </div>
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{availableToEarn.length}</div>
-            <div className="text-sm text-blue-700">Por Obtener</div>
+          <div className="p-4 border rounded-lg bg-white">
+            <div className="text-2xl font-bold text-gray-700">{availableToEarn.length}</div>
+            <div className="text-sm text-gray-500">Por Obtener</div>
           </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{Math.round((earnedBadges.length / availableBadges.length) * 100)}%</div>
-            <div className="text-sm text-green-700">Completado</div>
+          <div className="p-4 border rounded-lg bg-white">
+            <div className="text-2xl font-bold text-gray-900">{Math.round((earnedBadges.length / availableBadges.length) * 100)}%</div>
+            <div className="text-sm text-gray-700">Completado</div>
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { ProgressHoverData } from "../../types";
 
 interface LinearProgressWithHoverProps {
   percentage: number;
-  color?: 'blue' | 'green' | 'orange' | 'red' | 'purple';
+  color?: 'blue' | 'green' | 'orange' | 'red' | 'purple' | 'black';
   label?: string;
   height?: string;
   hoverData?: ProgressHoverData;
@@ -27,7 +27,8 @@ export const LinearProgressWithHover: React.FC<LinearProgressWithHoverProps> = (
     green: 'bg-green-500',
     orange: 'bg-orange-500', 
     red: 'bg-red-500',
-    purple: 'bg-purple-500'
+    purple: 'bg-purple-500',
+    black: 'bg-gray-900'
   };
 
   const hoverColorClasses = {
@@ -35,7 +36,8 @@ export const LinearProgressWithHover: React.FC<LinearProgressWithHoverProps> = (
     green: 'border-green-200 bg-green-50',
     orange: 'border-orange-200 bg-orange-50',
     red: 'border-red-200 bg-red-50', 
-    purple: 'border-purple-200 bg-purple-50'
+    purple: 'border-purple-200 bg-purple-50',
+    black: 'border-gray-300 bg-gray-100'
   };
 
   return (
