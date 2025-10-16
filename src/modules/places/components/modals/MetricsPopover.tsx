@@ -52,8 +52,13 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
               <div>
                 <LinearProgress 
                   percentage={establishment.compliance_score} 
-                  color={establishment.compliance_score >= 85 ? 'green' : establishment.compliance_score >= 70 ? 'orange' : 'red'}
-                  label={`ISO 12354-4: ${establishment.compliance_score}%`}
+                  color={
+                    establishment.compliance_score >= 85
+                      ? 'blue'
+                      : establishment.compliance_score >= 70
+                        ? 'gray'
+                        : 'black'
+                  }                  
                   height="h-2"
                 />
               </div>
@@ -61,8 +66,7 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
               <div>
                 <LinearProgress 
                   percentage={Math.min((establishment.acousticProfile.sound_transmission_loss / 60) * 100, 100)} 
-                  color="blue"
-                  label={`STC Rating: ${establishment.acousticProfile.sound_transmission_loss} dB`}
+                  color="blue"                  
                   height="h-2"
                 />
               </div>
@@ -70,8 +74,7 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
               <div>
                 <LinearProgress 
                   percentage={Math.min((establishment.acousticProfile.impact_sound_insulation / 70) * 100, 100)} 
-                  color="green"
-                  label={`IIC Rating: ${establishment.acousticProfile.impact_sound_insulation} dB`}
+                  color="gray"                 
                   height="h-2"
                 />
               </div>
@@ -79,8 +82,7 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
               <div>
                 <LinearProgress 
                   percentage={establishment.noise_impact_external > 30 ? 90 : (establishment.noise_impact_external / 30) * 100} 
-                  color="purple"
-                  label={`Control Externo: ${establishment.noise_impact_external} dB`}
+                  color="blue"                  
                   height="h-2"
                 />
               </div>
