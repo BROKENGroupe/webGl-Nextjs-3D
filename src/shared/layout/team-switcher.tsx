@@ -4,6 +4,7 @@ import * as React from "react"
 import { ChevronsUpDown, Plus } from "lucide-react"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/shared/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu"
+import { useRouter } from "next/navigation"
 
 export function TeamSwitcher({
   teams,
@@ -16,6 +17,7 @@ export function TeamSwitcher({
 }) {
   const { isMobile } = useSidebar()
   const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const router = useRouter()
 
   return (
     <SidebarMenu>
@@ -53,7 +55,7 @@ export function TeamSwitcher({
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={team.name}
-                onClick={() => setActiveTeam(team)}
+                onClick={() => router.push("/workspace")}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
@@ -63,17 +65,20 @@ export function TeamSwitcher({
                   })()}
                 </div>
                 {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                <DropdownMenuShortcut>{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+            <DropdownMenuItem
+              className="gap-2 p-2"
+              onClick={() => router.push("/workspace")}
+            >
+              {/* <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
               <div className="font-medium text-muted-foreground">
                 Agregar workspace
-              </div>
+              </div> */}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
