@@ -92,7 +92,7 @@ export const DetailsModal: React.FC<DetailsModalProps> = ({
                     <div className="text-sm text-blue-700 mb-4">Cumplimiento ISO 12354-4</div>
                     <LinearProgress 
                       percentage={establishment.compliance_score} 
-                      color={establishment.compliance_score >= 85 ? 'green' : establishment.compliance_score >= 70 ? 'blue' : 'red'}
+                      color={establishment.compliance_score >= 85 ? 'black' : establishment.compliance_score >= 70 ? 'blue' : 'gray'}
                       height="h-2"
                     />
                   </div>
@@ -104,7 +104,7 @@ export const DetailsModal: React.FC<DetailsModalProps> = ({
                     <div className="text-sm text-green-700 mb-4">Aislamiento STC</div>
                     <LinearProgress 
                       percentage={Math.min((establishment.acousticProfile.sound_transmission_loss / 60) * 100, 100)} 
-                      color="green"
+                      color="blue"
                       height="h-2"
                     />
                   </div>
@@ -116,7 +116,7 @@ export const DetailsModal: React.FC<DetailsModalProps> = ({
                     <div className="text-sm text-purple-700 mb-4">Reducción Externa</div>
                     <LinearProgress 
                       percentage={establishment.noise_impact_external > 30 ? 90 : (establishment.noise_impact_external / 30) * 100} 
-                      color="purple"
+                      color="blue"
                       height="h-2"
                     />
                   </div>
@@ -134,7 +134,7 @@ export const DetailsModal: React.FC<DetailsModalProps> = ({
                         </div>
                         <LinearProgress 
                           percentage={Math.min((establishment.acousticProfile.airborne_sound_insulation / 60) * 100, 100)} 
-                          color="orange"
+                          color="blue"
                           height="h-2"
                         />
                       </div>
@@ -145,7 +145,7 @@ export const DetailsModal: React.FC<DetailsModalProps> = ({
                         </div>
                         <LinearProgress 
                           percentage={Math.min((establishment.acousticProfile.impact_sound_insulation / 70) * 100, 100)} 
-                          color="orange"
+                          color="blue"
                           height="h-2"
                         />
                       </div>
