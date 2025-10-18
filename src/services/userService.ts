@@ -23,7 +23,6 @@ export const registerAccount = async (account: any) => {
       action: 'create-account',
       payload: account,
     }),
-    headers: AuthHeaders(account),
     cache: 'no-store',
   });
 
