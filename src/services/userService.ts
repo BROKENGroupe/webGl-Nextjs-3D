@@ -1,4 +1,3 @@
-import { AuthHeaders } from "@/_lib/authHeaders";
 
 export const registerUser = async (user: any) => {
   const res = await fetch(`/api/accounts/register`, {
