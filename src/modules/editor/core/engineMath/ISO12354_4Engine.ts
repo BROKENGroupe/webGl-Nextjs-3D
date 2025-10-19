@@ -25,9 +25,9 @@ export class ISO12354_4Engine {
       const dz = end.z - start.z;
       const wallLength = Math.sqrt(dx * dx + dz * dz);
 
-      const minSegmentSize = 0.5;
+      const minSegmentSize = 3;
       const numHorizontalSegments = Math.max(2, Math.ceil(wallLength / minSegmentSize));
-      const numVerticalSegments = Math.max(2, Math.ceil(height / minSegmentSize));
+      const numVerticalSegments = Math.max(1, Math.ceil(height / minSegmentSize));
 
       const positionedOpenings = openingsInFace.map((op: any) => {
         const relPos = op.position ?? 0.5;

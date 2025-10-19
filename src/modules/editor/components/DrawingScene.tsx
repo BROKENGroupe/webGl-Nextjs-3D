@@ -83,6 +83,7 @@ export default function DrawingScene() {
   const [showIsoConfigModal, setShowIsoConfigModal] = useState(false);
   const [segments, setSegments] = useState<any[]>([]);
   const [showSegments, setShowSegments] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   //   NUEVO: Acceso al store de paredes
   const { walls } = useWallsStore();
@@ -512,7 +513,7 @@ export default function DrawingScene() {
     setIsDragActive(false);
     setDraggedTemplate(null);
     setDragging(false); //   También resetear isDragging del drawing store
-     
+
     setTimeout(() => {
       // Esto asegura que todos los event listeners se reactiven correctamente
       console.log("🔄 Estado de drag reseteado completamente");
@@ -585,12 +586,12 @@ export default function DrawingScene() {
       planeXZCoordinates.length >= 3
         ? planeXZCoordinates
         : [
-            { x: -6.5, z: -7 },
-            { x: 4, z: -4.5 },
-            { x: 2, z: 6 },
-            { x: -7.5, z: 4.5 },
-            { x: -6.5, z: -6.5 },
-          ];
+          { x: -6.5, z: -7 },
+          { x: 4, z: -4.5 },
+          { x: 2, z: 6 },
+          { x: -7.5, z: 4.5 },
+          { x: -6.5, z: -6.5 },
+        ];
 
     const rawWalls = GeometryEngine.generateWallsFromCoordinates(coords);
     const newWalls = rawWalls.map((wall, idx) => ({
@@ -620,7 +621,7 @@ export default function DrawingScene() {
   // Handler para alternar la vista del mapa de calor
   const handleToggleHeatmap = () => setShowHeatmap((prev) => !prev);
 
-  const handleToggleSegments = () => {
+  const handleCalculateInsulation = () => {
     if (showSegments) {
       setShowSegments(false);
       setSegments([]);
@@ -632,8 +633,9 @@ export default function DrawingScene() {
       return;
     }
 
+    setIsCalculating(true);
+    debugger;
     console.log("Calculating segments for all surfaces...");
-
     const wallSegments = walls.flatMap((wall) =>
       ISO12354_4Engine.calcRBySegment(wall, openings)
     );
@@ -650,14 +652,22 @@ export default function DrawingScene() {
     console.log(`Floor segments calculated: ${floorSegments.length}`);
 
     const allSegments = [
-      // ...wallSegments,
+      ...wallSegments,
       ...ceilingSegments,
       ...floorSegments,
     ];
 
-    console.log(`Total segments calculated: ${allSegments.length}`);
-    setSegments(allSegments);
-    setShowSegments(true);
+    setTimeout(() => {
+      console.log(`Total segments calculated: ${allSegments.length}`);
+      setTimeout(() => {
+        setSegments(allSegments);
+        setShowSegments(true);
+        setIsCalculating(false);
+      }, 500);
+    }, 500);
+
+
+
   };
 
   // Define the handler for ISO config confirmation
@@ -721,13 +731,12 @@ export default function DrawingScene() {
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [menuVisible]); 
+  }, [menuVisible]);
 
   return (
     <div
-      className={`w-full relative ${
-        isDragActive ? "cursor-grabbing" : "cursor-default"
-      }`}
+      className={`w-full relative ${isDragActive ? "cursor-grabbing" : "cursor-default"
+        }`}
       style={{ height: "93.5vh" }}
     >
       <Canvas
@@ -801,7 +810,7 @@ export default function DrawingScene() {
         handleToggleHeatmap={handleToggleHeatmap}
         setShowAcousticModal={setShowAcousticModal}
         setShowIsoConfigModal={setShowIsoConfigModal}
-        handleToggleSegments={handleToggleSegments}
+        handleCalculateInsulation={handleCalculateInsulation}
       />
 
       <FacadeContextMenu
@@ -917,10 +926,10 @@ export default function DrawingScene() {
 
       {/* Modal de contexto para la línea, fuera del grupo 3D */}
 
-      <LineContextMenu        
+      <LineContextMenu
         visible={lineMenuVisible}
         lineId={selectedLineId ?? ""}
-        onClose={() => setLineMenuVisible(false)}        
+        onClose={() => setLineMenuVisible(false)}
       />
     </div>
   );

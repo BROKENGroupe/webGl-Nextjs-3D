@@ -1,6 +1,6 @@
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame, LayoutGrid } from "lucide-react";
+import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame, Calculator } from "lucide-react";
 
 export function AppControls({
   isClosed,
@@ -16,7 +16,7 @@ export function AppControls({
   handleToggleHeatmap,
   setShowAcousticModal,
   setShowIsoConfigModal,
-  handleToggleSegments
+  handleCalculateInsulation
 }: {
   isClosed: boolean;
   isExtruded: boolean;
@@ -31,7 +31,7 @@ export function AppControls({
   handleToggleHeatmap: () => void;
   setShowAcousticModal: (v: boolean) => void;
   setShowIsoConfigModal: (v: boolean) => void;
-  handleToggleSegments: () => void;
+  handleCalculateInsulation: () => void;
 }) { 
 
   return (
@@ -104,14 +104,14 @@ export function AppControls({
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={handleToggleSegments}
+                onClick={handleCalculateInsulation}
                 className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
-                aria-label="Visualizar Segmentos"
+                aria-label="Calcular Aislamiento"
               >
-                <LayoutGrid size={22} />
+                <Calculator size={22} />
               </button>
             </TooltipTrigger>
-            <TooltipContent>Visualizar Segmentos</TooltipContent>
+            <TooltipContent>Calcular Aislamiento</TooltipContent>
           </Tooltip>
         </>
       )}
