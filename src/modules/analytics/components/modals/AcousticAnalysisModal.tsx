@@ -103,18 +103,6 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
       description: 'Propiedades y análisis acústico'
     },
     {
-      id: 'thermal',
-      label: 'Térmico',
-      icon: <Thermometer className="h-4 w-4" />,
-      description: 'Análisis térmico y aislamiento'
-    },
-    {
-      id: 'cost',
-      label: 'Costos',
-      icon: <Euro className="h-4 w-4" />,
-      description: 'Análisis económico y presupuesto'
-    },
-    {
       id: 'recommendations',
       label: 'Recomendaciones',
       icon: <Lightbulb className="h-4 w-4" />,
@@ -335,21 +323,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
                     Rango: {analysisData.summary.minRw.toFixed(1)} - {analysisData.summary.maxRw.toFixed(1)}dB
                   </p>
                 </CardContent>
-              </Card>
-
-              <Card className="border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Costo Total</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-emerald-600">
-                    €{analysisData.summary.totalCost.toFixed(0)}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    €{analysisData.summary.avgCostPerM2.toFixed(2)}/m² promedio
-                  </p>
-                </CardContent>
-              </Card>
+              </Card>              
 
               <Card className="border border-gray-200">
                 <CardHeader className="pb-3">
@@ -665,183 +639,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
           </div>
         );
 
-      case 'thermal':
-        return (
-          <div className="w-180 min-w-72">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Análisis Térmico</h2>
-              <p className="text-gray-600">
-                Propiedades térmicas y evaluación del aislamiento
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-gray-900">Conductividad Térmica</CardTitle>
-                  <CardDescription className="text-gray-600">W/m·K por pared</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analysisData.walls}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                      <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
-                      <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e5e7eb', 
-                          borderRadius: '8px',
-                          color: '#374151'
-                        }}
-                      />
-                      <Bar dataKey="thermalConductivity" fill="#ef4444" radius={[2, 2, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-gray-900">Resistencia Térmica</CardTitle>
-                  <CardDescription className="text-gray-600">m²·K/W por pared</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={analysisData.walls}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                      <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
-                      <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e5e7eb', 
-                          borderRadius: '8px',
-                          color: '#374151'
-                        }}
-                      />
-                      <Bar dataKey="thermalResistance" fill="#06b6d4" radius={[2, 2, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="border border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">Propiedades Térmicas Detalladas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left p-3 font-medium text-gray-700">Pared</th>
-                        <th className="text-left p-3 font-medium text-gray-700">Espesor (cm)</th>
-                        <th className="text-left p-3 font-medium text-gray-700">Conductividad (W/m·K)</th>
-                        <th className="text-left p-3 font-medium text-gray-700">Resistencia (m²·K/W)</th>
-                        <th className="text-left p-3 font-medium text-gray-700">Evaluación</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analysisData.walls.map((wall) => (
-                        <tr key={wall.id} className="border-b border-gray-100">
-                          <td className="p-3 font-medium text-gray-900">{wall.name}</td>
-                          <td className="p-3 text-gray-600">{(wall.thickness * 100).toFixed(1)}</td>
-                          <td className="p-3 text-gray-600">{wall.thermalConductivity}</td>
-                          <td className="p-3 text-gray-600">{wall.thermalResistance}</td>
-                          <td className="p-3">
-                            <Badge 
-                              variant={wall.thermalConductivity < 0.5 ? "default" : "secondary"}
-                              className={wall.thermalConductivity < 0.5 ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-gray-100 text-gray-800 border-gray-200"}
-                            >
-                              {wall.thermalConductivity < 0.5 ? "Buen aislante" : "Aislante regular"}
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'cost':
-        return (
-          <div className="w-180 min-w-72">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Análisis de Costos</h2>
-              <p className="text-gray-600">
-                Evaluación económica y análisis costo-beneficio
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Costo Total de Materiales</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
-                    €{analysisData.walls.reduce((sum, w) => sum + w.materialCost, 0).toFixed(0)}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Costo Total de Instalación</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-orange-600">
-                    €{analysisData.walls.reduce((sum, w) => sum + w.installationCost, 0).toFixed(0)}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Costo Promedio por m²</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-emerald-600">
-                    €{analysisData.summary.avgCostPerM2.toFixed(2)}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="border border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">Distribución de Costos</CardTitle>
-                <CardDescription className="text-gray-600">Costos por pared desglosados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={analysisData.walls}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                    <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
-                    <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #e5e7eb', 
-                        borderRadius: '8px',
-                        color: '#374151'
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="materialCost" stackId="cost" fill="#3b82f6" name="Material" />
-                    <Bar dataKey="installationCost" stackId="cost" fill="#f59e0b" name="Instalación" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
+      
       case 'recommendations':
         return (
           <div className="w-180 min-w-72">
