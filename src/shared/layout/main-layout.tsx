@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { AppSidebar } from "@/shared/layout/app-sidebar"
 
 import { Home, X } from "lucide-react"
 import { SidebarInset, SidebarTrigger } from "@/shared/ui/sidebar"
@@ -14,7 +13,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative min-h-screen">
-      <AppSidebar />
+      {/* <AppSidebar /> */}
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 bg-background border-b z-40 relative">
           <div className="flex items-center gap-2 px-4 flex-1">
@@ -60,8 +59,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             >
               🔧 Arreglar Forma
             </Button>
-
-           
 
             <Separator orientation="vertical" className="h-6" />
 
