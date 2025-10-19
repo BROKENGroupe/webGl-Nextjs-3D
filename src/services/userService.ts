@@ -1,4 +1,3 @@
-import { AuthHeaders } from "@/_lib/authHeaders";
 
 export const registerUser = async (user: any) => {
   const res = await fetch(`/api/accounts/register`, {
@@ -23,7 +22,6 @@ export const registerAccount = async (account: any) => {
       action: 'create-account',
       payload: account,
     }),
-    headers: AuthHeaders(account),
     cache: 'no-store',
   });
 

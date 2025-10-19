@@ -1,7 +1,8 @@
 // src/app/(dashboard)/profile/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 
 // Interface para los datos del usuario
@@ -136,9 +137,45 @@ const budgetLabels = {
 };
 
 export default function ProfilePage() {
+  const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState("personal");
   const [isEditing, setIsEditing] = useState(false);
-  const [userData, setUserData] = useState<UserData | null>(null);
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const userData = session?.user;
+  const workspaces = session?.workspace ? [session.workspace] : [];
+
+  // Utilidades
+  const getInitials = (name: string) => {
+    if (!name) return "";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return "";
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const tabs = [
     { id: "personal", label: "Personal" },
@@ -147,66 +184,6 @@ export default function ProfilePage() {
     { id: "permissions", label: "Roles & Permisos" },
     { id: "preferences", label: "Preferencias" },
   ];
-
-  // Datos reales del usuario de la imagen
-  useEffect(() => {
-    const sessionData: UserData = {
-      id: "ej3hbce0iI1uIrIlNIsIMSccIqtXWV39",
-      email: "creatiizengineersgmail.com", // Email real de la imagen
-      name: "Juan Carlos González López", // Nombre real de la imagen
-      avatar: {
-        height: 100,
-        width: 100,
-        src: "https://img.freepik.com/psd-gratis/ilustracion-3d-avatar-o-perfil-humano_23-2150671142.jpg",
-      },
-      permissions: {
-        "dashboard:create": true,
-        "dashboard:update": true,
-        "dashboard:delete": true,
-        "dashboard:view": true,
-        registrationComplete: false,
-      },
-      role: "admin",
-      workspaces: [
-        {
-          id: "68ebedf91ad7c2eef35e4d32",
-          accountType: "merchant", // Plan Comercial como se ve en la imagen
-          enabledModules: [
-            { id: "0", name: "render" },
-            { id: "1", name: "booking" },
-            { id: "2", name: "dashboard" },
-          ],
-          members: [{}],
-          metadata: {},
-          name: "fgfjgfs workspace",
-          settings: {},
-          slug: "fgfjgfs-workspace",
-        },
-      ],
-    };
-
-    setUserData(sessionData);
-  }, []);
-
-  // Generar iniciales para el avatar
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  };
-
-  // Calcular edad - para que muestre 35 años como en la imagen
-  const calculateAge = () => {
-    return 35; // Edad exacta de la imagen
-  };
-
-  // Formatear fecha
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-CO", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
 
   const renderPersonalTab = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
@@ -222,21 +199,23 @@ export default function ProfilePage() {
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 text-sm">Teléfono</span>
+            <span className="text-gray-600 text-sm">Nombre</span>
             <span className="text-gray-900 text-sm font-medium">
-              {profileData.phone}
+              {userData?.name}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 text-sm">Edad</span>
             <span className="text-gray-900 text-sm font-medium">
-              {calculateAge()} años
+              {profileData.birthDate ? `${calculateAge(profileData.birthDate)} años` : ""}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 text-sm">Género</span>
             <span className="text-gray-900 text-sm font-medium">
-              {genderLabels[profileData.gender as keyof typeof genderLabels]}
+              {profileData.gender
+                ? genderLabels[profileData.gender as keyof typeof genderLabels]
+                : ""}
             </span>
           </div>
         </div>
@@ -328,12 +307,12 @@ export default function ProfilePage() {
           Espacios de Trabajo
         </h4>
         <span className="text-xs text-gray-500">
-          {userData?.workspaces.length || 0} espacios activos
+          {workspaces.length || 0} espacios activos
         </span>
       </div>
 
       <div className="space-y-4">
-        {userData?.workspaces.map((workspace) => (
+        {workspaces.map((workspace) => (
           <div
             key={workspace.id}
             className="border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition-colors"
@@ -361,13 +340,13 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               <div className="text-center p-3 bg-gray-50 rounded">
                 <div className="text-lg font-semibold text-gray-900">
-                  {workspace.members.length}
+                  {workspace.members?.length ?? 0}
                 </div>
                 <div className="text-xs text-gray-500">Miembros</div>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded">
                 <div className="text-lg font-semibold text-gray-900">
-                  {workspace.enabledModules.length}
+                  {(workspace.enabledModules?.length ?? 0)}
                 </div>
                 <div className="text-xs text-gray-500">Módulos</div>
               </div>
@@ -383,17 +362,18 @@ export default function ProfilePage() {
               <div className="text-xs text-gray-500 mb-2">
                 Módulos habilitados:
               </div>
-              <div className="flex flex-wrap gap-1">
-                {workspace.enabledModules.map((module) => (
+              {/* <div className="flex flex-wrap gap-1">
+                {workspace.enabledModules?.map((module) => (
                   <span
-                    key={module.id}
+                    key={typeof module === "string" ? module : module.id}
                     className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700"
                   >
-                    {moduleLabels[module.name as keyof typeof moduleLabels] ||
-                      module.name}
+                    {typeof module === "string"
+                      ? moduleLabels[module as keyof typeof moduleLabels] || module
+                      : moduleLabels[module.name as keyof typeof moduleLabels] || module.name}
                   </span>
                 ))}
-              </div>
+              </div> */}
             </div>
           </div>
         ))}
@@ -426,7 +406,7 @@ export default function ProfilePage() {
           <h4 className="font-medium text-gray-900 text-sm">
             Permisos del Dashboard
           </h4>
-          <div className="space-y-3">
+          {/* <div className="space-y-3">
             {userData &&
               Object.entries(userData.permissions).map(
                 ([permission, hasPermission]) => {
@@ -469,7 +449,7 @@ export default function ProfilePage() {
                   );
                 }
               )}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -586,21 +566,29 @@ export default function ProfilePage() {
         <div className="bg-white border-b border-gray-200 px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              {/* Avatar - usar imagen real */}
-              <img
-                src={userData.avatar?.src}
-                alt="Avatar"
-                className="w-12 h-12 rounded-full object-cover"
-              />
+              {/* Avatar real */}
+              {userData?.image?.src ? (
+                <img
+                  src={userData.image.src}
+                  alt="Avatar"
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-700">
+                  {getInitials(userData?.name || "")}
+                </div>
+              )}
 
               <div>
                 <div className="flex items-center space-x-2">
                   <h1 className="text-lg font-semibold text-gray-900">
-                    {profileData.firstName} {profileData.lastName}
+                    {userData?.name}
                   </h1>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    Plan Comercial
-                  </span>
+                  {workspaces[0]?.accountType && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {planLabels[workspaces[0].accountType as keyof typeof planLabels]}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-gray-500">{userData.email}</p>
               </div>
@@ -618,7 +606,13 @@ export default function ProfilePage() {
         {/* Tabs navigation */}
         <div className="bg-white border-b border-gray-200 px-8">
           <nav className="flex space-x-12">
-            {tabs.map((tab) => (
+            {[
+              { id: "personal", label: "Personal" },
+              { id: "account", label: "Cuenta" },
+              { id: "workspaces", label: "Espacios" },
+              { id: "permissions", label: "Roles & Permisos" },
+              { id: "preferences", label: "Preferencias" },
+            ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}

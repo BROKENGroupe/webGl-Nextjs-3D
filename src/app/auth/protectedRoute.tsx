@@ -1,5 +1,8 @@
-import React, { Suspense, lazy, useMemo, memo, useRef } from 'react';
+"use client";
+
+import React, { useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useAccess } from '@/context/AccessContext';
 import { useTypedSession } from '@/hooks/useTypedSession';
 
@@ -14,11 +17,13 @@ type ProtectedRouteProps = {
   allowedRoutes?: string[];
 };
 
+const DefaultLoading = () => <div>Cargando...</div>;
+
 export const ProtectedRoute = memo(function ProtectedRoute({
   permission,
   role,
   component,
-  loading = <div>Cargando...</div>,
+  loading = <DefaultLoading />,
   redirectTo = '/home',
   requireRegistrationComplete = true,
   allowWithoutPermissions = false,
@@ -28,11 +33,10 @@ export const ProtectedRoute = memo(function ProtectedRoute({
   const { session, status } = useTypedSession();
   const router = useRouter();
   
-  const LazyComponentRef = useRef<React.LazyExoticComponent<React.ComponentType<any>> | null>(null);
-  
-  if (!LazyComponentRef.current) {
-    LazyComponentRef.current = lazy(component);
-  }
+  const LazyComponent = useMemo(
+    () => dynamic(component, { ssr: false }),
+    [component]
+  );
 
   const permissionsArr = useMemo(() => 
     permission ? Array.isArray(permission) ? permission : [permission] : undefined,
@@ -44,16 +48,7 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     [role]
   );
 
-  //   Verificar si la ruta actual está en las rutas permitidas
-  // const isAllowedRoute = useMemo(() => {
-  //   if (allowedRoutes.length === 0 && !allowWithoutPermissions) return false;
-    
-  //   const currentPath = window?.location?.pathname || '';
-  //   return allowedRoutes.some(route => currentPath.startsWith(route)) || allowWithoutPermissions;
-  // }, [allowedRoutes, allowWithoutPermissions]);
-  
   const accessState = useMemo(() => {
-    //   Verificar autenticación primero
     if (status === "loading" || isLoading) {
       return { type: 'loading' as const, message: 'Verificando sesión...' };
     }
@@ -63,13 +58,11 @@ export const ProtectedRoute = memo(function ProtectedRoute({
       return { type: 'denied' as const, message: 'No autenticado' };
     }   
 
-    //   Si está en ruta permitida, saltar verificación de permisos
     if (allowWithoutPermissions) {
       console.log('🟢 Route allowed without permissions check');
       return { type: 'granted' as const, message: 'Acceso permitido sin permisos' };
     }
 
-    //   Verificación normal de permisos y roles
     const hasRequiredPermission = 
       !permissionsArr || 
       permissionsArr.some(p => hasPermission(p));
@@ -106,7 +99,6 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     allowWithoutPermissions
   ]);
 
-  //   Renderizado optimizado
   switch (accessState.type) {
     case 'loading':
       return <>{loading}</>;
@@ -127,11 +119,7 @@ export const ProtectedRoute = memo(function ProtectedRoute({
       );
       
     case 'granted':
-      return (
-        <Suspense fallback={loading}>
-          <LazyComponentRef.current />
-        </Suspense>
-      );
+      return <LazyComponent />;
       
     default:
       return <>{loading}</>;

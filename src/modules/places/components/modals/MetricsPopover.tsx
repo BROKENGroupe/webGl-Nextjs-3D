@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Establishment } from '../../types';
+import { Place } from '../../types';
 import { LinearProgress } from '../progress/LinearProgress';
 
 interface MetricsPopoverProps {
-  establishment: Establishment;
+  establishment: Place;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -51,36 +51,38 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
             <div className="space-y-3">
               <div>
                 <LinearProgress 
-                  percentage={establishment.compliance_score} 
-                  color={establishment.compliance_score >= 85 ? 'green' : establishment.compliance_score >= 70 ? 'orange' : 'red'}
-                  label={`ISO 12354-4: ${establishment.compliance_score}%`}
+                  percentage={establishment.complianceScore} 
+                  color={
+                    establishment.complianceScore >= 85
+                      ? 'blue'
+                      : establishment.complianceScore >= 70
+                        ? 'gray'
+                        : 'black'
+                  }                  
                   height="h-2"
                 />
               </div>
               
               <div>
                 <LinearProgress 
-                  percentage={Math.min((establishment.acousticProfile.sound_transmission_loss / 60) * 100, 100)} 
-                  color="blue"
-                  label={`STC Rating: ${establishment.acousticProfile.sound_transmission_loss} dB`}
+                  percentage={Math.min((establishment.acousticProfile.soundTransmissionLoss / 60) * 100, 100)} 
+                  color="blue"                  
                   height="h-2"
                 />
               </div>
               
               <div>
                 <LinearProgress 
-                  percentage={Math.min((establishment.acousticProfile.impact_sound_insulation / 70) * 100, 100)} 
-                  color="green"
-                  label={`IIC Rating: ${establishment.acousticProfile.impact_sound_insulation} dB`}
+                  percentage={Math.min((establishment.acousticProfile.impactSoundInsulation / 70) * 100, 100)} 
+                  color="gray"                 
                   height="h-2"
                 />
               </div>
               
               <div>
                 <LinearProgress 
-                  percentage={establishment.noise_impact_external > 30 ? 90 : (establishment.noise_impact_external / 30) * 100} 
-                  color="purple"
-                  label={`Control Externo: ${establishment.noise_impact_external} dB`}
+                  percentage={establishment.noiseImpactExternal > 30 ? 90 : (establishment.noiseImpactExternal / 30) * 100} 
+                  color="blue"                  
                   height="h-2"
                 />
               </div>

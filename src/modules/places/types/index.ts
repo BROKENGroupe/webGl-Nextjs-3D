@@ -1,29 +1,44 @@
-export interface Establishment {
+export interface Place {
   id: string;
+  workspaceId: string;
+  userId: string;
   name: string;
-  type: string;
+  category: {
+    id: string;
+    name: string;
+  };
   status: string;
   address: string;
   image: string;
-  compliance_score: number;
-  noise_impact_external: number;
+  createdAt: string;
+  updatedAt: string;
+  complianceScore: number;
+  noiseImpactExternal: number;
   acousticProfile: {
-    sound_transmission_loss: number;
-    impact_sound_insulation: number;
-    airborne_sound_insulation: number;
+    soundTransmissionLoss: number;
+    impactSoundInsulation: number;
+    airborneSoundInsulation: number;
   };
-  studies: Study[];
+  simulations: Simulations[];
 }
 
-export interface Study {
-  id: string;
+export interface Simulations {
+  id?: string;
+  workspaceId?: string;
+  placeId?: string;
+  userId?: string;
   name: string;
   status: 'completed' | 'in_progress' | 'pending';
   date: string;
+  acousticProfile: {
+    soundTransmissionLoss: number;
+    impactSoundInsulation: number;
+    airborneSoundInsulation: number;
+  };
   metrics: {
-    iso_compliance_level: number;
-    noise_isolation: number;
-    sound_transmission_class: number;
+    isoComplianceLevel: number;
+    noiseIsolation: number;
+    soundTransmissionClass: number;
   };
 }
 

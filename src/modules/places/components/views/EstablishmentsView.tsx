@@ -2,26 +2,26 @@ import React from 'react';
 import { EstablishmentCard } from '../cards/EstablishmentCard';
 import { establishmentTypes, statusConfig } from '../../data/establishments';
 
-interface EstablishmentsViewProps {
-  filteredEstablishments: any[];
+interface PlacesViewProps {
+  filteredPlaces: any[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedType: string;
   setSelectedType: (type: string) => void;
   selectedStatus: string;
   setSelectedStatus: (status: string) => void;
-  getDisplayMetrics: (establishment: any) => any;
-  getActiveStudy: (establishment: any) => any;
-  selectStudy: (establishmentId: string, studyIndex: number) => void;
-  selectedStudyByEstablishment: {[key: string]: number};
+  getDisplayMetrics: (place: any) => any;
+  getActiveSimulation: (place: any) => any;
+  selectSimulation: (placeId: string, simulationIndex: number) => void;
+  selectedSimulationByPlace: {[key: string]: number};
   setShowPopover: (id: string | null) => void;
   showPopover: string | null;
   hoveredProgress: string | null;
   setHoveredProgress: (id: string | null) => void;
 }
 
-export const EstablishmentsView: React.FC<EstablishmentsViewProps> = ({
-  filteredEstablishments,
+export const PlacesView: React.FC<PlacesViewProps> = ({
+  filteredPlaces,
   searchTerm,
   setSearchTerm,
   selectedType,
@@ -29,9 +29,9 @@ export const EstablishmentsView: React.FC<EstablishmentsViewProps> = ({
   selectedStatus,
   setSelectedStatus,
   getDisplayMetrics,
-  getActiveStudy,
-  selectStudy,
-  selectedStudyByEstablishment,
+  getActiveSimulation,
+  selectSimulation,
+  selectedSimulationByPlace,
   setShowPopover,
   showPopover,
   hoveredProgress,
@@ -74,16 +74,16 @@ export const EstablishmentsView: React.FC<EstablishmentsViewProps> = ({
         </div>
       </div>
 
-      {/* Grid de establecimientos */}
+      {/* Grid de places */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {filteredEstablishments.map((establishment) => (
+        {filteredPlaces.map((place) => (
           <EstablishmentCard 
-            key={establishment.id} 
-            establishment={establishment}
+            key={place.id} 
+            establishment={place}
             getDisplayMetrics={getDisplayMetrics}
-            getActiveStudy={getActiveStudy}
-            selectStudy={selectStudy}
-            selectedStudyByEstablishment={selectedStudyByEstablishment}
+            getActiveStudy={getActiveSimulation}
+            selectStudy={selectSimulation}
+            selectedStudyByEstablishment={selectedSimulationByPlace}
             setShowPopover={setShowPopover}
             showPopover={showPopover}
             hoveredProgress={hoveredProgress}

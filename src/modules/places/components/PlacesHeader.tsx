@@ -41,15 +41,12 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
       {/* Header principal */}
       <div className="bg-white border-b border-gray-200 px-8 py-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">
-              Control Acústico & Estudios ISO
-            </h1>
-          </div>
-
+          <h1 className="text-lg font-semibold text-gray-900">
+            Establecimentos y mediciones
+          </h1>
           <button
             onClick={() => setShowOnboardingModal(true)}
-            className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-900 to-[#0FA0CE] hover:from-gray-800 hover:to-[#0c8bb0] text-white text-sm font-medium rounded-lg transition-all duration-200"
+            className="inline-flex items-center px-4 py-2 bg-black hover:bg-gray-900 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -81,8 +78,8 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
             onClick={() => setActiveTab("establishments")}
             className={`py-4 text-sm font-medium border-b-2 transition-colors ${
               activeTab === "establishments"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "border-black text-black"
+                : "border-transparent text-gray-500 hover:text-gray-900"
             }`}
           >
             Establecimientos ({establishments.length})
@@ -91,8 +88,8 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
             onClick={() => setActiveTab("studies")}
             className={`py-4 text-sm font-medium border-b-2 transition-colors ${
               activeTab === "studies"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "border-black text-black"
+                : "border-transparent text-gray-500 hover:text-gray-900"
             }`}
           >
             Estudios Acústicos ({allStudies.length})
@@ -101,8 +98,8 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
             onClick={() => setActiveTab("distinctions")}
             className={`py-4 text-sm font-medium border-b-2 transition-colors flex items-center space-x-2 ${
               activeTab === "distinctions"
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "border-black text-black"
+                : "border-transparent text-gray-500 hover:text-gray-900"
             }`}
           >
             <span>
@@ -112,55 +109,59 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
         </nav>
       </div>
 
-      {/* Estadísticas acústicas */}
-      <div className="bg-white border-b border-gray-200 px-8 py-4">
+      {/* Estadísticas acústicas - estilo minimalista */}
+      {/* <div className="bg-white border-b border-gray-100 px-8 py-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-xl font-bold text-blue-600 mb-1">
+         
+          <div className="text-center p-4 border rounded-lg shadow-sm bg-white">
+            <div className="text-2xl font-semibold text-black mb-1">
               {avgCompliance}%
             </div>
-            <div className="text-xs text-blue-700 mb-2">ISO Promedio</div>
+            <div className="text-xs text-gray-500 mb-2">ISO Promedio</div>
             <LinearProgress
               percentage={avgCompliance}
-              color="blue"
+              color="black"
               height="h-1.5"
             />
           </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-xl font-bold text-green-600 mb-1">
+        
+          <div className="text-center p-4 border rounded-lg shadow-sm bg-white">
+            <div className="text-2xl font-semibold text-black mb-1">
               {avgSTC} dB
             </div>
-            <div className="text-xs text-green-700 mb-2">STC Promedio</div>
+            <div className="text-xs text-gray-500 mb-2">STC Promedio</div>
             <LinearProgress
               percentage={Math.min((avgSTC / 60) * 100, 100)}
-              color="green"
+              color="black"
               height="h-1.5"
             />
           </div>
-          <div className="text-center p-3 bg-purple-50 rounded-lg">
-            <div className="text-xl font-bold text-purple-600 mb-1">
+          
+          <div className="text-center p-4 border rounded-lg shadow-sm bg-white">
+            <div className="text-2xl font-semibold text-black mb-1">
               {avgExternal} dB
             </div>
-            <div className="text-xs text-purple-700 mb-2">Red. Externa</div>
+            <div className="text-xs text-gray-500 mb-2">Red. Externa</div>
             <LinearProgress
               percentage={Math.min((avgExternal / 40) * 100, 100)}
-              color="purple"
+              color="gray"
               height="h-1.5"
             />
           </div>
-          <div className="text-center p-3 bg-orange-50 rounded-lg">
-            <div className="text-xl font-bold text-orange-600 mb-1">
+        
+          <div className="text-center p-4 border rounded-lg shadow-sm bg-white">
+            <div className="text-2xl font-semibold text-black mb-1">
               {completedStudies}
             </div>
-            <div className="text-xs text-orange-700 mb-2">Completados</div>
+            <div className="text-xs text-gray-500 mb-2">Completados</div>
             <LinearProgress
               percentage={(completedStudies / allStudies.length) * 100}
-              color="orange"
+              color="black"
               height="h-1.5"
             />
           </div>
         </div>
-      </div>
+      </div> */}
     </>
   );
 };

@@ -3,9 +3,10 @@
 import { Canvas } from "@react-three/fiber";
 import { Extrude, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense } from "react";
 import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
 import { LineBuilder } from "@/modules/editor/components/2d/LineBuilder";
+import { Html } from "@react-three/drei";
 
 import React, { useState } from "react";
 import { AcousticAnalysisModal } from "@/modules/analytics/components/modals/AcousticAnalysisModal"; //   NUEVO: Importar modal
@@ -44,6 +45,9 @@ import { set } from "zod";
 import { color } from "framer-motion";
 import { ISO12354_4Engine } from "@/modules/editor/core/engineMath/ISO12354_4Engine";
 import { SegmentsVisualizer } from "./SegmentsVisualizer";
+import { FloorReplicationModal } from './modals/FloorReplicationModal';
+import { MultiFloorRenderer } from './MultiFloorRenderer';
+import { useFloorsStore } from '../store/floorsStore';
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -84,10 +88,12 @@ export default function DrawingScene() {
   const [segments, setSegments] = useState<any[]>([]);
   const [showSegments, setShowSegments] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  // Nuevo estado para el modal de replicación
+  const [showFloorReplicationModal, setShowFloorReplicationModal] = useState(false);
 
   //   NUEVO: Acceso al store de paredes
   const { walls } = useWallsStore();
-
+  const { floorLevels } = useFloorsStore();
   const defaultVisibility: LayerVisibility = {
     sources: true,
     microphones: true,
@@ -337,7 +343,7 @@ export default function DrawingScene() {
 
   // Manejadores del menú contextual
   const handleLineRightClick = (
-    lineIndex: number,
+    id: string,
     event: { clientX: number; clientY: number }
   ) => {
     setContextMenu({
@@ -345,10 +351,10 @@ export default function DrawingScene() {
       x: event.clientX,
       y: event.clientY,
       itemType: "line",
-      itemIndex: lineIndex,
+      itemIndex: null,
     });
 
-    setSelectedLineId("480");
+    setSelectedLineId(id);
   };
 
   const handleVertexRightClick = (
@@ -740,39 +746,29 @@ export default function DrawingScene() {
       style={{ height: "93.5vh" }}
     >
       <Canvas
-        camera={{ position: [10, 10, 10], fov: 50 }}
-        style={{
-          background: "linear-gradient(135deg, #f0f2f5 0%, #e8ebf0 100%)",
-        }}
+        camera={{ position: [0, 10, 15], fov: 50 }}
+        shadows
+        onContextMenu={(e) => e.preventDefault()}
       >
         <ambientLight intensity={0.8} />
-        <directionalLight position={[10, 15, 10]} intensity={0.6} />
-        <OrbitControls
-          enabled={!isDragging && !isDragActive}
-          enablePan={!isDragging && !isDragActive}
-          enableRotate={!isDragging && !isDragActive}
-          enableZoom={true} //   Mantener zoom siempre habilitado
-        />
-        {/*   YA ESTÁ COMENTADO - SIN CUADRÍCULA */}
-        {/* <gridHelper args={[50, 50, "#888", "#ccc"]} /> */}
-        <DrawingSurface onClick3D={handleClick3D} />
-        {/* MODO 2D - Solo renderizar cuando NO está extruido Y hay puntos válidos */}
-        {!isExtruded && (
-          <>
-            {/* Líneas principales - Solo si hay más de 1 punto */}
-            {currentPoints.length > 1 && (
+        <pointLight position={[10, 10, 10]} intensity={1} castShadow />
+        <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
+
+        <Suspense fallback={<Html center>Cargando 3D...</Html>}>
+          {/* VISTA 2D - Cuando NO está extruido */}
+          {!isExtruded && (
+            
               <LineBuilder
                 points={currentPoints}
+                color="blue"
                 onPointMove={handlePointMove}
                 onDragStart={() => setDragging(true)}
                 onDragEnd={() => setDragging(false)}
-                onLineRightClick={handleLineContextMenu}
+                onLineRightClick={handleLineRightClick}
                 onVertexRightClick={handleVertexRightClick}
-                color={LINE_COLORS.line}
               />
             )}
-          </>
-        )}
+      
         //MODO 3D - Renderizar con funcionalidad de drag & drop
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           <ExtrudedShapeWithDraggableOpenings
@@ -793,9 +789,50 @@ export default function DrawingScene() {
           />
         )}
         {showSegments && <SegmentsVisualizer segments={segments} />}
+          
+
+          {/* VISTA 3D - Cuando está extruido Y tiene coordenadas */}
+          {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length >= 3 && (
+            floorLevels.length > 0 ? (
+              <MultiFloorRenderer
+                onDropOpening={handleDropOpening}
+                isDragActive={isDragActive}
+                draggedTemplate={draggedTemplate}
+                showHeatmap={showHeatmap}
+                onToggleHeatmap={handleToggleHeatmap}
+                onAddFloor={handleAddFloor}
+                onWallContextMenu={handleWallContextMenu}
+                onOpeningContextMenu={handleOpeningContextMenu}
+                onCeilingContextMenu={handleCeilingContextMenu}
+                onFloorContextMenu={handleFloorContextMenu}
+                showAllFloors={true}
+              />
+            ) : (
+              // Fallback al sistema original si no hay plantas múltiples
+              <ExtrudedShapeWithDraggableOpenings
+                onDropOpening={handleDropOpening}
+                isDragActive={isDragActive}
+                draggedTemplate={draggedTemplate}
+                showHeatmap={showHeatmap}
+                onToggleHeatmap={handleToggleHeatmap}
+                onAddFloor={handleAddFloor}
+                floors2={floors}
+                openings={openings}
+                ceilings2={ceilings}
+                onWallContextMenu={handleWallContextMenu}
+                onOpeningContextMenu={handleOpeningContextMenu}
+                onCeilingContextMenu={handleCeilingContextMenu}
+                onFloorContextMenu={handleFloorContextMenu}
+              />
+            )
+          )}
+        </Suspense>
+
+        {/* Superficie de dibujo - Solo visible en 2D */}
+        {!isExtruded && <DrawingSurface onClick3D={handleClick3D} />}
       </Canvas>
 
-      {/* Controles de la aplicación */}
+      {/* Controles de la aplicación actualizados */}
       <AppControls
         isClosed={isClosed}
         isExtruded={isExtruded}
@@ -811,6 +848,7 @@ export default function DrawingScene() {
         setShowAcousticModal={setShowAcousticModal}
         setShowIsoConfigModal={setShowIsoConfigModal}
         handleCalculateInsulation={handleCalculateInsulation}
+        setShowFloorReplicationModal={setShowFloorReplicationModal} // NUEVO
       />
 
       <FacadeContextMenu
@@ -930,6 +968,16 @@ export default function DrawingScene() {
         visible={lineMenuVisible}
         lineId={selectedLineId ?? ""}
         onClose={() => setLineMenuVisible(false)}
+      />
+
+      {/* NUEVO: Modal de replicación de plantas */}
+      <FloorReplicationModal
+        isOpen={showFloorReplicationModal}
+        onClose={() => setShowFloorReplicationModal(false)}
+        onSuccess={(newFloorId) => {
+          console.log('✅ Planta replicada exitosamente:', newFloorId);
+          setShowFloorReplicationModal(false);
+        }}
       />
     </div>
   );

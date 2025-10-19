@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 
-export async function AuthHeadersWithSession() {
+export async function AuthHeadersMultipart() {
   const session = await getServerSession(authOptions);
   if (!session) {
     throw new Error("No session found");
@@ -9,7 +9,6 @@ export async function AuthHeadersWithSession() {
   
   return {
     headers: {
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${session.accessToken}`,
       'x-workspace-id': session.workspace.id ?? '',
       'x-user-id': session.user.id ?? '',

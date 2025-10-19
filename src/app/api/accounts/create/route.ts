@@ -1,8 +1,7 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 import { resolveAccountAction } from "../accountActions";
-import { AuthHeaders } from "@/_lib/authHeaders";
-import { Session } from "inspector/promises";
+import { AuthHeadersWithSession } from "@/_lib/authHeaders";
 
 // POST /api/tasks
 export async function POST(req: NextRequest) {
@@ -33,9 +32,11 @@ export async function POST(req: NextRequest) {
 
     const { endpoint, method } = accountAction;
 
+    const rawHeaders = await AuthHeadersWithSession(); 
+
     const res = await fetch(`${process.env.API_BASE_URL}${endpoint}`, {
       method,
-      headers: AuthHeaders(user),
+      headers: rawHeaders.headers,
       body: method !== 'DELETE' ? JSON.stringify(payload) : undefined,
     });
 

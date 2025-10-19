@@ -202,6 +202,8 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }: { session: any; token: any }) {
+      console.log('[SESSION] Creating session for token:', token);
+       
       return mapTokenToSession(token, session);
     },
   },

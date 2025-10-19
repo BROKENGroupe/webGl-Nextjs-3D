@@ -18,7 +18,7 @@ import { COLORS } from "@/config/materials";
 
 // Props interface
 interface ExtrudedShapeWithDraggableOpenings2Props {
-  planeCoordinates: { x: number; z: number }[];
+  planeCoordinates?: { x: number; z: number }[];
   onDropOpening: (wallIndex: number, position: number, template: any) => void;
   isDragActive: boolean;
   draggedTemplate: any;
@@ -26,36 +26,24 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
   onToggleHeatmap?: () => void;
   onAddFloor?: () => void;
   floors2?: any[];
-  onWallContextMenu?: (
-    event: any,
-    facadeName: number,
-    title: string,
-    elementType: ElementType
-  ) => void;
-  onOpeningContextMenu?: (
-    event: any,
-    openingId: any,
-    title: string,
-    elementType: ElementType
-  ) => void;
+  walls2?: any[]; // NUEVA PROP para paredes específicas
+  onWallContextMenu?: (event: any, facadeName: number, title: string, elementType: ElementType) => void;
+  onOpeningContextMenu?: (event: any, openingId: any, title: string, elementType: ElementType) => void;
   openings: any[];
   ceilings2: any[];
-  onCeilingContextMenu?: (
-    event: any,
-    facadeName: string,
-    title: string,
-    elementType: ElementType
-  ) => void;
-  onFloorContextMenu?: (
-    event: any,
-    facadeName: string,
-    title: string,
-    elementType: ElementType
-  ) => void;
+  onCeilingContextMenu?: (event: any, facadeName: string, title: string, elementType: ElementType) => void;
+  onFloorContextMenu?: (event: any, facadeName: string, title: string, elementType: ElementType) => void;
+  
+  // Props multi-planta
+  floorHeight?: number;
+  floorId?: string;
+  opacity?: number;
+  interactive?: boolean;
 }
 
 // Componente principal
 export function ExtrudedShapeWithDraggableOpenings({
+  planeCoordinates, // Ahora opcional
   onDropOpening,
   isDragActive,
   draggedTemplate,
@@ -65,18 +53,34 @@ export function ExtrudedShapeWithDraggableOpenings({
   onCeilingContextMenu,
   onFloorContextMenu,
   floors2 = [],
+  walls2 = [], // NUEVA PROP
   openings,
   ceilings2,
+
+  // NUEVAS PROPS
+  floorHeight,
+  floorId,
+  opacity = 1.0,
+  interactive = true,
 }: ExtrudedShapeWithDraggableOpenings2Props) {
   const { walls, ceilings, floors } = useWallsStore();
-  // Altura de la habitación (puedes recibirla por props o definirla aquí)
   const depth = 3;
   const { planeXZCoordinates, hasPlaneCoordinates, currentLines } = useDrawingStore();
   const { updateOpeningPosition } = useOpeningsStore();
-  // Validación de coordenadas
-  let coordinatesToUse = planeXZCoordinates;
 
-  if (!hasPlaneCoordinates || coordinatesToUse.length < 3) {
+  // LÓGICA DE COORDENADAS MEJORADA
+  let coordinatesToUse: { x: number; z: number }[];
+
+  if (planeCoordinates && planeCoordinates.length >= 3) {
+    // 1. Prioridad: coordenadas pasadas por props (sistema multi-planta)
+    coordinatesToUse = planeCoordinates;
+    console.log(`🏗️ [${floorId || "unknown"}] Usando coordenadas de props:`, coordinatesToUse);
+  } else if (hasPlaneCoordinates && planeXZCoordinates.length >= 3) {
+    // 2. Fallback: coordenadas del store (sistema original)
+    coordinatesToUse = planeXZCoordinates;
+    console.log("🏗️ Usando coordenadas del store:", coordinatesToUse);
+  } else {
+    // 3. Fallback final: coordenadas por defecto
     coordinatesToUse = [
       { x: -6.5, z: -7 },
       { x: 4, z: -4.5 },
@@ -84,29 +88,27 @@ export function ExtrudedShapeWithDraggableOpenings({
       { x: -7.5, z: 4.5 },
       { x: -6.5, z: -6.5 },
     ];
-    console.log("🏗️ Usando coordenadas exactas del localStorage");
+    console.log("🏗️ Usando coordenadas por defecto");
   }
 
-  console.log("🔍 COORDENADAS FINALES:", coordinatesToUse);
-
-  // Hooks de lógica
+  // Hooks de lógica (con datos específicos si están disponibles)
   const { floorGeometry, ceilingGeometry, createWallGeometry } =
     useRoomGeometry(coordinatesToUse, depth, openings);
 
   const openingDrag = useOpeningDrag(updateOpeningPosition);
 
   const wallInteractions = useWallInteractions({
-    isDragActive,
-    draggedTemplate,
-    isDraggingOpening: openingDrag.isDraggingOpening,
+    isDragActive: interactive ? isDragActive : false, // Solo interactivo si está habilitado
+    draggedTemplate: interactive ? draggedTemplate : null,
+    isDraggingOpening: interactive ? openingDrag.isDraggingOpening : false,
     draggedOpening: openingDrag.draggedOpening,
     handleOpeningPointerUp: openingDrag.handleOpeningPointerUp,
-    onDropOpening,
+    onDropOpening: interactive ? onDropOpening : () => {},
     coordinatesToUse,
     depth,
   });
 
-  // Almacenar geometría en el storage
+  // Almacenar geometría en el storage (solo si no viene de multi-planta)
   const {
     generateWallsFromCoordinates,
     recalculateAllWallsWithOpenings,
@@ -115,47 +117,59 @@ export function ExtrudedShapeWithDraggableOpenings({
   } = useWallsStore();
 
   useEffect(() => {
-    if (coordinatesToUse.length >= 3) {
+    // Solo generar si no es parte del sistema multi-planta
+    if (!floorId && coordinatesToUse.length >= 3) {
       generateWallsFromCoordinates(coordinatesToUse, currentLines);
       generateFloorFromCoordinates(coordinatesToUse);
       generateCeilingFromCoordinates(coordinatesToUse);
     }
   }, [
     coordinatesToUse,
+    floorId, // Dependencia importante
     generateWallsFromCoordinates,
     generateFloorFromCoordinates,
     generateCeilingFromCoordinates,
   ]);
 
   useEffect(() => {
-    if (openings.length > 0 && coordinatesToUse.length >= 3) {
+    // Solo recalcular si no es parte del sistema multi-planta
+    if (!floorId && openings.length > 0 && coordinatesToUse.length >= 3) {
       recalculateAllWallsWithOpenings(openings);
     }
-  }, [openings, recalculateAllWallsWithOpenings, coordinatesToUse]);
+  }, [openings, recalculateAllWallsWithOpenings, coordinatesToUse, floorId]);
 
   if (coordinatesToUse.length < 3) {
     return null;
   }
 
-  // Renderizado
+  // RENDERIZADO CON SOPORTE DE OPACIDAD - CORREGIDO
+  const materialProps = {
+    // Solo aplicar transparencia durante drag, NO a plantas duplicadas
+    opacity: isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
+    transparent: isDragActive || openingDrag.isDraggingOpening
+  };
+
   return (
-    <group>
-      {ceilings2.map((cl, index) => (
+    <group name={floorId ? `floor-${floorId}` : "single-floor"}>
+      {/* Techos */}
+      {(ceilings2.length > 0 ? ceilings2 : ceilings).map((cl, index) => (
         <RoomCeiling
-          key={`ceiling-${index}`}
+          key={`ceiling-${floorId || "default"}-${index}`}
           geometry={ceilingGeometry}
           material={MaterialService.getWallMaterial({
-            colorBase: ceilings[index]?.color || COLORS.ceiling,
+            colorBase: cl?.color || COLORS.ceiling,
             isHovered:
-              (wallInteractions.hoveredWall === index &&
+              interactive &&
+              ((wallInteractions.hoveredWall === index &&
                 (isDragActive || openingDrag.isDraggingOpening)) ||
-              openingDrag.previewPosition?.wallIndex === index,
-            isDragActive: isDragActive || openingDrag.isDraggingOpening,
-            opacity: isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
+                openingDrag.previewPosition?.wallIndex === index),
+            isDragActive: interactive && (isDragActive || openingDrag.isDraggingOpening),
+            // OPACIDAD COMPLETA SIEMPRE
+            opacity: 1.0,
           })}
           ceilingId={cl.id}
           ceilingIndex={index}
-          eventHandlers={{
+          eventHandlers={interactive ? {
             onPointerEnter: (e: any) => {
               e.stopPropagation();
               wallInteractions.handleWallPointerEnter(index);
@@ -181,34 +195,45 @@ export function ExtrudedShapeWithDraggableOpenings({
                 );
               }
             },
-          }}
+          } : {}}
         />
       ))}
 
+      {/* Paredes - SIN TRANSPARENCIA */}
       {coordinatesToUse.map((coord, index) => {
         const nextIndex = (index + 1) % coordinatesToUse.length;
         const nextCoord = coordinatesToUse[nextIndex];
         const wallOpenings = GeometryEngine.getOpeningsForWall(openings, index);
 
-        const wall = walls[index];
-        const wallColor = wall?.color ?? "#f21111ff";
+        // USAR PAREDES ESPECÍFICAS DE LA PLANTA O DEL STORE
+        const wallsToUse = walls2.length > 0 ? walls2 : walls;
+        const wall = wallsToUse[index];
+        const wallColor = wall?.color || COLORS.wall;
+
+        console.log(`🎨 [${floorId || 'main'}] Pared ${index}:`, {
+          hasWall2: walls2.length > 0,
+          wallColor,
+          wallsToUseLength: wallsToUse.length,
+          interactive
+        });
 
         return (
           <RoomWall
-            key={`wall-group-${index}`}
+            key={`wall-${floorId || "default"}-${index}`}
             geometry={createWallGeometry(index, coord, nextCoord)}
             material={MaterialService.getWallMaterial({
-              colorBase: wallColor || COLORS.wall,
+              colorBase: wallColor,
               isHovered:
-                (wallInteractions.hoveredWall === index &&
+                interactive &&
+                ((wallInteractions.hoveredWall === index &&
                   (isDragActive || openingDrag.isDraggingOpening)) ||
-                openingDrag.previewPosition?.wallIndex === index,
-              isDragActive: isDragActive || openingDrag.isDraggingOpening,
-              opacity:
-                isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
+                  openingDrag.previewPosition?.wallIndex === index),
+              isDragActive: interactive && (isDragActive || openingDrag.isDraggingOpening),
+              // PAREDES SIEMPRE OPACAS
+              opacity: 1.0,
             })}
             wallIndex={index}
-            eventHandlers={{
+            eventHandlers={interactive ? {
               onPointerEnter: (e: any) => {
                 e.stopPropagation();
                 wallInteractions.handleWallPointerEnter(index);
@@ -234,17 +259,17 @@ export function ExtrudedShapeWithDraggableOpenings({
                   );
                 }
               },
-            }}
+            } : {}}
           >
+            {/* Aberturas específicas de esta planta */}
             {wallOpenings.map((opening) => (
               <OpeningMesh
-                key={opening.id}
+                key={`opening-${floorId || "default"}-${opening.id}`}
                 coord={coord}
                 nextCoord={nextCoord}
                 wallHeight={depth}
                 opening={opening}
-                eventHandlers={{
-                  // Drag existente: arrastrar y soltar aberturas
+                eventHandlers={interactive ? {
                   onPointerDown: (e: any) =>
                     openingDrag.handleOpeningPointerDown(
                       opening,
@@ -258,9 +283,7 @@ export function ExtrudedShapeWithDraggableOpenings({
                       wallInteractions.calculatePositionFromMouse
                     ),
                   onPointerEnter: () => (document.body.style.cursor = "move"),
-                  onPointerLeave: () =>
-                    (document.body.style.cursor = "default"),
-                  // Drop desde paleta: click en pared
+                  onPointerLeave: () => (document.body.style.cursor = "default"),
                   onContextMenu: (e: any) => {
                     if (onOpeningContextMenu) {
                       onOpeningContextMenu(
@@ -271,29 +294,32 @@ export function ExtrudedShapeWithDraggableOpenings({
                       );
                     }
                   },
-                }}
+                } : {}}
               />
             ))}
           </RoomWall>
         );
       })}
 
-      {floors2.map((fl, index) => (
+      {/* Pisos */}
+      {(floors2.length > 0 ? floors2 : floors).map((fl, index) => (
         <RoomFloor
-          key={`floor-${index}`}
+          key={`floor-${floorId || "default"}-${index}`}
           geometry={floorGeometry}
           floorIndex={index}
           material={MaterialService.getWallMaterial({
-            colorBase: floors2[index]?.color || COLORS.ceiling,
+            colorBase: fl?.color || COLORS.ceiling,
             isHovered:
-              (wallInteractions.hoveredWall === index &&
+              interactive &&
+              ((wallInteractions.hoveredWall === index &&
                 (isDragActive || openingDrag.isDraggingOpening)) ||
-              openingDrag.previewPosition?.wallIndex === index,
-            isDragActive: isDragActive || openingDrag.isDraggingOpening,
-            opacity: isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
+                openingDrag.previewPosition?.wallIndex === index),
+            isDragActive: interactive && (isDragActive || openingDrag.isDraggingOpening),
+            // PISOS SIEMPRE OPACOS
+            opacity: 1.0,
           })}
           floorId={fl.id}
-          eventHandlers={{
+          eventHandlers={interactive ? {
             onPointerEnter: (e: any) => {
               e.stopPropagation();
               wallInteractions.handleWallPointerEnter(index);
@@ -319,16 +345,18 @@ export function ExtrudedShapeWithDraggableOpenings({
                 );
               }
             },
-          }}
+          } : {}}
         />
       ))}
 
-      <AcousticHeatmapShader
-        wallCoordinates={coordinatesToUse}
-        isVisible={showHeatmap}
-        Lp_in={70}
-      />
-      {/* <FloorsGroup floors={floors} depth={depth} /> */}
+      {/* Heatmap solo para planta activa */}
+      {interactive && (
+        <AcousticHeatmapShader
+          wallCoordinates={coordinatesToUse}
+          isVisible={showHeatmap}
+          Lp_in={70}
+        />
+      )}
     </group>
   );
 }

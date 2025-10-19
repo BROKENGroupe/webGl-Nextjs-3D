@@ -1,6 +1,35 @@
-
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-import { Undo2, Redo2, Trash2, Wrench, BarChart3, PlusSquare, Plus, Flame, Calculator } from "lucide-react";
+import {
+  Undo2,
+  Redo2,
+  Trash2,
+  Wrench,
+  BarChart3,
+  PlusSquare,
+  Plus,
+  Flame,
+  Copy,
+  Calculator
+} from "lucide-react";
+
+interface AppControlsProps {
+  isClosed: boolean;
+  isExtruded: boolean;
+  walls: any[];
+  handleExtrude: () => void;
+  handleBackTo2D: () => void;
+  handleFixExtrusion: () => void;
+  handleNewDrawing: () => void;
+  handleClearStorage: () => void;
+  handleCleanAndReset: () => void;
+  handleAddFloor: () => void;
+  handleToggleHeatmap: () => void;
+  setShowAcousticModal: (v: boolean) => void;
+  setShowIsoConfigModal: (v: boolean) => void;
+  setShowFloorReplicationModal: (show: boolean) => void; // NUEVO
+  handleCalculateInsulation: () => void;
+
+}
 
 export function AppControls({
   isClosed,
@@ -16,24 +45,13 @@ export function AppControls({
   handleToggleHeatmap,
   setShowAcousticModal,
   setShowIsoConfigModal,
-  handleCalculateInsulation
-}: {
-  isClosed: boolean;
-  isExtruded: boolean;
-  walls: any[];
-  handleExtrude: () => void;
-  handleBackTo2D: () => void;
-  handleFixExtrusion: () => void;
-  handleNewDrawing: () => void;
-  handleClearStorage: () => void;
-  handleCleanAndReset: () => void;
-  handleAddFloor: () => void;
-  handleToggleHeatmap: () => void;
-  setShowAcousticModal: (v: boolean) => void;
-  setShowIsoConfigModal: (v: boolean) => void;
-  handleCalculateInsulation: () => void;
-}) { 
+  handleCalculateInsulation,
+  setShowFloorReplicationModal
+}: 
+  AppControlsProps
+)
 
+{
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
       {isClosed && !isExtruded && (
@@ -64,7 +82,7 @@ export function AppControls({
             </TooltipTrigger>
             <TooltipContent>Volver a 2D</TooltipContent>
           </Tooltip>
-          <Tooltip>
+          {/* <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={handleExtrude}
@@ -75,8 +93,8 @@ export function AppControls({
               </button>
             </TooltipTrigger>
             <TooltipContent>Re-extruir</TooltipContent>
-          </Tooltip>
-          <Tooltip>
+          </Tooltip> */}
+          {/* <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={handleFixExtrusion}
@@ -87,8 +105,8 @@ export function AppControls({
               </button>
             </TooltipTrigger>
             <TooltipContent>Arreglar Forma</TooltipContent>
-          </Tooltip>
-          <Tooltip>
+          </Tooltip> */}
+          {/* <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={() => setShowAcousticModal(true)}
@@ -100,19 +118,7 @@ export function AppControls({
               </button>
             </TooltipTrigger>
             <TooltipContent>Análisis Acústico</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleCalculateInsulation}
-                className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
-                aria-label="Calcular Aislamiento"
-              >
-                <Calculator size={22} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Calcular Aislamiento</TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
         </>
       )}
       <Tooltip>
@@ -154,11 +160,11 @@ export function AppControls({
       <Tooltip>
         <TooltipTrigger asChild>
           <button
-            onClick={handleAddFloor}
+            onClick={() => setShowFloorReplicationModal(true)}
             className="bg-muted hover:bg-accent text-muted-foreground p-2 rounded-lg shadow transition-colors"
             aria-label="Agregar Planta"
           >
-            <Plus size={22} />
+            <Copy className="w-4 h-4" />
           </button>
         </TooltipTrigger>
         <TooltipContent>Agregar Planta</TooltipContent>
@@ -175,7 +181,17 @@ export function AppControls({
         </TooltipTrigger>
         <TooltipContent>Mapa de Calor</TooltipContent>
       </Tooltip>
-      
+
+      {/* NUEVO: Botón de replicación de plantas */}
+      {isExtruded && (
+        <button
+          onClick={() => setShowAcousticModal(true)}
+          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg shadow-lg transition-all duration-200"
+        >
+          <Copy className="w-4 h-4" />
+          <span>Simular</span>
+        </button>
+      )}
     </div>
   );
 }
