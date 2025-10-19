@@ -9,6 +9,7 @@ import {
   Plus,
   Flame,
   Copy,
+  Calculator
 } from "lucide-react";
 
 interface AppControlsProps {
@@ -26,6 +27,8 @@ interface AppControlsProps {
   setShowAcousticModal: (v: boolean) => void;
   setShowIsoConfigModal: (v: boolean) => void;
   setShowFloorReplicationModal: (show: boolean) => void; // NUEVO
+  handleCalculateInsulation: () => void;
+
 }
 
 export function AppControls({
@@ -42,8 +45,13 @@ export function AppControls({
   handleToggleHeatmap,
   setShowAcousticModal,
   setShowIsoConfigModal,
-  setShowFloorReplicationModal, // NUEVO
-}: AppControlsProps) {
+  handleCalculateInsulation,
+  setShowFloorReplicationModal
+}: 
+  AppControlsProps
+)
+
+{
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
       {isClosed && !isExtruded && (

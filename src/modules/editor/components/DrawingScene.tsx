@@ -43,6 +43,8 @@ import { LINE_COLORS } from "@/config/materials";
 import LineContextMenu from "./contextMenus/lineContextMenu";
 import { set } from "zod";
 import { color } from "framer-motion";
+import { ISO12354_4Engine } from "@/modules/editor/core/engineMath/ISO12354_4Engine";
+import { SegmentsVisualizer } from "./SegmentsVisualizer";
 import { FloorReplicationModal } from './modals/FloorReplicationModal';
 import { MultiFloorRenderer } from './MultiFloorRenderer';
 import { useFloorsStore } from '../store/floorsStore';
@@ -83,6 +85,9 @@ export default function DrawingScene() {
   const [showWallsManager, setShowWallsManager] = useState(false);
   //   NUEVO: State para el modal de configuración ISO
   const [showIsoConfigModal, setShowIsoConfigModal] = useState(false);
+  const [segments, setSegments] = useState<any[]>([]);
+  const [showSegments, setShowSegments] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
   // Nuevo estado para el modal de replicación
   const [showFloorReplicationModal, setShowFloorReplicationModal] = useState(false);
 
@@ -514,7 +519,7 @@ export default function DrawingScene() {
     setIsDragActive(false);
     setDraggedTemplate(null);
     setDragging(false); //   También resetear isDragging del drawing store
-     
+
     setTimeout(() => {
       // Esto asegura que todos los event listeners se reactiven correctamente
       console.log("🔄 Estado de drag reseteado completamente");
@@ -587,12 +592,12 @@ export default function DrawingScene() {
       planeXZCoordinates.length >= 3
         ? planeXZCoordinates
         : [
-            { x: -6.5, z: -7 },
-            { x: 4, z: -4.5 },
-            { x: 2, z: 6 },
-            { x: -7.5, z: 4.5 },
-            { x: -6.5, z: -6.5 },
-          ];
+          { x: -6.5, z: -7 },
+          { x: 4, z: -4.5 },
+          { x: 2, z: 6 },
+          { x: -7.5, z: 4.5 },
+          { x: -6.5, z: -6.5 },
+        ];
 
     const rawWalls = GeometryEngine.generateWallsFromCoordinates(coords);
     const newWalls = rawWalls.map((wall, idx) => ({
@@ -621,6 +626,55 @@ export default function DrawingScene() {
 
   // Handler para alternar la vista del mapa de calor
   const handleToggleHeatmap = () => setShowHeatmap((prev) => !prev);
+
+  const handleCalculateInsulation = () => {
+    if (showSegments) {
+      setShowSegments(false);
+      setSegments([]);
+      return;
+    }
+
+    if (!isExtruded) {
+      console.log("Cannot calculate segments: Not in 3D mode.");
+      return;
+    }
+
+    setIsCalculating(true);
+    debugger;
+    console.log("Calculating segments for all surfaces...");
+    const wallSegments = walls.flatMap((wall) =>
+      ISO12354_4Engine.calcRBySegment(wall, openings)
+    );
+    console.log(`Wall segments calculated: ${wallSegments.length}`);
+
+    const ceilingSegments = ceilings.flatMap((ceiling) =>
+      ISO12354_4Engine.calcRBySegment(ceiling, openings)
+    );
+    console.log(`Ceiling segments calculated: ${ceilingSegments.length}`);
+
+    const floorSegments = floors.flatMap((floor) =>
+      ISO12354_4Engine.calcRBySegment(floor, openings)
+    );
+    console.log(`Floor segments calculated: ${floorSegments.length}`);
+
+    const allSegments = [
+      ...wallSegments,
+      ...ceilingSegments,
+      ...floorSegments,
+    ];
+
+    setTimeout(() => {
+      console.log(`Total segments calculated: ${allSegments.length}`);
+      setTimeout(() => {
+        setSegments(allSegments);
+        setShowSegments(true);
+        setIsCalculating(false);
+      }, 500);
+    }, 500);
+
+
+
+  };
 
   // Define the handler for ISO config confirmation
   const handleIsoConfigConfirm = (config: {
@@ -683,13 +737,12 @@ export default function DrawingScene() {
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [menuVisible]); 
+  }, [menuVisible]);
 
   return (
     <div
-      className={`w-full relative ${
-        isDragActive ? "cursor-grabbing" : "cursor-default"
-      }`}
+      className={`w-full relative ${isDragActive ? "cursor-grabbing" : "cursor-default"
+        }`}
       style={{ height: "93.5vh" }}
     >
       <Canvas
@@ -704,7 +757,7 @@ export default function DrawingScene() {
         <Suspense fallback={<Html center>Cargando 3D...</Html>}>
           {/* VISTA 2D - Cuando NO está extruido */}
           {!isExtruded && (
-            <>
+            
               <LineBuilder
                 points={currentPoints}
                 color="blue"
@@ -714,8 +767,29 @@ export default function DrawingScene() {
                 onLineRightClick={handleLineRightClick}
                 onVertexRightClick={handleVertexRightClick}
               />
-            </>
-          )}
+            )}
+      
+        //MODO 3D - Renderizar con funcionalidad de drag & drop
+        {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
+          <ExtrudedShapeWithDraggableOpenings
+            planeCoordinates={[]}
+            onDropOpening={handleDropOpening}
+            isDragActive={isDragActive}
+            draggedTemplate={draggedTemplate}
+            showHeatmap={showHeatmap}
+            onToggleHeatmap={handleToggleHeatmap}
+            onAddFloor={handleAddFloor}
+            floors2={floors}
+            onWallContextMenu={handleWallContextMenu}
+            onOpeningContextMenu={handleOpeningContextMenu}
+            onCeilingContextMenu={handleCeilingContextMenu}
+            onFloorContextMenu={handleFloorContextMenu}
+            openings={openings}
+            ceilings2={ceilings}
+          />
+        )}
+        {showSegments && <SegmentsVisualizer segments={segments} />}
+          
 
           {/* VISTA 3D - Cuando está extruido Y tiene coordenadas */}
           {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length >= 3 && (
@@ -773,6 +847,7 @@ export default function DrawingScene() {
         handleToggleHeatmap={handleToggleHeatmap}
         setShowAcousticModal={setShowAcousticModal}
         setShowIsoConfigModal={setShowIsoConfigModal}
+        handleCalculateInsulation={handleCalculateInsulation}
         setShowFloorReplicationModal={setShowFloorReplicationModal} // NUEVO
       />
 
@@ -889,10 +964,10 @@ export default function DrawingScene() {
 
       {/* Modal de contexto para la línea, fuera del grupo 3D */}
 
-      <LineContextMenu        
+      <LineContextMenu
         visible={lineMenuVisible}
         lineId={selectedLineId ?? ""}
-        onClose={() => setLineMenuVisible(false)}        
+        onClose={() => setLineMenuVisible(false)}
       />
 
       {/* NUEVO: Modal de replicación de plantas */}
