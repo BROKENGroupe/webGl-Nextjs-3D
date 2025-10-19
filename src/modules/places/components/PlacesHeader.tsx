@@ -110,9 +110,9 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
       </div>
 
       {/* Estadísticas acústicas - estilo minimalista */}
-      <div className="bg-white border-b border-gray-100 px-8 py-4">
+      {/* <div className="bg-white border-b border-gray-100 px-8 py-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* ISO Promedio */}
+         
           <div className="text-center p-4 border rounded-lg shadow-sm bg-white">
             <div className="text-2xl font-semibold text-black mb-1">
               {avgCompliance}%
@@ -124,7 +124,7 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
               height="h-1.5"
             />
           </div>
-          {/* STC Promedio */}
+        
           <div className="text-center p-4 border rounded-lg shadow-sm bg-white">
             <div className="text-2xl font-semibold text-black mb-1">
               {avgSTC} dB
@@ -136,7 +136,7 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
               height="h-1.5"
             />
           </div>
-          {/* Reducción Externa */}
+          
           <div className="text-center p-4 border rounded-lg shadow-sm bg-white">
             <div className="text-2xl font-semibold text-black mb-1">
               {avgExternal} dB
@@ -148,7 +148,7 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
               height="h-1.5"
             />
           </div>
-          {/* Completados */}
+        
           <div className="text-center p-4 border rounded-lg shadow-sm bg-white">
             <div className="text-2xl font-semibold text-black mb-1">
               {completedStudies}
@@ -161,7 +161,7 @@ export const PlacesHeader: React.FC<PlacesHeaderProps> = ({
             />
           </div>
         </div>
-      </div>
+      </div> */}
     </>
   );
 };

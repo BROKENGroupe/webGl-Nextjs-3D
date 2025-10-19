@@ -453,7 +453,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         </button>
                       </div>
                     </form>
-                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                       <h4 className="font-medium text-blue-900 mb-2 flex items-center">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m-1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -463,7 +463,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       <p className="text-sm text-blue-800">
                         Después de crear tu establecimiento, podrás configurar parámetros acústicos detallados, realizar estudios ISO 12354-4 y visualizar el espacio en 3D.
                       </p>
-                    </div>
+                    </div> */}
                   </div>
                 </>
               )}
