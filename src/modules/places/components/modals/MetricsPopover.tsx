@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Establishment } from '../../types';
+import { Place } from '../../types';
 import { LinearProgress } from '../progress/LinearProgress';
 
 interface MetricsPopoverProps {
-  establishment: Establishment;
+  establishment: Place;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -51,11 +51,11 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
             <div className="space-y-3">
               <div>
                 <LinearProgress 
-                  percentage={establishment.compliance_score} 
+                  percentage={establishment.complianceScore} 
                   color={
-                    establishment.compliance_score >= 85
+                    establishment.complianceScore >= 85
                       ? 'blue'
-                      : establishment.compliance_score >= 70
+                      : establishment.complianceScore >= 70
                         ? 'gray'
                         : 'black'
                   }                  
@@ -65,7 +65,7 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
               
               <div>
                 <LinearProgress 
-                  percentage={Math.min((establishment.acousticProfile.sound_transmission_loss / 60) * 100, 100)} 
+                  percentage={Math.min((establishment.acousticProfile.soundTransmissionLoss / 60) * 100, 100)} 
                   color="blue"                  
                   height="h-2"
                 />
@@ -73,7 +73,7 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
               
               <div>
                 <LinearProgress 
-                  percentage={Math.min((establishment.acousticProfile.impact_sound_insulation / 70) * 100, 100)} 
+                  percentage={Math.min((establishment.acousticProfile.impactSoundInsulation / 70) * 100, 100)} 
                   color="gray"                 
                   height="h-2"
                 />
@@ -81,7 +81,7 @@ export const MetricsPopover: React.FC<MetricsPopoverProps> = ({
               
               <div>
                 <LinearProgress 
-                  percentage={establishment.noise_impact_external > 30 ? 90 : (establishment.noise_impact_external / 30) * 100} 
+                  percentage={establishment.noiseImpactExternal > 30 ? 90 : (establishment.noiseImpactExternal / 30) * 100} 
                   color="blue"                  
                   height="h-2"
                 />
