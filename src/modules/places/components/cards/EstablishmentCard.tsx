@@ -213,13 +213,13 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
           )}
 
           <button
-            onClick={() => router.push('/editor')}
+            onClick={() => router.push('/places/' + establishment.id)}
             className="flex items-center justify-center bg-white border border-gray-300 hover:bg-gray-100 text-gray-900 text-xs font-medium rounded-md py-2 px-2 transition-colors"
           >
             <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
-            Ver 3D
+            Ver Simulaciones
           </button>
         </div>
       </div>
