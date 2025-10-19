@@ -1,16 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Establishment } from '../../types';
 import { establishmentTypes, statusConfig } from '../../data/establishments';
 import { LinearProgressWithHover } from '../progress/LinearProgressWithHover';
 import { StudyIndicator } from '../indicators/StudyIndicator';
 import { MetricsPopover } from '../modals/MetricsPopover';
+import { Place } from '../../types';
 
 interface EstablishmentCardProps {
-  establishment: Establishment;
-  getDisplayMetrics: (establishment: Establishment) => any;
-  getActiveStudy: (establishment: Establishment) => any;
+  establishment: Place;
+  getDisplayMetrics: (establishment: Place) => any;
+  getActiveStudy: (establishment: Place) => any;
   selectStudy: (establishmentId: string, studyIndex: number) => void;
   selectedStudyByEstablishment: {[key: string]: number};
   setShowPopover: (id: string | null) => void;
@@ -31,10 +31,10 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
   setHoveredProgress
 }) => {
   const router = useRouter();
-  const typeInfo = establishmentTypes[establishment.type as keyof typeof establishmentTypes];
+  const typeInfo = establishmentTypes[establishment.category.name as keyof typeof establishmentTypes];
   const statusInfo = statusConfig[establishment.status as keyof typeof statusConfig];
   const displayMetrics = getDisplayMetrics(establishment);
-  const hasStudies = establishment.studies && establishment.studies.length > 0;
+  const hasStudies = establishment.simulations && establishment.simulations.length > 0;
 
   const handlerNavigateToEditor = (establishmentId: string) => {
     router.push(`/editor/${establishmentId}`);
@@ -132,7 +132,7 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
           transition={{ duration: 0.3 }}
         >
           <LinearProgressWithHover
-            percentage={displayMetrics.compliance_score}
+            percentage={displayMetrics.complianceScore}
             color="black"
             label="ISO Compliance"
             hoverData={progressData.iso}
@@ -141,7 +141,7 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
             setHoveredProgress={setHoveredProgress}
           />
           <LinearProgressWithHover
-            percentage={Math.min((displayMetrics.sound_transmission_loss / 60) * 100, 100)}
+            percentage={Math.min((displayMetrics.soundTransmissionLoss / 60) * 100, 100)}
             color="blue"
             label="Aislamiento STC"
             hoverData={progressData.stc}
@@ -150,7 +150,7 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
             setHoveredProgress={setHoveredProgress}
           />
           <LinearProgressWithHover
-            percentage={displayMetrics.noise_reduction > 30 ? 90 : (displayMetrics.noise_reduction / 30) * 100}
+            percentage={displayMetrics.noiseReduction > 30 ? 90 : (displayMetrics.noiseReduction / 30) * 100}
             color="black"
             label="Control Externo"
             hoverData={progressData.control}
@@ -163,17 +163,17 @@ export const EstablishmentCard: React.FC<EstablishmentCardProps> = ({
         {/* Métricas compactas - monocromáticas */}
         <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
           <div className="bg-gray-100 rounded p-2 text-center">
-            <div className="font-semibold text-gray-900">{displayMetrics.sound_transmission_loss}</div>
+            <div className="font-semibold text-gray-900">{displayMetrics.soundTransmissionLoss}</div>
             <div className="text-gray-600">dB STC</div>
           </div>
           <div className="bg-gray-100 rounded p-2 text-center">
-            <div className="font-semibold text-gray-900">{displayMetrics.impact_sound_insulation}</div>
+            <div className="font-semibold text-gray-900">{displayMetrics.impactSoundInsulation}</div>
             <div className="text-gray-600">dB IIC</div>
           </div>
         </div>
 
         {/* Información del estudio activo */}
-        {getActiveStudy(establishment) && establishment.studies.length > 1 && (
+        {getActiveStudy(establishment) && establishment.simulations.length > 1 && (
           <div className="mb-3 p-2 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-gray-700 truncate">

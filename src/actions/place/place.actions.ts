@@ -1,17 +1,23 @@
-import { CreatePlaceSchemaType, validatePlaceInput } from "@/schemas/place.schema";
-import { createPlace, getPlaces, updatePlace, deletePlace } from "@/services/placeService";
+import { CreatePlaceSchemaType, validatePlaceFormData } from "@/schemas/place.schema";
+import { createPlace, getPlacesWorkspace, updatePlace, deletePlace } from "@/services/placeService";
 
 // Crear un establecimiento
 export async function createPlaceAction(
-  form: Readonly<CreatePlaceSchemaType>,
+  form: FormData,
 ): Promise<any> {
-  const validatedForm = await validatePlaceInput(form);
-  return await createPlace(validatedForm);
+  const formData = new FormData();
+  formData.append('name', form.get('name') as string);
+  formData.append('address', form.get('address') as string);
+  formData.append('image', form.get('image') as File);
+  formData.append('description', form.get('description') as string);
+  formData.append('categoryId', form.get('categoryId') as string);
+  formData.append('status', 'active');
+  return await createPlace(formData);
 }
 
 // Obtener todos los establecimientos
-export async function getPlacesAction() {
-  return await getPlaces();
+export async function getPlacesWorkspaceAction() {
+  return await getPlacesWorkspace();
 }
 
 // Actualizar un establecimiento

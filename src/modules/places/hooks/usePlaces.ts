@@ -1,60 +1,73 @@
 import { useState } from "react";
-import { allStudies, establishments } from "../data/establishments";
-import { Establishment } from "../types";
+import { useQuery } from "@tanstack/react-query";
+import { getPlacesWorkspaceAction } from "@/actions/place/place.actions";
+import { Place } from "../types";
 
 export const usePlaces = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'establishments' | 'studies' | 'distinctions'>('establishments');
-  const [selectedStudyByEstablishment, setSelectedStudyByEstablishment] = useState<{[key: string]: number}>({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<"places" | "studies" | "distinctions">("places");
+  const [selectedSimulationByPlace, setSelectedSimulationByPlace] = useState<{[key: string]: number}>({});
   
   // Estados para modales y popovers
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedEstablishment, setSelectedEstablishment] = useState<Establishment | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [showPopover, setShowPopover] = useState<string | null>(null);
   const [hoveredProgress, setHoveredProgress] = useState<string | null>(null);
 
-  const filteredEstablishments = establishments.filter((establishment) => {
-    const matchesSearch = establishment.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         establishment.address.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === 'all' || establishment.type === selectedType;
-    const matchesStatus = selectedStatus === 'all' || establishment.status === selectedStatus;
+  // Obtener places desde el backend
+  const { data: placesRaw, isFetched } = useQuery({
+    queryKey: ["places"],
+    queryFn: getPlacesWorkspaceAction,
+  });
+
+  // Controlar que places sea siempre un array
+  const places: Place[] = Array.isArray(placesRaw) ? placesRaw : [];
+
+  // allSimulations calculado desde los places traídos
+  const allSimulations = places.flatMap((e: Place) => e.simulations || []);
+
+  const filteredPlaces = places.filter((place: Place) => {
+    const matchesSearch = place.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         place.address.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = selectedType === 'all' || place.category.name === selectedType;
+    const matchesStatus = selectedStatus === 'all' || place.status === selectedStatus;
 
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const getDisplayMetrics = (establishment: Establishment) => {
-    const selectedIndex = selectedStudyByEstablishment[establishment.id] || 0;
-    const activeStudy = establishment.studies[selectedIndex];
+  const getDisplayMetrics = (place: Place) => {
+    const selectedIndex = selectedSimulationByPlace[place.id] || 0;
+    const activeSimulation = place.simulations?.[selectedIndex];
     
-    if (activeStudy) {
+    if (activeSimulation) {
       return {
-        compliance_score: activeStudy.metrics.iso_compliance_level,
-        sound_transmission_loss: activeStudy.metrics.sound_transmission_class,
-        impact_sound_insulation: establishment.acousticProfile.impact_sound_insulation,
-        noise_reduction: establishment.noise_impact_external
+        complianceScore: activeSimulation.metrics.isoComplianceLevel,
+        soundTransmissionLoss: activeSimulation.metrics.soundTransmissionClass,
+        impactSoundInsulation: activeSimulation.acousticProfile.impactSoundInsulation,
+        noiseReduction: place.noiseImpactExternal
       };
     }
     
     return {
-      compliance_score: establishment.compliance_score,
-      sound_transmission_loss: establishment.acousticProfile.sound_transmission_loss,
-      impact_sound_insulation: establishment.acousticProfile.impact_sound_insulation,
-      noise_reduction: establishment.noise_impact_external
+      complianceScore: place.complianceScore,
+      soundTransmissionLoss: place.acousticProfile.soundTransmissionLoss,
+      impactSoundInsulation: place.acousticProfile.impactSoundInsulation,
+      noiseReduction: place.noiseImpactExternal
     };
   };
 
-  const getActiveStudy = (establishment: Establishment) => {
-    const selectedIndex = selectedStudyByEstablishment[establishment.id] || 0;
-    return establishment.studies[selectedIndex];
+  const getActiveSimulation = (place: Place) => {
+    const selectedIndex = selectedSimulationByPlace[place.id] || 0;
+    return place.simulations?.[selectedIndex];
   };
 
-  const selectStudy = (establishmentId: string, studyIndex: number) => {
-    setSelectedStudyByEstablishment(prev => ({
+  const selectSimulation = (placeId: string, simulationIndex: number) => {
+    setSelectedSimulationByPlace(prev => ({
       ...prev,
-      [establishmentId]: studyIndex
+      [placeId]: simulationIndex
     }));
   };
 
@@ -64,12 +77,13 @@ export const usePlaces = () => {
     selectedType,
     selectedStatus,
     activeTab,
-    selectedStudyByEstablishment,
+    selectedSimulationByPlace,
     showDetailsModal,
-    selectedEstablishment,
+    selectedPlace,
     showOnboardingModal,
     showPopover,
     hoveredProgress,
+    isFetched,
     
     // Setters
     setSearchTerm,
@@ -77,19 +91,19 @@ export const usePlaces = () => {
     setSelectedStatus,
     setActiveTab,
     setShowDetailsModal,
-    setSelectedEstablishment,
+    setSelectedPlace,
     setShowOnboardingModal,
     setShowPopover,
     setHoveredProgress,
     
     // Datos computados
-    filteredEstablishments,
-    establishments,
-    allStudies,
+    filteredPlaces,
+    places,
+    allSimulations,
     
     // Métodos
     getDisplayMetrics,
-    getActiveStudy,
-    selectStudy
+    getActiveSimulation,
+    selectSimulation
   };
 };

@@ -14,6 +14,9 @@ export function resolvePlaceAction(action: string, payload: any): PlaceAction | 
     case 'delete-place':
       return { endpoint: `/places/${payload.id}`, method: 'DELETE' };
 
+    case 'get-places':
+      return { endpoint: '/places/workspace/all', method: 'GET' };
+
     default:
       return null;
   }

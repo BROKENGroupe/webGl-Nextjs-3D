@@ -1,20 +1,29 @@
 const baseUrl = process.env.API_BASE_URL;
 
-export const createPlace = async (place: any) => {
-  console.log('Creating place with data:', place);
-  const res = await fetch(`/api/places`, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "create-place",
-      payload: place,
-    }),
-    cache: "no-store",
+// export const createPlace = async (place: any) => {
+//   console.log('Creating place with data:', place);
+//   const res = await fetch(`/api/places`, {
+//     method: "POST",
+//     body: JSON.stringify({
+//       action: "create-place",
+//       payload: place,
+//     }),
+//     cache: "no-store",
+//   });
+//   return res.json();
+// };
+
+export const createPlace = async (form: FormData) => {  
+  const res = await fetch('/api/places', {
+    method: 'POST',
+    body: form, 
   });
+
   return res.json();
 };
 
 // Obtener todos los establecimientos
-export const getPlaces = async () => {
+export const getPlacesWorkspace = async () => {
   const res = await fetch(`/api/places`, {
     method: "GET",
     cache: "no-store",

@@ -2,25 +2,25 @@ import React from 'react';
 import { LinearProgress } from '../progress/LinearProgress';
 
 interface StudiesViewProps {
-  establishments: any[];
+  places: any[];
   allStudies: any[];
 }
 
-export const StudiesView: React.FC<StudiesViewProps> = ({ establishments, allStudies }) => {
+export const StudiesView: React.FC<StudiesViewProps> = ({ places, allStudies }) => {
   const completedStudies = allStudies.filter(s => s.status === 'completed');
   const inProgressStudies = allStudies.filter(s => s.status === 'in_progress');
   const pendingStudies = allStudies.filter(s => s.status === 'pending');
   
   const avgCompliance = completedStudies.length > 0 
-    ? Math.round(completedStudies.reduce((sum, s) => sum + s.metrics.iso_compliance_level, 0) / completedStudies.length)
+    ? Math.round(completedStudies.reduce((sum, s) => sum + s.metricsIsoComplianceLevel, 0) / completedStudies.length)
     : 0;
 
   const avgNoiseIsolation = completedStudies.length > 0 
-    ? Math.round(completedStudies.reduce((sum, s) => sum + s.metrics.noise_isolation, 0) / completedStudies.length)
+    ? Math.round(completedStudies.reduce((sum, s) => sum + s.metricsNoiseIsolation, 0) / completedStudies.length)
     : 0;
 
-  const avgExternalReduction = establishments.length > 0 
-    ? Math.round(establishments.reduce((sum, e) => sum + e.noise_impact_external, 0) / establishments.length)
+  const avgExternalReduction = places.length > 0 
+    ? Math.round(places.reduce((sum, e) => sum + e.noiseImpactExternal, 0) / places.length)
     : 0;
   
   return (
@@ -134,35 +134,35 @@ export const StudiesView: React.FC<StudiesViewProps> = ({ establishments, allStu
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900">Estudios Detallados</h3>
-          <p className="text-sm text-gray-600">Análisis individual por establecimiento</p>
+          <p className="text-sm text-gray-600">Análisis individual por lugar</p>
         </div>
         
         <div className="divide-y divide-gray-100">
-          {establishments.map((establishment) => (
-            <div key={establishment.id} className="p-6">
+          {places.map((place) => (
+            <div key={place.id} className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
                   <img 
-                    src={establishment.image} 
-                    alt={establishment.name}
+                    src={place.image} 
+                    alt={place.name}
                     className="w-12 h-12 rounded-lg object-cover"
                   />
                   <div>
-                    <h4 className="font-semibold text-gray-900">{establishment.name}</h4>
-                    <p className="text-sm text-gray-600">{establishment.address}</p>
+                    <h4 className="font-semibold text-gray-900">{place.name}</h4>
+                    <p className="text-sm text-gray-600">{place.address}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-gray-900">
-                    {establishment.compliance_score}%
+                    {place.compliance_score}%
                   </div>
                   <div className="text-xs text-gray-500">ISO Compliance</div>
                 </div>
               </div>
               
-              {/* Estudios del establecimiento */}
+              {/* Estudios del lugar */}
               <div className="space-y-3">
-                {establishment.studies.map((study: any, index: number) => (
+                {place.simulations.map((study: any, index: number) => (
                   <div key={study.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className={`w-2 h-2 rounded-full ${
@@ -218,7 +218,7 @@ export const StudiesView: React.FC<StudiesViewProps> = ({ establishments, allStu
           </div>
           <div className="flex items-center">
             <span className="inline-block w-2 h-2 rounded-full bg-gray-900 mr-2" />
-            Análisis consolidado multi-establecimiento
+            Análisis consolidado multi-lugar
           </div>
           <div className="flex items-center">
             <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2" />
