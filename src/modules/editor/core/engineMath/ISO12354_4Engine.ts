@@ -498,7 +498,7 @@ export class ISO12354_4Engine {
     const totalArea = elements.reduce((sum, el) => sum + el.area, 0);
 
     if (totalArea === 0) {
-      return {};
+      //return {};
     }
 
     // Find a representative material to get the frequency bands from
@@ -509,7 +509,7 @@ export class ISO12354_4Engine {
 
     if (!firstElementWithMaterial) {
       console.error("No valid materials found for elements in segment.");
-      return {};
+      //return {};
     }
 
     const materialId = firstElementWithMaterial.material || firstElementWithMaterial.template;
@@ -557,11 +557,11 @@ export class ISO12354_4Engine {
    * @param V_receiver Volumen del recinto receptor (exterior, teóricamente infinito).
    * @returns D_2m,nT por banda de frecuencia.
    */
-  static calcD2mnT(R_segment: Record<ThirdOctave, number>, S_segment: number, V_receiver: number): Record<ThirdOctave, number> {
+  static calcD2mnT(R_segment: Record<ThirdOctave, number>, S_segment: number, V_receiver: number) {
     // TODO: Implementar la fórmula D_2m,nT = R' + 10 * log10(A_0 * T_0 / (S_segment * 0.16 * V_receiver))
     // Esta fórmula es compleja para exterior, se simplificará.
     console.log("TODO: Implementar calcD2mnT");
-    return {}; // Placeholder
+    //return {}; // Placeholder
   }
 
   /**
@@ -591,7 +591,7 @@ export class ISO12354_4Engine {
     // En una implementación completa, se calcularía la contribución de cada segmento a un punto receptor.
     const totalArea = segments.reduce((sum, seg) => sum + seg.totalArea, 0);
     const totalR = this.calcSegmentR(
-      segmentsWithR.flatMap(s => s.elements.map(e => ({ ...e, area: e.area }))),
+      segmentsWithR.flatMap(s => s.elements.map((e: any) => ({ ...e, area: e.area }))),
       materialsData
     );
 

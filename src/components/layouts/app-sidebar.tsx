@@ -369,15 +369,7 @@ export const AppSidebar = React.memo(function AppSidebar({
         <NavMainWithPermissions2
           items={sidebarData2.navMain}
           hasPermission={hasPermission}
-        />
-
-        {/* Modal para crear establecimiento */}
-        {showCreateModal && (
-          <OnboardingModal
-            isOpen={showCreateModal}
-            onClose={() => setShowCreateModal(false)}
-          />
-        )}
+        />       
 
         <NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
       </SidebarContent>

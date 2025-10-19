@@ -10,7 +10,7 @@ import {
   type LucideIcon,
   Landmark,
 } from "lucide-react";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -20,6 +20,8 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { useSidebar } from "@/shared/ui/sidebar"; // <-- Importa tu hook/contexto real
+import { OnboardingModal } from "@/modules/places/components/modals/OnboardingModal";
+import React from "react";
 
 export function NavMain2({
   items,
@@ -40,15 +42,22 @@ export function NavMain2({
   }[];
 }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const sidebar = useSidebar(); // <-- Usa el hook real de tu sidebar
-  const collapsed = (sidebar as any)?.collapsed ?? false; // fallback to false if undefined
 
-  // Asegúrate de mapear sobre los subitems (establecimientos)
+  const handlerModalCreate = React.useCallback(() => {
+    setShowCreateModal(true);
+  }, []);
+
+  const { state } = useSidebar();
+  console.log("NavMain2 collapsed:", state);
+
+  const collapsed = state === 'collapsed' ? true : false;
+
   const places = items
   .map((item) => item || [])
   .flat()
   .slice(0, 3);
 
+  const router = useRouter();
 
   return (
     <SidebarGroup>
@@ -64,7 +73,7 @@ export function NavMain2({
         <button
           className="p-1 rounded hover:bg-neutral-200 transition text-neutral-400 hover:text-neutral-900 flex-shrink-0"
           title="Crear establecimiento"
-          onClick={() => setShowCreateModal(true)}
+          onClick={handlerModalCreate}
           aria-label="Crear establecimiento"
         >
           <Plus size={16} />
@@ -83,32 +92,28 @@ export function NavMain2({
                 ? "w-full flex justify-center"
                 : "flex items-center justify-between"
             } rounded-lg hover:bg-neutral-100 transition cursor-pointer ${
-              collapsed ? "px-0 py-1" : "px-2 py-1.5"
+              collapsed ? "px-0 py-1" : "px-0 py-1.5"
             }`}
             style={{ minWidth: 0 }}
           >
             <div className="flex-1 min-w-0 p-2 m-0">
               <SidebarMenuButton
                 tooltip={place.title}
-                className={`flex ${
-                  collapsed
-                    ? "items-center gap-3"
-                    : "flex-col justify-between min-w-0 text-left"
-                } px-0 py-0`}
-                onClick={() => router.push(place.url)}
+                className={`flex ${collapsed ? "items-center" : "flex-col items-start text-left"} px-0 py-0 h-[35px]`}
+                onClick={() => router.push('/places/' + place.id)}
               >
                 {collapsed ? (
                   // Usa el icono del item o uno por defecto
                   place.icon ? <place.icon size={20} /> : <Landmark size={20} />
                 ) : (
                   <>
-                    <span className="font-medium text-neutral-900 text-sm truncate">
+                    <div className="font-medium text-neutral-900 text-sm truncate">
                       {place.title}
-                    </span>
+                    </div>
                     {place.address && (
-                      <span className="text-xs text-neutral-500 truncate">
+                      <div className="text-xs text-neutral-500 truncate">
                         {place.address}
-                      </span>
+                      </div>
                     )}
                   </>
                 )}
@@ -165,7 +170,7 @@ export function NavMain2({
             )}
           </li>
         ))}
-        {places.length === 3 && (
+        {!collapsed && places.length === 3 && (
           <li className="flex justify-center pt-2 px-2">
             <Button
               variant="outline"
@@ -180,12 +185,13 @@ export function NavMain2({
         )}
       </ul>
       {/* Modal para crear establecimiento */}
-      {/* {showCreateModal && (
-        <YourCreatePlaceModal
-          open={showCreateModal}
+      {showCreateModal && (
+        <OnboardingModal
+          isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
         />
-      )} */}
+      )}
     </SidebarGroup>
   );
+   
 }
