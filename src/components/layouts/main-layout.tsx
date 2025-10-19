@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { AppSidebar } from "@/shared/layout/app-sidebar"
 
 import { Home, X } from "lucide-react"
 import { SidebarInset, SidebarTrigger } from "@/shared/ui/sidebar"
 import { Separator } from "@/shared/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/shared/ui/breadcrumb"
 import { Button } from "@/shared/ui/button"
+import { AppSidebar } from "./app-sidebar"
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const [isToolPanelOpen, setIsToolPanelOpen] = useState(true)

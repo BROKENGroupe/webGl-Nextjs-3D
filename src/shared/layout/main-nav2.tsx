@@ -87,13 +87,13 @@ export function NavMain2({
             }`}
             style={{ minWidth: 0 }}
           >
-            <SidebarMenuItem className="flex-1 min-w-0 p-0 m-0">
+            <div className="flex-1 min-w-0 p-2 m-0">
               <SidebarMenuButton
                 tooltip={place.title}
                 className={`flex ${
                   collapsed
-                    ? "items-center justify-center gap-2"
-                    : "flex-col min-w-0 text-left"
+                    ? "items-center gap-3"
+                    : "flex-col justify-between min-w-0 text-left"
                 } px-0 py-0`}
                 onClick={() => router.push(place.url)}
               >
@@ -113,7 +113,7 @@ export function NavMain2({
                   </>
                 )}
               </SidebarMenuButton>
-            </SidebarMenuItem>
+            </div>
             {!collapsed && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
