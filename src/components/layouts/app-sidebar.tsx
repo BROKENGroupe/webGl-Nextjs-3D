@@ -12,6 +12,8 @@ import {
   Eye,
   MapPin,
   Building2,
+  MoreHorizontal,
+  Plus,
 } from "lucide-react";
 import { NavProjects } from "@/shared/layout/nav-projects";
 import { NavSecondary } from "@/shared/layout/nav-secondary";
@@ -28,12 +30,13 @@ import { useTypedSession } from "@/hooks/useTypedSession";
 import { Can } from "@/app/auth/can";
 import { NavMainWithPermissions } from "./NavMainWithPermissions";
 import { AccountType } from "@/modules/onb/types/enum";
-import {
-  LoadingComponent,
-  SidebarSkeleton,
-} from "@/components/atoms/loadingcomponent";
+import { SidebarSkeleton } from "@/components/atoms/loadingcomponent";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { OnboardingModal } from "@/modules/places/components/modals/OnboardingModal";
+import { usePlacesSection } from "./hooks/use-places";
+import { NavMainWithPermissions2 } from "./NavMainWithPermissions2";
 
-//   Memoizar datos estáticos que nuncan cambian
 const STATIC_NAV_SECONDARY = [
   {
     title: "Soporte Técnico",
@@ -64,28 +67,25 @@ export const AppSidebar = React.memo(function AppSidebar({
     isLoading: accessLoading,
   } = useAccess();
   const { session, status } = useTypedSession();
+  const router = useRouter();
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   //   Verificar si todo está listo
   const isDataReady = React.useMemo(() => {
     const authReady = status !== "loading";
     const accessDataReady = accessReady && !accessLoading;
 
-    console.log("🔍 Sidebar readiness check:", {
-      authStatus: status,
-      authReady,
-      accessReady,
-      accessLoading,
-      accessDataReady,
-      finalReady: authReady && accessDataReady,
-    });
-
     return authReady && accessDataReady;
   }, [status, accessReady, accessLoading]);
 
-  //   Solo procesar datos cuando todo esté listo
+  // Hook para establecimientos
+  const { placesData, placesSection } = usePlacesSection("places");
+
+  console.log("Places Section:", placesSection);
+  // SidebarData para el menú principal
   const sidebarData = React.useMemo(() => {
     if (!isDataReady) {
-      console.log("⏳ Sidebar data not ready, returning empty data");
       return {
         user: { name: "", email: "", avatar: "" },
         teams: [],
@@ -95,11 +95,7 @@ export const AppSidebar = React.memo(function AppSidebar({
       };
     }
 
-    console.log("  Processing sidebar data - everything is ready");
-
-    //   Validar modules de forma segura
     const safeModules = Array.isArray(modules) ? modules : [];
-    console.log("🏢 Safe Modules:", safeModules);
 
     //   Datos del usuario
     const userData = {
@@ -107,9 +103,7 @@ export const AppSidebar = React.memo(function AppSidebar({
       email: session?.user?.email || "user@example.com",
       avatar: session?.user?.image || "/avatars/default.jpg",
     };
-    console.log("👤 User Data:", userData);
 
-    //   Datos de teams
     const teamsData = [
       {
         name: workspace?.name || "Mi Workspace",
@@ -120,9 +114,7 @@ export const AppSidebar = React.memo(function AppSidebar({
             : "Empresarial",
       },
     ];
-    console.log("🏢 Teams Data:", teamsData);
 
-    //   Sección de Diseño
     const designSection = safeModules.includes("design")
       ? [
           {
@@ -238,34 +230,33 @@ export const AppSidebar = React.memo(function AppSidebar({
               {
                 title: "Vista 3D Interactiva",
                 url: "/viewer",
-                permission: "render:view",
+                permission: "editor:view",
               },
               {
                 title: "Editor 3D",
                 url: "/editor",
-                permission: "render:edit",
+                permission: "editor:edit",
               },
               {
                 title: "Renderizado Avanzado",
                 url: "/render",
-                permission: "render:view",
+                permission: "editor:view",
               },
               {
                 title: "Recorridos Virtuales",
                 url: "/walkthrough",
-                permission: "render:view",
+                permission: "editor:view",
               },
               {
                 title: "Análisis de Iluminación",
                 url: "/lighting",
-                permission: "render:view",
+                permission: "editor:view",
               },
             ],
           },
         ]
       : [];
 
-    //   Sección de Configuración
     const settingsSection =
       safeModules.includes("settings") ||
       ["owner", "admin"].includes(role ?? "")
@@ -300,7 +291,6 @@ export const AppSidebar = React.memo(function AppSidebar({
           ]
         : [];
 
-    //   NavMain completo
     const navMainItems = [
       ...designSection,
       ...librarySection,
@@ -309,42 +299,50 @@ export const AppSidebar = React.memo(function AppSidebar({
       ...settingsSection,
     ];
 
-    //   Proyectos (solo si tiene permisos)
-    const projectsData = hasPermission("projects:view")
-      ? [
-          {
-            name: "Casa Moderna Minimalista",
-            url: "/projects/modern-house",
-            icon: Home,
-          },
-          {
-            name: "Club Poblado Elite",
-            url: "/projects/club-poblado",
-            icon: Building2,
-          },
-          {
-            name: "Teatro Metropolitano",
-            url: "/projects/teatro-metro",
-            icon: Building2,
-          },
-          {
-            name: "Centro Comercial Santafé",
-            url: "/projects/santafe-mall",
-            icon: Building2,
-          },
-        ]
-      : [];
-
     return {
       user: userData,
       teams: teamsData,
       navMain: navMainItems,
       navSecondary: STATIC_NAV_SECONDARY,
-      projects: projectsData,
     };
-  }, [isDataReady, modules, session, workspace, role, hasPermission]);
+  }, [
+    isDataReady,
+    modules,
+    session,
+    workspace,
+    role,
+    hasPermission,
+    placesData,
+  ]);
+  // SidebarData para el menú principal
+  const sidebarData2 = React.useMemo(() => {
+    // if (!isDataReady) {
+    //   return {
+    //     user: { name: "", email: "", avatar: "" },
+    //     teams: [],
+    //     navMain: [],
+    //     navSecondary: STATIC_NAV_SECONDARY,
+    //     projects: [],
+    //   };
+    // }
 
-  //   Mostrar loading mientras espera
+    const navMainItems = placesSection;
+
+    return {
+      navMain: navMainItems,
+    };
+  }, [
+    isDataReady,
+    modules,
+    session,
+    workspace,
+    role,
+    hasPermission,
+    placesData,
+  ]);
+
+  console.log("Sidebar Data 2:", sidebarData2);
+
   if (!isDataReady) {
     return (
       <Sidebar variant="sidebar" collapsible="icon" {...props}>
@@ -367,9 +365,19 @@ export const AppSidebar = React.memo(function AppSidebar({
           hasPermission={hasPermission}
         />
 
-        <Can permission="projects:view">
-          <NavProjects projects={sidebarData.projects} />
-        </Can>
+        {/* Nuevo menú lateral de establecimientos con permisos y vista adaptada */}
+        <NavMainWithPermissions2
+          items={sidebarData2.navMain}
+          hasPermission={hasPermission}
+        />
+
+        {/* Modal para crear establecimiento */}
+        {showCreateModal && (
+          <OnboardingModal
+            isOpen={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+          />
+        )}
 
         <NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
       </SidebarContent>

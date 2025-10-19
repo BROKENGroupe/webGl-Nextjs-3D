@@ -2,7 +2,7 @@ export const mockPlace = {
   id: "68f4549f50c2ac99fddcd033",
   name: "Oficina Central",
   address: "Av. Siempre Viva 123, Ciudad",
-  image: "https://res.cloudinary.com/dip6e1p0p/image/upload/v1760859004/places/Colageno-Imgs_dhrjl5.png",
+  image: "https://res.cloudinary.com/dip6e1p0p/image/upload/v1760887301/assets/4bf8a4d175eeadc8cc03f04d4ef1889d_tzn3pa.jpg",
   status: "activo",
   category: { id: "cat1", name: "Oficina" },
   createdAt: "2025-10-19T03:01:51.294Z",
