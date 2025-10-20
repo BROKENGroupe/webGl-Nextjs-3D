@@ -4,7 +4,7 @@ import { Button } from "@/shared/ui/button";
 import EditableHeaderLine from "./EditableHeaderLine";
 import * as THREE from "three";
 import { LineAdvanceEngine } from "../../core/engine/LineAdvanceEngine";
-
+import { PolygonEditModal } from "./PolygonEditModal";
 
 const predefinedColors = [
   { name: "Negro", value: "#000000" },
@@ -43,6 +43,7 @@ export default function LineContextModal({
   const [squareMode, setSquareMode] = useState(false); // <-- Nuevo estado
   const [limitVisualSize, setLimitVisualSize] = useState(true); // Nuevo switch
   const [singleLineMode, setSingleLineMode] = useState(!squareMode && !keepProportion); // Nuevo estado
+  const [showPolygonEditModal, setShowPolygonEditModal] = useState(false); // Estado para controlar el modal de edición de polígonos
 
   React.useEffect(() => {
     setLineName(name);
@@ -142,6 +143,10 @@ export default function LineContextModal({
   const handleDeleteLine = () => {
     removeCurrentLine(lineId);
     onClose();
+  };
+
+  const handleOpenPolygonEditModal = () => {
+    setShowPolygonEditModal(true);
   };
 
   return (
@@ -378,6 +383,21 @@ export default function LineContextModal({
             Eliminar
           </Button>
         </div>
+
+        {/* Opción para editar lados y colores del polígono (solo si hay más de 2 líneas) */}
+        {currentLines.length > 2 && (
+          <div style={{ padding: "10px 24px", marginTop: 16 }}>
+            <Button onClick={handleOpenPolygonEditModal}>
+              Editar lados y colores del polígono
+            </Button>
+          </div>
+        )}
+
+        {/* Modal para editar polígonos (solo si está activo el estado showPolygonEditModal) */}
+        <PolygonEditModal
+          visible={showPolygonEditModal}
+          onClose={() => setShowPolygonEditModal(false)}
+        />
       </div>
     </div>
   );

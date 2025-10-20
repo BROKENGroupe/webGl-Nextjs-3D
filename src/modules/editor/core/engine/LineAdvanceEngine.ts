@@ -204,4 +204,170 @@ export class LineAdvanceEngine {
 
     return { newLines, newPoints };
   }
+
+  /**
+   * Genera un polígono regular a partir de un array de tamaños (longitudes de lados).
+   * El polígono se centra en 'center' y se orienta según 'direction'.
+   * @param sizes Array de longitudes de cada lado (mínimo 3).
+   * @param center Centro del polígono (THREE.Vector3).
+   * @param direction Dirección inicial del primer lado (opcional, por defecto eje X).
+   * @returns { lines, points } - Líneas y puntos generados del polígono.
+   */
+  static generatePolygonFromSizes(
+    sizes: number[],
+    center: THREE.Vector3 = new THREE.Vector3(0, 0, 0),
+    direction?: THREE.Vector3
+  ) {
+    const n = sizes.length;
+    if (n < 3) return { lines: [], points: [] };
+
+    // Si es cuadrado perfecto
+    if (
+      n === 4 &&
+      sizes.every(s => Math.abs(s - sizes[0]) < 1e-6)
+    ) {
+      const points = LineAdvanceEngine.getSquarePoints(center, sizes[0], direction);
+      const lines = points.map((start, i) => {
+        const end = points[(i + 1) % 4];
+        return {
+          id: `poly-line-${i}`,
+          name: `Lado-${i}`,
+          start,
+          end,
+          color: "blue",
+          length: sizes[0],
+          width: 0.02
+        };
+      });
+      return { lines, points };
+    }
+
+    // Ángulo entre lados
+    const angleStep = (2 * Math.PI) / n;
+    const baseDir = direction ? direction.clone().normalize() : new THREE.Vector3(1, 0, 0);
+
+    // Calcula los puntos en ciclo
+    let points: THREE.Vector3[] = [];
+    let currentAngle = 0;
+    for (let i = 0; i < n; i++) {
+      const rot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), currentAngle);
+      const dir = baseDir.clone().applyQuaternion(rot);
+      // Para cuadrilátero, usa el promedio de los tamaños para el radio
+      const radius = n === 4 ? (sizes[i] / 2) / Math.sin(Math.PI / n) : sizes[i] / 2;
+      const pt = center.clone().add(dir.multiplyScalar(radius));
+      points.push(pt);
+      currentAngle += angleStep;
+    }
+
+    // Cierra el ciclo: fuerza el último punto a conectar con el primero si hay desfase
+    if (points.length > 2) {
+      points[points.length - 1] = points[0].clone();
+    }
+
+    // Genera las líneas conectando los puntos en ciclo
+    const lines = points.map((start, i) => {
+      const end = points[(i + 1) % n];
+      return {
+        id: `poly-line-${i}`,
+        name: `Lado-${i}`,
+        start,
+        end,
+        color: "blue",
+        length: start.distanceTo(end),
+        width: 0.02
+      };
+    });
+
+    return { lines, points };
+  }
+
+  /**
+   * Genera líneas conectando los puntos dados en ciclo cerrado.
+   * @param points Array de puntos (THREE.Vector3) en orden.
+   * @param sizes Array de longitudes deseadas (opcional, si quieres ajustar los lados).
+   * @returns { lines } - Líneas generadas conectando los puntos.
+   */
+  static generateLinesFromPoints(points: THREE.Vector3[], sizes?: number[]) {
+    const n = points.length;
+    if (n < 3) return [];
+    return points.map((start, i) => {
+      const end = points[(i + 1) % n];
+      return {
+        id: `poly-line-${i}`,
+        name: `Lado-${i}`,
+        start,
+        end,
+        color: "blue",
+        length: sizes ? sizes[i] : start.distanceTo(end),
+        width: 0.02
+      };
+    });
+  }
+
+  /**
+   * Genera un cuadrilátero a partir de un array de tamaños (longitudes de lados).
+   * El cuadrilátero se centra en 'center' y se orienta según 'direction'.
+   * @param sizes Array de longitudes de cada lado (debe ser 4).
+   * @param center Centro del cuadrilátero (THREE.Vector3).
+   * @param direction Dirección inicial del primer lado (opcional, por defecto eje X).
+   * @returns { lines, points } - Líneas y puntos generados del cuadrilátero.
+   */
+  static generateQuadrilateralFromSizes(
+    sizes: number[],
+    center: THREE.Vector3,
+    direction: THREE.Vector3
+  ) {
+    if (sizes.length !== 4) return { lines: [], points: [] };
+
+    // Si todos los lados son iguales, cuadrado perfecto
+    if (sizes.every(s => Math.abs(s - sizes[0]) < 1e-6)) {
+      const points = LineAdvanceEngine.getSquarePoints(center, sizes[0], direction);
+      const lines = points.map((start, i) => {
+        const end = points[(i + 1) % 4];
+        return {
+          id: `poly-line-${i}`,
+          name: `Lado-${i}`,
+          start,
+          end,
+          color: "blue",
+          length: sizes[0],
+          width: 0.02
+        };
+      });
+      return { lines, points };
+    }
+
+    // Si los lados son diferentes, parte del primer punto y ajusta los siguientes
+    // Mantén el primer punto, calcula los siguientes usando los largos y ángulos de 90°
+    let points: THREE.Vector3[] = [];
+    let angle = 0;
+    const baseDir = direction.clone().normalize();
+    let current = center.clone().add(baseDir.clone().multiplyScalar(sizes[0] / 2));
+    points.push(current.clone());
+    for (let i = 1; i < 4; i++) {
+      angle += Math.PI / 2;
+      const dir = baseDir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+      current = current.clone().add(dir.multiplyScalar(sizes[i]));
+      points.push(current.clone());
+    }
+
+    // Ajusta el último punto para cerrar el polígono
+    // (opcional: puedes recalcular el centro si lo deseas)
+
+    // Genera las líneas conectando los puntos en ciclo
+    const lines = points.map((start, i) => {
+      const end = points[(i + 1) % 4];
+      return {
+        id: `poly-line-${i}`,
+        name: `Lado-${i}`,
+        start,
+        end,
+        color: "blue",
+        length: start.distanceTo(end),
+        width: 0.02
+      };
+    });
+
+    return { lines, points };
+  }
 }
