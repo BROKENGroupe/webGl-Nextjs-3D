@@ -8,7 +8,6 @@ import { AcousticHeatmapShader } from "./heatmaps/AcousticHeatmapShader";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { useDrawingStore } from "../store/drawingStore";
 import { useOpeningsStore } from "../store/openingsStore";
-import { FloorsGroup } from "./extrudeFloor/FloorsGroup";
 import { OpeningMesh } from "./extrudeFloor/OpeningMesh";
 import { RoomCeiling } from "./extrudeFloor/RoomCeiling";
 import { RoomFloor } from "./extrudeFloor/RoomFloor";
