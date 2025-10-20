@@ -52,6 +52,7 @@ interface DrawingState {
   // Nuevas acciones para paredes internas
   addInternalWall: (start: THREE.Vector3, end: THREE.Vector3) => void;
   removeInternalWall: (index: number) => void;
+  removeCurrentLine: (lineId: string) => void;
 }
 
 
@@ -225,6 +226,22 @@ export const useDrawingStore = create<DrawingState>()(
           ),
         }));
       },
+      removeCurrentLine: (lineId: string) => set((state) => {
+        const idx = state.currentLines.findIndex(line => line.id === lineId);
+        if (idx === -1) return {};
+        const newLines = [...state.currentLines];
+        newLines.splice(idx, 1);
+
+        // Elimina también el punto asociado si existe (por índice)
+        const newPoints = state.currentPoints.length > idx
+          ? state.currentPoints.filter((_, i) => i !== idx)
+          : state.currentPoints;
+
+        return {
+          currentLines: newLines,
+          currentPoints: newPoints
+        };
+      }),
     }),
     {
       name: 'drawing-storage',

@@ -988,7 +988,6 @@ export default function DrawingScene() {
         isOpen={showFloorReplicationModal}
         onClose={() => setShowFloorReplicationModal(false)}
         onSuccess={(newFloorId) => {
-          console.log('✅ Planta replicada exitosamente:', newFloorId);
           setShowFloorReplicationModal(false);
         }}
       />

@@ -9,7 +9,7 @@
  * @module DrawingSurface
  * @version 1.0.0
  * @author insonor Team
- * @since 2024
+ * @since 2025
  * @requires React
  * @requires @react-three/fiber
  * @requires three
@@ -19,7 +19,7 @@
 
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 
 /**
  * @function snapToGrid
