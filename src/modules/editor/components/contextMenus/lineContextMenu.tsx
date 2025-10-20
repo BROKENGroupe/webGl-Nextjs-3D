@@ -226,7 +226,7 @@ export default function LineContextModal({
         </div>
 
         {/* Redimensionar solo esta línea */}
-        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
+        {/* <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
           <input
             type="checkbox"
             checked={singleLineMode}
@@ -241,7 +241,7 @@ export default function LineContextModal({
           <label htmlFor="single-line-mode-switch" style={{ fontSize: 14, fontWeight: 500 }}>
             Redimensionar solo esta línea
           </label>
-        </div>
+        </div> */}
 
         {/* Largo de la línea editable */}
         <div style={{ padding: "10px 24px" }}>
