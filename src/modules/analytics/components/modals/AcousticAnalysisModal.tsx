@@ -55,6 +55,7 @@ interface AcousticAnalysisModalProps {
   isOpen: boolean;
   onClose: () => void;
   walls: AcousticMaterial[];
+  handleCalculateInsulation: () => void; // eliminado por ahora
 }
 
 /**
@@ -75,7 +76,8 @@ interface MenuItem {
 export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
   isOpen,
   onClose,
-  walls
+  walls,
+  handleCalculateInsulation // eliminiado por ahora
 }) => {
   const [activeSection, setActiveSection] = useState('general');
   const isoResult = useIsoResultStore((state) => state.isoResult);
@@ -446,7 +448,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
                           <div key={p.id} className="mb-1">
                             <span className="font-bold">{p.type === 'wall' ? '🧱' : '🚪'}</span> 
                             <span className="ml-1">{p.description}</span>
-                            <span className="ml-2 text-gray-400">({p.coordinates.x.toFixed(2)}, {p.coordinates.z.toFixed(2)})</span>
+                            {/* <span className="ml-2 text-gray-400">({p.coordinates.x.toFixed(2)}, {p.coordinates.z.toFixed(2)})</span> */}
                             <span className={`ml-2 px-2 py-0.5 rounded text-white text-xs ${p.intensity > 0.7 ? 'bg-red-500' : p.intensity < 0.3 ? 'bg-green-500' : 'bg-yellow-500'}`}>
                               {Math.round(p.intensity * 100)}%
                             </span>
@@ -986,6 +988,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
             ) : (
               <div className="text-gray-500 text-lg mt-10">No hay resultados ISO disponibles.</div>
             )}
+             <Button onClick={handleCalculateInsulation} className="mt-4">Calculate Insulation (Eliminar)</Button> 
           </div>
         );
 
