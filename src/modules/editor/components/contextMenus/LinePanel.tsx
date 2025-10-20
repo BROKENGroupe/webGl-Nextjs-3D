@@ -4,10 +4,12 @@ import { Button } from "@/shared/ui/button";
 import EditableHeaderLine from "./EditableHeaderLine";
 import * as THREE from "three";
 import { LineAdvanceEngine } from "../../core/engine/LineAdvanceEngine";
-import {ArrowRight, MoveDownRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react';
+import { predefinedColors } from "@/shared/lib/utils";
+
 export function LinePanel({
   lineId,
-  onClose, // <-- Nuevo callback
+  onClose,
 }: {
   lineId: string;
   onClose: () => void;
@@ -19,7 +21,6 @@ export function LinePanel({
     removeCurrentLine,
   } = useDrawingStore();
   const line = currentLines.find((l) => l.id === lineId);
-  console.log("LinePanel render", lineId);
   const name = line?.name ?? "";
   const color = line?.color || "#000000";
   const width = line?.width || 0.02;
@@ -163,109 +164,70 @@ export function LinePanel({
   };
 
   return (
-    <div className="w-96 border-gray-200 bg-white relative">
+    <div className="w-96 bg-white relative rounded-lg">
       {/* Botón de cerrar en la esquina superior izquierda */}
       <button
         onClick={onClose}
         aria-label="Cerrar panel"
-        style={{
-          position: "absolute",
-          top: 16,
-          left: -5,
-          background: "none",
-          border: "none",
-          fontSize: 22,
-          color: "#888",
-          cursor: "pointer",
-          zIndex: 1001,
-          padding: 0,
-          lineHeight: 1,
-        }}
+        className="top-2 left-4 text-gray-500 hover:text-gray-700 transition-colors z-10"
       >
-        <ArrowRight />
+        <ArrowRight size={24} />
       </button>
-      <div className="p-0 w-full overflow-y-auto">
-        <div style={{ padding: "10px 24px" }}>
+      <div className="p-0 w-full overflow-y-auto mt-2">
+        <h3 className="mb-5 px-3 pt-6 text-lg font-semibold">Configuración de línea</h3>
+        <div className="flex items-center px-3">
           <EditableHeaderLine
             name={lineName}
             onUpdateName={handleChangeTitle}
           />
         </div>
-        <div
-          style={{
-            padding: "10px 24px",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
+        <div className="px-3 py-2 flex items-center gap-2">
           <input
             type="checkbox"
             checked={keepProportion}
             onChange={() => setKeepProportion((v) => !v)}
             id="keep-proportion-switch"
-            style={{ width: 18, height: 18 }}
+            className="w-4 h-4 accent-blue-600"
           />
           <label
             htmlFor="keep-proportion-switch"
-            style={{ fontSize: 14, fontWeight: 500 }}
+            className="text-sm font-medium"
           >
             Mantener proporción al redimensionar
           </label>
         </div>
-        <div
-          style={{
-            padding: "10px 24px",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
+        <div className="px-3 py-2 flex items-center gap-2">
           <input
             type="checkbox"
             checked={squareMode}
             onChange={() => setSquareMode((v) => !v)}
             id="square-mode-switch"
-            style={{ width: 18, height: 18 }}
+            className="w-4 h-4 accent-blue-600"
           />
           <label
             htmlFor="square-mode-switch"
-            style={{ fontSize: 14, fontWeight: 500 }}
+            className="text-sm font-medium"
           >
             Modo cuadrado (todas las líneas iguales)
           </label>
         </div>
-        <div
-          style={{
-            padding: "10px 24px",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
+        <div className="px-3 py-2 flex items-center gap-2">
           <input
             type="checkbox"
             checked={limitVisualSize}
             onChange={() => setLimitVisualSize((v) => !v)}
             id="limit-visual-size-switch"
-            style={{ width: 18, height: 18 }}
+            className="w-4 h-4 accent-blue-600"
           />
           <label
             htmlFor="limit-visual-size-switch"
-            style={{ fontSize: 14, fontWeight: 500 }}
+            className="text-sm font-medium"
           >
             Limitar tamaño visual (no escalar más allá de un límite)
           </label>
         </div>
-        <div style={{ padding: "10px 24px" }}>
-          <label
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              marginBottom: 6,
-              display: "block",
-            }}
-          >
+        <div className="px-3 py-2">
+          <label className="text-sm font-medium mb-1 block">
             Largo de línea (m)
           </label>
           <input
@@ -274,117 +236,58 @@ export function LinePanel({
             step={0.01}
             value={Number(lineLength.toFixed(2))}
             onChange={(e) => handleLengthChange(Number(e.target.value))}
-            style={{
-              width: "100%",
-              padding: "6px 10px",
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              fontSize: 13,
-              marginBottom: 8,
-            }}
+            className="w-full px-3 py-2 rounded border border-gray-300 text-sm mb-2"
           />
         </div>
-        <div style={{ padding: "10px 24px" }}>
-          <label
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              marginBottom: 6,
-              display: "block",
-            }}
-          >
+        <div className="px-3 py-2">
+          <label className="text-sm font-medium mb-1 block">
             Color de línea
           </label>
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+          <div className="flex gap-2 mb-2">
             <input
               type="color"
               value={selectedColor}
               onChange={(e) => setSelectedColor(e.target.value)}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 6,
-                border: "1px solid #ccc",
-              }}
+              className="w-8 h-8 rounded border border-gray-300"
             />
             {predefinedColors.map((color) => (
               <button
                 key={color.value}
                 onClick={() => setSelectedColor(color.value)}
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 6,
-                  border:
-                    selectedColor === color.value
-                      ? "2px solid #3b82f6"
-                      : "1px solid #ccc",
-                  background: color.value,
-                  cursor: "pointer",
-                }}
+                className={`w-6 h-6 rounded border transition-colors ${
+                  selectedColor === color.value
+                    ? "border-blue-500 ring-2 ring-blue-300"
+                    : "border-gray-300"
+                }`}
+                style={{ background: color.value }}
                 title={color.name}
+                type="button"
               />
             ))}
           </div>
         </div>
-        <div style={{ padding: "10px 24px" }}>
-          <label
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              marginBottom: 6,
-              display: "block",
-            }}
-          >
+        <div className="px-3 py-2">
+          <label className="text-sm font-medium mb-1 block">
             Grosor de línea (m)
           </label>
           <input
             type="number"
             value={lineWidth}
             onChange={(e) => setLineWidth(Number(e.target.value))}
-            style={{
-              width: "100%",
-              padding: "6px 10px",
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              fontSize: 13,
-              marginBottom: 8,
-            }}
+            className="w-full px-3 py-2 rounded border border-gray-300 text-sm mb-2"
           />
         </div>
-        <div style={{ padding: "10px 24px", display: "flex", gap: 8 }}>
+        <div className="px-3 py-4 flex gap-4">
           <Button
             variant="default"
-            style={{
-              flex: 1,
-              background: "#222",
-              color: "#fff",
-              borderRadius: 5,
-              fontWeight: 500,
-              fontSize: 13,
-              padding: "7px 0",
-              minWidth: 0,
-              boxShadow: "none",
-              border: "1px solid #e5e7eb",
-            }}
+            className="flex-1 bg-gray-900 text-white rounded font-semibold text-sm py-2 shadow-none border border-gray-300"
             onClick={handleApplyChanges}
           >
             Aplicar
           </Button>
           <Button
             variant="destructive"
-            style={{
-              flex: 1,
-              background: "#ef4444",
-              color: "#fff",
-              borderRadius: 5,
-              fontWeight: 400,
-              fontSize: 13,
-              padding: "7px 0",
-              minWidth: 0,
-              boxShadow: "none",
-              border: "1px solid #e5e7eb",
-            }}
+            className="flex-1 bg-red-500 text-white rounded font-semibold text-sm py-2 shadow-none border border-gray-300"
             onClick={handleDeleteLine}
           >
             Eliminar
@@ -395,11 +298,4 @@ export function LinePanel({
   );
 }
 
-const predefinedColors = [
-  { name: "Negro", value: "#000000" },
-  { name: "Gris", value: "#6b7280" },
-  { name: "Rojo", value: "#ef4444" },
-  { name: "Azul", value: "#3b82f6" },
-  { name: "Verde", value: "#10b981" },
-  { name: "Amarillo", value: "#f59e0b" },
-];
+
