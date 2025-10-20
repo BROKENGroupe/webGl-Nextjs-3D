@@ -39,8 +39,6 @@ import OpenCellingContextMenu from "./contextMenus/openCellingContextMenu";
 import OpenFloorContextMenu from "./contextMenus/openFloorContextMenu";
 
 import { ElementType, Wall } from "@/modules/editor/types/walls";
-import { LINE_COLORS } from "@/config/materials";
-import LineContextMenu from "./contextMenus/lineContextMenu";
 import { set } from "zod";
 import { color } from "framer-motion";
 import { ISO12354_4Engine } from "@/modules/editor/core/engineMath/ISO12354_4Engine";
@@ -48,6 +46,8 @@ import { SegmentsVisualizer } from "./SegmentsVisualizer";
 import { FloorReplicationModal } from './modals/FloorReplicationModal';
 import { MultiFloorRenderer } from './MultiFloorRenderer';
 import { useFloorsStore } from '../store/floorsStore';
+import { LinePanel } from "./contextMenus/LinePanel";
+import { CollapsibleAsideTrigger } from "./asside/asside-lateral-trigger";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -942,13 +942,14 @@ export default function DrawingScene() {
         onClose={() => setShowMaterialModal(false)}
       />
 
-      {/* Modal de contexto para la línea, fuera del grupo 3D */}
+      {/* Modal de contexto para la línea, fuera del grupo 3D */}      
 
-      <LineContextMenu
-        visible={lineMenuVisible}
-        lineId={selectedLineId ?? ""}
-        onClose={() => setLineMenuVisible(false)}
-      />
+       <CollapsibleAsideTrigger side="right" open={lineMenuVisible && !!Extrude}>       
+        <LinePanel
+          lineId={selectedLineId ?? ""}
+          onClose={() => setLineMenuVisible(false)}
+        />
+      </CollapsibleAsideTrigger>
 
       {/* NUEVO: Modal de replicación de plantas */}
       <FloorReplicationModal

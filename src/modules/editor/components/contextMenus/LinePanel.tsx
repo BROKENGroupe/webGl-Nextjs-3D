@@ -4,30 +4,22 @@ import { Button } from "@/shared/ui/button";
 import EditableHeaderLine from "./EditableHeaderLine";
 import * as THREE from "three";
 import { LineAdvanceEngine } from "../../core/engine/LineAdvanceEngine";
-import { PolygonEditModal } from "./PolygonEditModal";
-
-const predefinedColors = [
-  { name: "Negro", value: "#000000" },
-  { name: "Gris", value: "#6b7280" },
-  { name: "Rojo", value: "#ef4444" },
-  { name: "Azul", value: "#3b82f6" },
-  { name: "Verde", value: "#10b981" },
-  { name: "Amarillo", value: "#f59e0b" },
-];
-
-export default function LineContextModal({
-  visible,
+import {ArrowRight, MoveDownRight } from 'lucide-react'
+export function LinePanel({
   lineId,
-  onClose
+  onClose, // <-- Nuevo callback
 }: {
-  visible: boolean;
   lineId: string;
   onClose: () => void;
 }) {
-  const { currentLines, updateCurrentLine, setCurrentPoints, removeCurrentLine } = useDrawingStore();
-
+  const {
+    currentLines,
+    updateCurrentLine,
+    setCurrentPoints,
+    removeCurrentLine,
+  } = useDrawingStore();
   const line = currentLines.find((l) => l.id === lineId);
-
+  console.log("LinePanel render", lineId);
   const name = line?.name ?? "";
   const color = line?.color || "#000000";
   const width = line?.width || 0.02;
@@ -39,24 +31,22 @@ export default function LineContextModal({
   const [lineLength, setLineLength] = useState(length);
   const [originalLengths, setOriginalLengths] = useState<number[]>([]);
   const [originalLineLength, setOriginalLineLength] = useState<number>(length);
-  const [keepProportion, setKeepProportion] = useState(true); // <-- Switch de proporción
-  const [squareMode, setSquareMode] = useState(false); // <-- Nuevo estado
-  const [limitVisualSize, setLimitVisualSize] = useState(true); // Nuevo switch
-  const [singleLineMode, setSingleLineMode] = useState(!squareMode && !keepProportion); // Nuevo estado
-  const [showPolygonEditModal, setShowPolygonEditModal] = useState(false); // Estado para controlar el modal de edición de polígonos
+  const [keepProportion, setKeepProportion] = useState(true);
+  const [squareMode, setSquareMode] = useState(false);
+  const [limitVisualSize, setLimitVisualSize] = useState(true);
+  const [showPolygonEditModal, setShowPolygonEditModal] = useState(false);
 
   React.useEffect(() => {
     setLineName(name);
     setSelectedColor(color);
     setLineWidth(width);
     setOriginalLineLength(length);
-    setOriginalLengths(currentLines.map(l => l.length || l.start.distanceTo(l.end)));
-    // Solo actualiza el valor del input si cambia el lineId (no por cada cambio en currentLines)
+    setOriginalLengths(
+      currentLines.map((l) => l.length || l.start.distanceTo(l.end))
+    );
     setLineLength(length);
     // eslint-disable-next-line
   }, [lineId, name, color, width, length]);
-
-  if (!visible) return null;
 
   const handleApplyChanges = () => {
     updateCurrentLine(lineId, {
@@ -65,7 +55,6 @@ export default function LineContextModal({
       width: lineWidth,
       length: lineLength,
     });
-    onClose();
   };
 
   const handleChangeTitle = (newTitle: string) => {
@@ -73,201 +62,201 @@ export default function LineContextModal({
     updateCurrentLine(lineId, { name: newTitle });
   };
 
-  // Handler para cambiar el largo y ajustar proporcionalmente si el switch está activo
   const handleLengthChange = (newLength: number) => {
-    if (!originalLineLength || originalLengths.length !== currentLines.length) return;
+    if (!originalLineLength || originalLengths.length !== currentLines.length)
+      return;
 
-    const scaledLength = LineAdvanceEngine.scaleLength(newLength, limitVisualSize);
+    const scaledLength = LineAdvanceEngine.scaleLength(
+      newLength,
+      limitVisualSize
+    );
 
     let action: "square" | "proportion" | "polygon" | "single" = "single";
     if (squareMode && currentLines.length === 4) {
       action = "square";
     } else if (keepProportion) {
       action = "proportion";
-    } else if (currentLines.length === 4 && !singleLineMode) {
+    } else if (currentLines.length === 4) {
       action = "polygon";
-    } else if (singleLineMode) {
-      action = "single";
     }
 
     switch (action) {
       case "square": {
-        const orderedPoints = LineAdvanceEngine.getOrderedSquarePoints(currentLines);
-        const avg = orderedPoints.reduce((acc: THREE.Vector3, p: THREE.Vector3) => acc.add(p), new THREE.Vector3(0, 0, 0)).multiplyScalar(1 / orderedPoints.length);
-        const dir = new THREE.Vector3().subVectors(orderedPoints[1], orderedPoints[0]).normalize();
-        const squarePoints = LineAdvanceEngine.getSquarePoints(avg, scaledLength, dir);
-        const newLines = LineAdvanceEngine.generateSquareLines(currentLines, squarePoints, newLength);
+        const orderedPoints =
+          LineAdvanceEngine.getOrderedSquarePoints(currentLines);
+        const avg = orderedPoints
+          .reduce(
+            (acc: THREE.Vector3, p: THREE.Vector3) => acc.add(p),
+            new THREE.Vector3(0, 0, 0)
+          )
+          .multiplyScalar(1 / orderedPoints.length);
+        const dir = new THREE.Vector3()
+          .subVectors(orderedPoints[1], orderedPoints[0])
+          .normalize();
+        const squarePoints = LineAdvanceEngine.getSquarePoints(
+          avg,
+          scaledLength,
+          dir
+        );
+        const newLines = LineAdvanceEngine.generateSquareLines(
+          currentLines,
+          squarePoints,
+          newLength
+        );
 
-        newLines.forEach(l => updateCurrentLine(l.id, l));
+        newLines.forEach((l) => updateCurrentLine(l.id, l));
         setCurrentPoints(squarePoints);
         setLineLength(newLength);
         setOriginalLineLength(newLength);
-        setOriginalLengths(newLines.map(l => l.length));
+        setOriginalLengths(newLines.map((l) => l.length));
         break;
       }
       case "proportion": {
-        const newLines = LineAdvanceEngine.resizeProportionally(currentLines, originalLengths, originalLineLength, newLength);
-        newLines.forEach(l => updateCurrentLine(l.id, l));
+        const newLines = LineAdvanceEngine.resizeProportionally(
+          currentLines,
+          originalLengths,
+          originalLineLength,
+          newLength
+        );
+        newLines.forEach((l) => updateCurrentLine(l.id, l));
         setLineLength(newLength);
         setOriginalLineLength(newLength);
-        setOriginalLengths(newLines.map(l => l.length));
+        setOriginalLengths(newLines.map((l) => l.length));
         break;
       }
       case "polygon": {
-        const result = LineAdvanceEngine.resizePolygonWithOneLine(currentLines, lineId, newLength);
+        const result = LineAdvanceEngine.resizePolygonWithOneLine(
+          currentLines,
+          lineId,
+          newLength
+        );
         if (result) {
-          result.newLines.forEach(l => updateCurrentLine(l.id, l));
+          result.newLines.forEach((l) => updateCurrentLine(l.id, l));
           setCurrentPoints(result.newPoints);
           setLineLength(newLength);
           setOriginalLineLength(newLength);
-          setOriginalLengths(result.newLines.map(l => l.length));
+          setOriginalLengths(result.newLines.map((l) => l.length));
         }
         break;
       }
       case "single":
       default: {
-        const l = currentLines.find(l => l.id === lineId);
+        const l = currentLines.find((l) => l.id === lineId);
         if (!l) return;
-        const { updatedLine, newPoints } = LineAdvanceEngine.resizeLineAndGetPoints(l, newLength);
+        const { updatedLine, newPoints } =
+          LineAdvanceEngine.resizeLineAndGetPoints(l, newLength);
         updateCurrentLine(lineId, updatedLine);
         setCurrentPoints(newPoints);
         setLineLength(newLength);
         setOriginalLineLength(newLength);
-        setOriginalLengths(currentLines.map(l => l.length || l.start.distanceTo(l.end)));
+        setOriginalLengths(
+          currentLines.map((l) => l.length || l.start.distanceTo(l.end))
+        );
         break;
       }
     }
   };
 
-  // Handler para eliminar la línea
   const handleDeleteLine = () => {
     removeCurrentLine(lineId);
-    onClose();
-  };
-
-  const handleOpenPolygonEditModal = () => {
-    setShowPolygonEditModal(true);
+    //onClose();
   };
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.15)",
-          zIndex: 99998,
-          transition: "background 0.2s"
-        }}
+    <div className="w-96 border-gray-200 bg-white relative">
+      {/* Botón de cerrar en la esquina superior izquierda */}
+      <button
         onClick={onClose}
-      />
-      {/* Aside lateral */}
-      <aside
+        aria-label="Cerrar panel"
         style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          height: "100vh",
-          width: 380,
-          background: "#fff",
-          borderLeft: "1px solid #ccc",
-          boxShadow: "-2px 0 16px rgba(0,0,0,0.10)",
-          zIndex: 99999,
-          padding: "24px 0",
-          overflowY: "auto",
-          transition: "transform 0.3s",
-          transform: visible ? "translateX(0)" : "translateX(100%)"
+          position: "absolute",
+          top: 16,
+          left: -5,
+          background: "none",
+          border: "none",
+          fontSize: 22,
+          color: "#888",
+          cursor: "pointer",
+          zIndex: 1001,
+          padding: 0,
+          lineHeight: 1,
         }}
-        onClick={e => e.stopPropagation()}
       >
-        {/* Cierre */}
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute",
-            top: 18,
-            right: 18,
-            background: "none",
-            border: "none",
-            fontSize: 22,
-            color: "#888",
-            cursor: "pointer"
-          }}
-          aria-label="Cerrar"
-        >
-          ×
-        </button>
-
-        {/* Nombre de la línea editable */}
+        <ArrowRight />
+      </button>
+      <div className="p-0 w-full overflow-y-auto">
         <div style={{ padding: "10px 24px" }}>
           <EditableHeaderLine
-            name={name}
-            onUpdateName={(newName) => handleChangeTitle(newName)}
+            name={lineName}
+            onUpdateName={handleChangeTitle}
           />
         </div>
-
-        {/* Switch para mantener proporción */}
-        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
+        <div
+          style={{
+            padding: "10px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
           <input
             type="checkbox"
             checked={keepProportion}
-            onChange={() => setKeepProportion(v => !v)}
+            onChange={() => setKeepProportion((v) => !v)}
             id="keep-proportion-switch"
             style={{ width: 18, height: 18 }}
           />
-          <label htmlFor="keep-proportion-switch" style={{ fontSize: 14, fontWeight: 500 }}>
+          <label
+            htmlFor="keep-proportion-switch"
+            style={{ fontSize: 14, fontWeight: 500 }}
+          >
             Mantener proporción al redimensionar
           </label>
         </div>
-
-        {/* Modo cuadrado */}
-        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
+        <div
+          style={{
+            padding: "10px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
           <input
             type="checkbox"
             checked={squareMode}
-            onChange={() => setSquareMode(v => !v)}
+            onChange={() => setSquareMode((v) => !v)}
             id="square-mode-switch"
             style={{ width: 18, height: 18 }}
           />
-          <label htmlFor="square-mode-switch" style={{ fontSize: 14, fontWeight: 500 }}>
+          <label
+            htmlFor="square-mode-switch"
+            style={{ fontSize: 14, fontWeight: 500 }}
+          >
             Modo cuadrado (todas las líneas iguales)
           </label>
         </div>
-
-        {/* Limitar tamaño visual */}
-        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
+        <div
+          style={{
+            padding: "10px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
           <input
             type="checkbox"
             checked={limitVisualSize}
-            onChange={() => setLimitVisualSize(v => !v)}
+            onChange={() => setLimitVisualSize((v) => !v)}
             id="limit-visual-size-switch"
             style={{ width: 18, height: 18 }}
           />
-          <label htmlFor="limit-visual-size-switch" style={{ fontSize: 14, fontWeight: 500 }}>
+          <label
+            htmlFor="limit-visual-size-switch"
+            style={{ fontSize: 14, fontWeight: 500 }}
+          >
             Limitar tamaño visual (no escalar más allá de un límite)
           </label>
         </div>
-
-        {/* Redimensionar solo esta línea */}
-        {/* <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={singleLineMode}
-            onChange={() => {
-              setSingleLineMode(v => !v);
-              setSquareMode(false);
-              setKeepProportion(false);
-            }}
-            id="single-line-mode-switch"
-            style={{ width: 18, height: 18 }}
-          />
-          <label htmlFor="single-line-mode-switch" style={{ fontSize: 14, fontWeight: 500 }}>
-            Redimensionar solo esta línea
-          </label>
-        </div> */}
-
-        {/* Largo de la línea editable */}
         <div style={{ padding: "10px 24px" }}>
           <label
             style={{
@@ -283,7 +272,7 @@ export default function LineContextModal({
             type="number"
             min={0.01}
             step={0.01}
-            value={Number(lineLength.toFixed(2))} // <-- Redondea a 2 decimales
+            value={Number(lineLength.toFixed(2))}
             onChange={(e) => handleLengthChange(Number(e.target.value))}
             style={{
               width: "100%",
@@ -295,8 +284,6 @@ export default function LineContextModal({
             }}
           />
         </div>
-
-        {/* Selector de color */}
         <div style={{ padding: "10px 24px" }}>
           <label
             style={{
@@ -340,8 +327,6 @@ export default function LineContextModal({
             ))}
           </div>
         </div>
-
-        {/* Selector de grosor */}
         <div style={{ padding: "10px 24px" }}>
           <label
             style={{
@@ -367,8 +352,6 @@ export default function LineContextModal({
             }}
           />
         </div>
-
-        {/* Botones "Aplicar cambios" y "Eliminar segmento" en la misma línea, más pequeños y sutiles */}
         <div style={{ padding: "10px 24px", display: "flex", gap: 8 }}>
           <Button
             variant="default"
@@ -382,7 +365,7 @@ export default function LineContextModal({
               padding: "7px 0",
               minWidth: 0,
               boxShadow: "none",
-              border: "1px solid #e5e7eb"
+              border: "1px solid #e5e7eb",
             }}
             onClick={handleApplyChanges}
           >
@@ -400,29 +383,23 @@ export default function LineContextModal({
               padding: "7px 0",
               minWidth: 0,
               boxShadow: "none",
-              border: "1px solid #e5e7eb"
+              border: "1px solid #e5e7eb",
             }}
             onClick={handleDeleteLine}
           >
             Eliminar
           </Button>
         </div>
-
-        {/* Opción para editar lados y colores del polígono (solo si hay más de 2 líneas) */}
-        {currentLines.length > 2 && (
-          <div style={{ padding: "10px 24px", marginTop: 16 }}>
-            <Button onClick={handleOpenPolygonEditModal}>
-              Editar lados y colores del polígono
-            </Button>
-          </div>
-        )}
-
-        {/* Modal para editar polígonos (solo si está activo el estado showPolygonEditModal) */}
-        <PolygonEditModal
-          visible={showPolygonEditModal}
-          onClose={() => setShowPolygonEditModal(false)}
-        />
-      </aside>
-    </>
+      </div>
+    </div>
   );
 }
+
+const predefinedColors = [
+  { name: "Negro", value: "#000000" },
+  { name: "Gris", value: "#6b7280" },
+  { name: "Rojo", value: "#ef4444" },
+  { name: "Azul", value: "#3b82f6" },
+  { name: "Verde", value: "#10b981" },
+  { name: "Amarillo", value: "#f59e0b" },
+];

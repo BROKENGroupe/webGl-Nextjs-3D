@@ -59,15 +59,6 @@ import {
 } from "@/data/acousticWindows";
 import { floorConcreteSlab, floorAcousticPanel } from "@/data/floors";
 import { materialsService } from "@/services/materialsService";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/shared/ui/select";
-
-type Layer = {
-  key: string;
-  label: string;
-  icon: React.ReactNode;
-  group?: string;
-  thumbnail?: string;
-};
 
 const PALETTE_MATERIALS: AcousticMaterial[] = [
   wallCeramicBrick,
@@ -91,66 +82,6 @@ const PALETTE_MATERIALS: AcousticMaterial[] = [
   ceilingGypsumBoard,
   ceilingMineralWool,
 ];
-
-const PALETTE_TEMPLATES: AcousticMaterial[] = Object.values(OPENING_TEMPLATES);
-
-const LAYERS: Layer[] = [
-  // Solo puertas y ventanas
-  ...PALETTE_TEMPLATES.map((template) => ({
-    key: template.id,
-    label: template.type,
-    icon: (
-      <span style={{ fontSize: "1.2em" }}>{template.imageRef || "🏠"}</span>
-    ),
-    group: "Openings",
-    thumbnail: undefined,
-  })),
-];
-
-const GROUPS = [
-  { key: "Openings", label: "Puertas y Ventanas" },
-  { key: "Materiales", label: "Materiales" },
-];
-
-const GROUPED_TEMPLATES = {
-  Puertas: PALETTE_TEMPLATES.filter((t) =>
-    t.type.toLowerCase().includes("door")
-  ),
-  Ventanas: PALETTE_TEMPLATES.filter((t) =>
-    t.type.toLowerCase().includes("window")
-  ),
-  Fachadas: PALETTE_TEMPLATES.filter(
-    (t) =>
-      t.type.toLowerCase().includes("wall") ||
-      t.type.toLowerCase().includes("partition")
-  ),
-  Pisos: PALETTE_TEMPLATES.filter((t) =>
-    t.type.toLowerCase().includes("floor")
-  ),
-  Techos: PALETTE_TEMPLATES.filter((t) =>
-    t.type.toLowerCase().includes("ceiling")
-  ),
-};
-
-const GROUPED_MATERIALS = {
-  Fachadas: PALETTE_MATERIALS.filter(
-    (m) =>
-      m.type?.toLowerCase().includes("wall") ||
-      m.type?.toLowerCase().includes("partition")
-  ),
-  Puertas: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("door")
-  ),
-  Ventanas: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("window")
-  ),
-  Techos: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("ceiling")
-  ),
-  Pisos: PALETTE_MATERIALS.filter((m) =>
-    m.type?.toLowerCase().includes("floor")
-  ),
-};
 
 export type LayerVisibility = Record<string, boolean>;
 
