@@ -1,7 +1,7 @@
 // components/EditMaterialModal.tsx
 import React, { useState, useEffect } from 'react';
-import { X, Waves, Info, Thermometer, Palette, Layers as LayersIcon, BarChart2, Save } from 'lucide-react';
-import { MaterialType, THIRD_OCTAVE_BANDS, ThirdOctave, Material, UpdateMaterialRequest } from '../types/materials';
+import { X, ChevronLeft, ChevronRight, Plus, Waves, Settings, Info, Thermometer, Ruler, Weight, Palette, Flag, Layers as LayersIcon, BarChart2, Save } from 'lucide-react';
+import { AcousticMaterial, THIRD_OCTAVE_BANDS, ThirdOctave, OCTAVE_BANDS, Octave, UpdateMaterialRequest } from '../types/AcousticMaterial';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { Label } from '@/shared/ui/label';
 
@@ -31,21 +31,19 @@ interface EditMaterialModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (id: string, material: UpdateMaterialRequest) => Promise<void>;
-  material: Material | null;
+  material: AcousticMaterial | null;
 }
 
 type FormData = UpdateMaterialRequest;
 
 const STEPS = [
   { id: 'basic', title: 'Información Básica', icon: Info },
-  { id: 'physical', title: 'Propiedades Físicas', icon: Thermometer },
   { id: 'acoustic', title: 'Propiedades Acústicas', icon: Waves },
   { id: 'bands', title: 'Bandas de Octava', icon: BarChart2 },
-  { id: 'layers', title: 'Capas y Flags', icon: LayersIcon },
   { id: 'appearance', title: 'Apariencia', icon: Palette },
 ];
 
-const getInitialFormData = (material: Material | null): Partial<FormData> => {
+const getInitialFormData = (material: AcousticMaterial | null): Partial<FormData> => {
   if (!material) return {};
   return {
     name: material.name,
@@ -80,6 +78,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
   const [formData, setFormData] = useState<Partial<FormData>>(getInitialFormData(material));
   const [errors, setErrors] = useState<Record<string, any>>({});
   const [preview, setPreview] = useState<string | null>(null);
+  const [bandType, setBandType] = useState<'third' | 'octave'>('third');
 
   useEffect(() => {
     if (isOpen && material) {
@@ -156,6 +155,19 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
     }));
   };
 
+  const updateOctaveBandValue = (frequency: Octave, value: number) => {
+    setFormData(prev => ({
+      ...prev,
+      octaveBands: {
+        ...(prev.octaveBands || OCTAVE_BANDS.reduce((acc, freq) => {
+          acc[freq] = 0;
+          return acc;
+        }, {} as Record<ThirdOctave, number>)),
+        [frequency]: value,
+      },
+    }));;
+  };
+
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, any> = {};
     switch (step) {
@@ -163,14 +175,6 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
         if (!formData.name?.trim()) newErrors.name = 'El nombre es requerido';
         if (!formData.reference?.trim()) newErrors.reference = 'La referencia es requerida';
         break;
-      case 1: // Physical Properties
-        if ((formData.density ?? 0) <= 0) newErrors.density = 'La densidad debe ser > 0';
-        if ((formData.thickness_mm ?? 0) <= 0) newErrors.thickness_mm = 'El espesor debe ser > 0';
-        if ((formData.mass_kg_m2 ?? 0) <= 0) newErrors.mass_kg_m2 = 'La masa debe ser > 0';
-        break;
-      // case 2: // Acoustic Properties
-      //   if ((formData.rw ?? 0) <= 0) newErrors.rw = 'Rw debe ser > 0';
-      //   break;
     }
     setErrors(prev => ({ ...prev, ...newErrors }));
     return Object.keys(newErrors).length === 0;
@@ -246,104 +250,110 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
                   <textarea placeholder="Descripción" value={formData.description || ''} onChange={e => updateFormData('description', e.target.value)} className="w-full p-2 border rounded" />
                 </FormField>
               </div>
-              <FormField label="Categoría" tooltip="La categoría a la que pertenece el material.">
-                <select value={formData.type || ''} onChange={e => updateFormData('type', e.target.value)} className="w-full p-2 border rounded">
-                  <option value="WALLS">Paredes</option>
-                  <option value="FLOORS">Suelos</option>
-                  <option value="DOORS">Puertas</option>
-                  <option value="WINDOWS">Ventanas</option>
+              <FormField label="Tipo" tooltip="El Tipo a la que pertenece el material.">
+                <select value={formData.type} onChange={e => updateFormData('type', e.target.value)} className="w-full p-2 border rounded">
+                  <option value="wall">Paredes</option>
+                  <option value="door">Puertas</option>
+                  <option value="ceiling">Techos</option>
+                  <option value="window">Ventanas</option>
+                  <option value="floor">Pisos</option>
                 </select>
               </FormField>
-              <FormField label="Tipo" tooltip="El tipo general del material (ej. Hormigón, Ladrillo).">
-                <input placeholder="Tipo" value={formData.type || ''} onChange={e => updateFormData('type', e.target.value)} className="w-full p-2 border rounded" />
-              </FormField>
-              <FormField label="Subtipo" tooltip="Una sub-clasificación del material (ej. Celular, Macizo).">
+              {/* <FormField label="Subtipo" tooltip="Una sub-clasificación del material (ej. Celular, Macizo).">
                 <input placeholder="Subtipo" value={formData.subtype || ''} onChange={e => updateFormData('subtype', e.target.value)} className="w-full p-2 border rounded" />
-              </FormField>
-              <FormField label="Descriptor" tooltip="Una descripción corta y técnica.">
-                <input placeholder="Descriptor" value={formData.descriptor || ''} onChange={e => updateFormData('descriptor', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>
               <FormField label="Catálogo" tooltip="Catálogo o norma de referencia.">
                 <input placeholder="Catálogo" value={formData.catalog || ''} onChange={e => updateFormData('catalog', e.target.value)} className="w-full p-2 border rounded" />
-              </FormField>
+              </FormField> */}
+              {(formData.type === 'window' || formData.type === 'door') && (
+                <>
+                  <FormField label="Ancho (m)" tooltip="Ancho del elemento en metros.">
+                    <input type="number" placeholder="Ancho" value={formData.width} onChange={e => updateFormData('width', Number(e.target.value))} className="w-full p-2 border rounded" />
+                  </FormField>
+                  <FormField label="Alto (m)" tooltip="Altura del elemento en metros.">
+                    <input type="number" placeholder="Alto" value={formData.height} onChange={e => updateFormData('height', Number(e.target.value))} className="w-full p-2 border rounded" />
+                  </FormField>
+                </>
+              )}
             </div>
           )}
           {currentStep === 1 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField label="Densidad (kg/m³)" tooltip="La densidad del material." error={errors.density}>
-                <input type="number" placeholder="Densidad (kg/m³)" value={formData.density || 0} onChange={e => updateFormData('density', Number(e.target.value))} className="w-full p-2 border rounded" />
-              </FormField>
-              <FormField label="Espesor (mm)" tooltip="El espesor del material en milímetros." error={errors.thickness_mm}>
-                <input type="number" placeholder="Espesor (mm)" value={formData.thickness_mm || 0} onChange={e => updateFormData('thickness_mm', Number(e.target.value))} className="w-full p-2 border rounded" />
-              </FormField>
-              <FormField label="Masa (kg/m²)" tooltip="La masa por unidad de superficie del material." error={errors.mass_kg_m2}>
-                <input type="number" placeholder="Masa (kg/m²)" value={formData.mass_kg_m2 || 0} onChange={e => updateFormData('mass_kg_m2', Number(e.target.value))} className="w-full p-2 border rounded" />
-              </FormField>
-              <FormField label="Ancho (mm)" tooltip="El ancho del material en milímetros.">
-                <input type="number" placeholder="Ancho (mm)" value={formData.width || 0} onChange={e => updateFormData('width', Number(e.target.value))} className="w-full p-2 border rounded" />
-              </FormField>
-              <FormField label="Alto (mm)" tooltip="La altura del material en milímetros.">
-                <input type="number" placeholder="Alto (mm)" value={formData.height || 0} onChange={e => updateFormData('height', Number(e.target.value))} className="w-full p-2 border rounded" />
-              </FormField>
-              <FormField label="Offset Inferior (mm)" tooltip="El desplazamiento vertical desde la base.">
-                <input type="number" placeholder="Offset Inferior (mm)" value={formData.bottomOffset || 0} onChange={e => updateFormData('bottomOffset', Number(e.target.value))} className="w-full p-2 border rounded" />
-              </FormField>
-            </div>
-          )}
-          {currentStep === 2 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField label="Weighted Rw" tooltip="Índice de reducción acústica ponderado (Rw) del índice ponderado.">
+              <FormField label="Indice ponderado Rw" tooltip="Índice de reducción acústica ponderado (Rw) del índice ponderado.">
                 <input type="number" placeholder="Weighted Rw" value={formData.weightedIndex?.Rw || 0} onChange={e => updateFormData('weightedIndex', { ...formData.weightedIndex, Rw: Number(e.target.value) })} className="w-full p-2 border rounded" />
               </FormField>
-              <FormField label="Weighted C" tooltip="Término de adaptación para ruido rosa.">
+              <FormField label="Indice ponderado C" tooltip="Término de adaptación para ruido rosa.">
                 <input type="number" placeholder="Weighted C" value={formData.weightedIndex?.C || 0} onChange={e => updateFormData('weightedIndex', { ...formData.weightedIndex, C: Number(e.target.value) })} className="w-full p-2 border rounded" />
               </FormField>
-              <FormField label="Weighted Ctr" tooltip="Término de adaptación para ruido de tráfico.">
+              <FormField label="Indice ponderado Ctr" tooltip="Término de adaptación para ruido de tráfico.">
                 <input type="number" placeholder="Weighted Ctr" value={formData.weightedIndex?.Ctr || 0} onChange={e => updateFormData('weightedIndex', { ...formData.weightedIndex, Ctr: Number(e.target.value) })} className="w-full p-2 border rounded" />
               </FormField>
             </div>
           )}
-          {currentStep === 3 && (
+          {currentStep === 2 && (
             <div className="space-y-4">
-              <FormField label="Bandas de Tercio de Octava" tooltip="Valores de reducción acústica para cada banda de frecuencia.">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {THIRD_OCTAVE_BANDS.map(freq => (
-                    <div key={freq} className="flex items-center">
-                      <label className="w-20 text-sm font-medium text-gray-700">{freq} Hz</label>
-                      <input type="number" value={formData.thirdOctaveBands ? formData.thirdOctaveBands[freq] : 0} onChange={e => updateThirdOctaveBandValue(freq, Number(e.target.value))} className="w-full p-2 border rounded" />
-                    </div>
-                  ))}
-                </div>
-              </FormField>
-            </div>
-          )}
-          {currentStep === 4 && (
-            <div>
-              <FormField label="Capas" tooltip="Las capas que componen el material.">
-                {(formData.layers || []).map((layer, index) => (
-                  <div key={index} className="flex gap-2 mb-2 items-center">
-                    <input placeholder="Nombre de capa" value={layer.name} onChange={e => handleLayerChange(index, 'name', e.target.value)} className="w-full p-2 border rounded" />
-                    <input type="number" placeholder="Espesor (mm)" value={layer.thickness_mm} onChange={e => handleLayerChange(index, 'thickness_mm', e.target.value)} className="w-full p-2 border rounded" />
-                    <button onClick={() => removeLayer(index)} className="p-2 bg-red-500 text-white rounded">X</button>
-                  </div>
-                ))}
-                <button onClick={addLayer} className="p-2 bg-blue-500 text-white rounded">Añadir Capa</button>
-              </FormField>
-              <div className="mt-6">
-                <FormField label="Flags" tooltip="Propiedades booleanas adicionales del material.">
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center"><input type="checkbox" checked={formData.doubleLeaf || false} onChange={e => updateFormData('doubleLeaf', e.target.checked)} className="mr-2" /> Doble Hoja</label>
-                    <label className="flex items-center"><input type="checkbox" checked={formData.lightweightElement || false} onChange={e => updateFormData('lightweightElement', e.target.checked)} className="mr-2" /> Elemento Ligero</label>
-                    <label className="flex items-center"><input type="checkbox" checked={formData.onElasticBands || false} onChange={e => updateFormData('onElasticBands', e.target.checked)} className="mr-2" /> Bandas Elásticas</label>
+              <div className="flex border-b">
+                <button
+                  className={`px-4 py-2 text-sm font-medium ${bandType === 'third' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setBandType('third')}
+                >
+                  Tercios de Octava
+                </button>
+                <button
+                  className={`px-4 py-2 text-sm font-medium ${bandType === 'octave' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setBandType('octave')}
+                >
+                  Octava
+                </button>
+              </div>
+              {bandType === 'third' && (
+                <FormField label="Bandas de Tercio de Octava" tooltip="Valores de reducción acústica para cada banda de frecuencia.">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {THIRD_OCTAVE_BANDS.map(freq => (
+                      <div key={freq} className="flex items-center">
+                        <label className="w-20 text-sm font-medium text-gray-700">{freq} Hz</label>
+                        <input type="number" value={formData.thirdOctaveBands ? formData.thirdOctaveBands[freq] : 0} onChange={e => updateThirdOctaveBandValue(freq, Number(e.target.value))} className="w-full p-2 border rounded" />
+                      </div>
+                    ))}
                   </div>
                 </FormField>
-              </div>
+              )}
+              {bandType === 'octave' && (
+                <FormField label="Bandas de Octava" tooltip="Valores de reducción acústica para cada banda de frecuencia.">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {OCTAVE_BANDS.map(freq => (
+                      <div key={freq} className="flex items-center">
+                        <label className="w-20 text-sm font-medium text-gray-700">{freq} Hz</label>
+                        <input type="number" value={formData.octaveBands ? formData.octaveBands[freq] : 0} onChange={e => updateOctaveBandValue(freq, Number(e.target.value))} className="w-full p-2 border rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </FormField>
+              )}
             </div>
           )}
-          {currentStep === 5 && (
+          {currentStep === 3 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField label="Color" tooltip="Color de representación del material.">
-                <input placeholder="Color" value={formData.color || ''} onChange={e => updateFormData('color', e.target.value)} className="w-full p-2 border rounded" />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={formData.color || "#ffffff"}
+                    onChange={e => updateFormData('color', e.target.value)}
+                    className="w-10 h-10 p-0 border rounded"
+                    style={{ minWidth: '2.5rem' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="#RRGGBB"
+                    value={formData.color || ''}
+                    onChange={e => updateFormData('color', e.target.value)}
+                    className="w-full p-2 border rounded"
+                    maxLength={7}
+                    pattern="^#([A-Fa-f0-9]{6})$"
+                    title="Formato hexadecimal: #RRGGBB"
+                  />
+                </div>
               </FormField>
               <FormField label="Imagen del Material" tooltip="Sube una imagen para el material.">
                 <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />

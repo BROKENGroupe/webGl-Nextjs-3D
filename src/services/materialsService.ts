@@ -233,11 +233,11 @@ class MaterialsService {
     if (!data.name?.trim()) errors.push('Material name is required');
     if (!data.reference?.trim()) errors.push('Material reference is required');
     if (!data.description?.trim()) errors.push('Material description is required');
-    if ((data.density ?? 0) <= 0) errors.push('Density must be a positive number');
-    if ((data.thickness_mm ?? 0) <= 0) errors.push('Thickness must be a positive number');
-    if ((data.mass_kg_m2 ?? 0) <= 0) errors.push('Mass must be a positive number');
+    // if ((data.density ?? 0) <= 0) errors.push('Density must be a positive number');
+    // if ((data.thickness_mm ?? 0) <= 0) errors.push('Thickness must be a positive number');
+    // if ((data.mass_kg_m2 ?? 0) <= 0) errors.push('Mass must be a positive number');
     if (!data.type?.trim()) errors.push('Type is required');
-    if (!data.subtype?.trim()) errors.push('Subtype is required');
+    // if (!data.subtype?.trim()) errors.push('Subtype is required');
     if (!data.descriptor?.trim()) errors.push('Descriptor is required');
     if (!data.catalog?.trim()) errors.push('Catalog is required');
     if (!data.thirdOctaveBands || Object.keys(data.thirdOctaveBands).length === 0) {

@@ -4,7 +4,11 @@ export const THIRD_OCTAVE_BANDS = [
 ] as const;
 export type MaterialType = 'ALL' | 'wall' | 'floor' | 'door' | 'window' | 'ceiling' | 'other';
 
+
+export const OCTAVE_BANDS = [63, 125, 250, 500, 1000, 2000, 4000] as const;
+
 export type ThirdOctave = typeof THIRD_OCTAVE_BANDS[number];
+export type Octave = typeof OCTAVE_BANDS[number];
 
 export interface AcousticMaterial {
   id: string;
@@ -34,7 +38,7 @@ export interface AcousticMaterial {
   thirdOctaveBands: Record<ThirdOctave, number>;
 
   // Bandas de octava resumidas (como aparecen en la tabla final)
-  octaveBands: { range: string; value: string }[];
+  octaveBands: Record<Octave, number>;
 
   // Índice ponderado
   weightedIndex?: { Rw: number; C: number; Ctr: number };
@@ -52,40 +56,10 @@ export interface AcousticMaterial {
 
 }
 
-
-export interface Material {
-  id?: string;
-  _id?: string;
-  name: string;
-  description: string;
-  density: number;
-  reference: string;
-  is_active: boolean;
-  picture: string | null;
-  descriptor: string;
-  subtype: string;
-  type: MaterialType;
-  thickness: number;
-  mass: number;
-  catalog: string;
-  color?: string;
-  doubleLeaf?: boolean;
-  lightweightElement?: boolean;
-  onElasticBands?: boolean;
-  layers: { name: string; thickness: number }[];
-  thirdOctaveBands: Record<ThirdOctave, number>;
-  octaveBands: { range: string; value: string }[];
-  weightedIndex?: { Rw: number; C: number; Ctr: number };
-  imageRef?: string;
-  width: number;
-  height: number;
-  bottomOffset: number;
+export interface CreateMaterial extends Omit<AcousticMaterial, '_id' | 'created_at' | 'updated_at'> {
 }
 
-export interface CreateMaterial extends Omit<Material, '_id' | 'created_at' | 'updated_at'> {
-}
-
-export interface UpdateMaterialRequest extends Partial<Material> {
+export interface UpdateMaterialRequest extends Partial<AcousticMaterial> {
   id?: string;
 }
 
