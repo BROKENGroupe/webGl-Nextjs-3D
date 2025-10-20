@@ -194,7 +194,6 @@ export function useRegisterFlow() {
       return true;
       
     } catch (error: any) {
-      console.error('❌ Error saving registration data:', error);
       context.setError(error.message);
       return false;
     } finally {
