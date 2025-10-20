@@ -20,6 +20,7 @@ import { useCoordinatesStore } from "@/modules/editor/store/coordinatesStore";
 import { useDrawingStore } from "@/modules/editor/store/drawingStore";
 import { useIsoStudyConfigStore } from "@/modules/editor/store/isoStudyConfigStore";
 import { useOpeningsStore } from "@/modules/editor/store/openingsStore";
+import { useIsoResultStore } from "@/modules/editor/store/isoResultStore";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { GeometryEngine } from "@/modules/editor/core/engine/GeometryEngine";
 import { Opening, OpeningType } from "@/modules/editor/types/openings";
@@ -642,26 +643,54 @@ export default function DrawingScene() {
     setIsCalculating(true);
     debugger;
     console.log("Calculating segments for all surfaces...");
-    const wallSegments = walls.flatMap((wall) =>
-      ISO12354_4Engine.calcRBySegment(wall, openings)
-    );
-    console.log(`Wall segments calculated: ${wallSegments.length}`);
 
-    const ceilingSegments = ceilings.flatMap((ceiling) =>
-      ISO12354_4Engine.calcRBySegment(ceiling, openings)
+    const wallCalculationResults = walls.map((wall) =>
+      ISO12354_4Engine.calculateFacadeSoundInsulation(wall, openings, [])
     );
-    console.log(`Ceiling segments calculated: ${ceilingSegments.length}`);
 
-    const floorSegments = floors.flatMap((floor) =>
-      ISO12354_4Engine.calcRBySegment(floor, openings)
+    const wallSegments = wallCalculationResults.flatMap(result => result.segments);
+
+    const ceilingCalculationResults = ceilings.map((ceiling) =>
+      ISO12354_4Engine.calculateFacadeSoundInsulation(ceiling, openings, [])
     );
-    console.log(`Floor segments calculated: ${floorSegments.length}`);
+    const ceilingSegments = ceilingCalculationResults.flatMap(result => result.segments);
+
+    const floorCalculationResults = floors.map((floor) =>
+      ISO12354_4Engine.calculateFacadeSoundInsulation(floor, openings, [])
+    );
+    const floorSegments = floorCalculationResults.flatMap(result => result.segments);
+
 
     const allSegments = [
       ...wallSegments,
       ...ceilingSegments,
       ...floorSegments,
-    ];
+    ].map(segment => {
+      if (!segment || !segment.elements || segment.elements.length === 0) {
+        return { ...segment, Lw: {}, R_segment: {} };
+      }
+      const R_segment = ISO12354_4Engine.calcSegmentR(segment.elements, []);
+      const Lw_segment = ISO12354_4Engine.calcLw(R_segment, segment.totalArea, useIsoStudyConfigStore.getState().Lp_in);
+      return { ...segment, Lw: Lw_segment, R_segment: R_segment };
+    });
+
+    // Store the results in the Zustand store
+    useIsoResultStore.getState().setIsoResult({
+      rwFinal: allSegments.reduce((acc, segment) => acc + (segment.R_segment[500] || 0), 0) / allSegments.length, // Example calculation
+      input: {
+        walls: walls,
+        openings: openings,
+        wallCoordinates: planeXZCoordinates,
+        Lp_in: useIsoStudyConfigStore.getState().Lp_in,
+      },
+      heatmap: allSegments.map(segment => ({
+        id: segment.segmentIndex,
+        type: 'segment',
+        description: `Segment ${segment.segmentIndex}`,
+        coordinates: segment.center,
+        intensity: (segment.R_segment[500] || 0) / 100, // Example intensity
+      })),
+    });
 
     setTimeout(() => {
       console.log(`Total segments calculated: ${allSegments.length}`);
@@ -907,6 +936,7 @@ export default function DrawingScene() {
         isOpen={showAcousticModal}
         onClose={() => setShowAcousticModal(false)}
         walls={walls.map((wall) => wall.template).filter(Boolean)}
+        handleCalculateInsulation={handleCalculateInsulation}
       />
 
       {/* Listener global para detectar drag end */}

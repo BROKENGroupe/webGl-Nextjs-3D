@@ -164,7 +164,7 @@ export class ISO12354_4Engine {
               const overlapHeight = (overlapVEnd - overlapVStart) * height;
               const overlapArea = overlapLength * overlapHeight;
               totalOpeningArea += overlapArea;
-              elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template, currentCondition: op.currentCondition });
+              elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template,  material: op.template, currentCondition: op.currentCondition });
             });
             const wallAreaInSegment = segmentArea - totalOpeningArea;
             if (wallAreaInSegment > 0.001) {
@@ -303,7 +303,7 @@ export class ISO12354_4Engine {
               const overlapDepth = (overlapVEnd - overlapVStart) * surfaceDepth;
               const overlapArea = overlapWidth * overlapDepth;
               totalOpeningArea += overlapArea;
-              elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template, currentCondition: op.currentCondition });
+              elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template,material: op.template ,currentCondition: op.currentCondition });
             });
             const surfaceAreaInSegment = segmentArea - totalOpeningArea;
             if (surfaceAreaInSegment > 0.001) {
@@ -424,7 +424,9 @@ export class ISO12354_4Engine {
 
     // const materialId = firstElementWithMaterial.material || firstElementWithMaterial.template;
     // const referenceBands = materialsData[materialId].thirdOctaveBands;
-    const referenceBands = elements[0].material.thirdOctaveBands;
+    console.log(elements)
+    debugger;
+    const referenceBands = elements[0].material.thirdOctaveBands ||  elements[0].template.thirdOctaveBands;
     const frequencies = Object.keys(referenceBands).map(Number) as ThirdOctave[];
 
     const compositeR: Record<ThirdOctave, number> = {} as any;
@@ -465,15 +467,6 @@ export class ISO12354_4Engine {
     // debugger;
     return compositeR;
   }
-
-
-
-
-
-
-
-
-
 
   // /**
   //  * Calcula la diferencia de nivel normalizada D_2m,nT para un segmento de fachada.
@@ -516,7 +509,7 @@ export class ISO12354_4Engine {
     // 3. (Simplificación) Calcular un R' total para la fachada
     // En una implementación completa, se calcularía la contribución de cada segmento a un punto receptor.
     // const totalArea = segments.reduce((sum, seg) => sum + seg.totalArea, 0);
-    debugger;
+    // debugger;
 
     const totalR = this.calcSegmentR(
       segmentsWithR.flatMap(s => s.elements.map((e: any) => ({ ...e, area: e.area }))),
