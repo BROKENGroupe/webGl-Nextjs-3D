@@ -242,15 +242,15 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
               <FormField label="Nombre" tooltip="El nombre principal del material." error={errors.name}>
                 <input placeholder="Nombre" value={formData.name || ''} onChange={e => updateFormData('name', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>
-              <FormField label="Referencia" tooltip="Un identificador único para el material." error={errors.reference}>
-                <input placeholder="Referencia" value={formData.reference || ''} onChange={e => updateFormData('reference', e.target.value)} className="w-full p-2 border rounded" />
+              <FormField label="Fabricante" tooltip="Un identificador único para el material." error={errors.reference}>
+                <input placeholder="Fabricante" value={formData.reference || ''} onChange={e => updateFormData('reference', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>
               <div className="md:col-span-2">
                 <FormField label="Descripción" tooltip="Una descripción detallada del material.">
                   <textarea placeholder="Descripción" value={formData.description || ''} onChange={e => updateFormData('description', e.target.value)} className="w-full p-2 border rounded" />
                 </FormField>
               </div>
-              <FormField label="Tipo" tooltip="El Tipo a la que pertenece el material.">
+              {/* <FormField label="Tipo" tooltip="El Tipo a la que pertenece el material.">
                 <select value={formData.type} onChange={e => updateFormData('type', e.target.value)} className="w-full p-2 border rounded">
                   <option value="wall">Paredes</option>
                   <option value="door">Puertas</option>
@@ -258,7 +258,7 @@ export const EditMaterialModal: React.FC<EditMaterialModalProps> = ({ isOpen, on
                   <option value="window">Ventanas</option>
                   <option value="floor">Pisos</option>
                 </select>
-              </FormField>
+              </FormField> */}
               {/* <FormField label="Subtipo" tooltip="Una sub-clasificación del material (ej. Celular, Macizo).">
                 <input placeholder="Subtipo" value={formData.subtype || ''} onChange={e => updateFormData('subtype', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>

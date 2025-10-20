@@ -242,7 +242,7 @@ export const CreateMaterialModal: React.FC<CreateMaterialModalProps> = ({ isOpen
               <FormField label="Nombre" tooltip="El nombre principal del material." error={errors.name}>
                 <input placeholder="Nombre" value={formData.name} onChange={e => updateFormData('name', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>
-              <FormField label="Referencia" tooltip="Un identificador único para el material." error={errors.reference}>
+              <FormField label="Fabricante" tooltip="Un identificador único para el material." error={errors.reference}>
                 <input placeholder="Referencia" value={formData.reference} onChange={e => updateFormData('reference', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>
               <div className="md:col-span-2">
@@ -259,12 +259,12 @@ export const CreateMaterialModal: React.FC<CreateMaterialModalProps> = ({ isOpen
                   <option value="floor">Pisos</option>
                 </select>
               </FormField>
-              <FormField label="Subtipo" tooltip="Una sub-clasificación del material (ej. Celular, Macizo).">
+              {/* <FormField label="Subtipo" tooltip="Una sub-clasificación del material (ej. Celular, Macizo).">
                 <input placeholder="Subtipo" value={formData.subtype} onChange={e => updateFormData('subtype', e.target.value)} className="w-full p-2 border rounded" />
               </FormField>
               <FormField label="Catálogo" tooltip="Catálogo o norma de referencia.">
                 <input placeholder="Catálogo" value={formData.catalog} onChange={e => updateFormData('catalog', e.target.value)} className="w-full p-2 border rounded" />
-              </FormField>
+              </FormField> */}
               {(formData.type === 'window' || formData.type === 'door') && (
                 <>
                   <FormField label="Ancho (m)" tooltip="Ancho del elemento en metros.">

@@ -1,6 +1,5 @@
 // services/materialsService.ts
-import { Material, MaterialType, CreateMaterial } from '@/modules/materials/types/materials';
-import { AcousticMaterial } from '@/modules/materials/types/AcousticMaterial';
+import { AcousticMaterial,  MaterialType, CreateMaterial } from '@/modules/materials/types/AcousticMaterial';
 import { apiClient, ApiResponse } from '../core/api/client';
 import { API_CONFIG } from '../core/config/config';
 
