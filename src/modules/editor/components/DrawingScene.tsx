@@ -743,7 +743,7 @@ export default function DrawingScene() {
               onPointMove={handlePointMove}
               onDragStart={() => setDragging(true)}
               onDragEnd={() => setDragging(false)}
-              onLineRightClick={handleLineRightClick}
+              onLineRightClick={handleLineContextMenu}
               onVertexRightClick={handleVertexRightClick}
             />
           )}
