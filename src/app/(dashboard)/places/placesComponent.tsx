@@ -41,11 +41,16 @@ export default function PlacesPage() {
         <div className="bg-white px-8 py-6">
           {noPlaces ? (
             <div className="flex flex-col items-center justify-center py-24">
-              <img
+              {/* <img
                 src="/empty-places.svg"
                 alt="Sin lugares"
                 className="w-32 h-32 mb-6 opacity-80"
               />
+              <img
+                src="/internal-empty.svg"
+                alt="Sin lugares internos"
+                className="w-24 h-24 mb-4 opacity-70"
+              /> */}
               <h2 className="text-2xl font-bold text-gray-700 mb-2">
                 ¡No tienes lugares registrados!
               </h2>
