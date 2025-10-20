@@ -29,13 +29,9 @@ export function AccessProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     //   Solo procesar cuando NextAuth haya terminado de cargar
     if (status === "loading") {
-      console.log('🔄 NextAuth still loading...');
       setIsReady(false);
       return;
     }
-
-    console.log('  NextAuth status ready:', status);
-    console.log('📋 Session data:', session);
 
     //   Marcar como listo independientemente de si hay sesión o no
     setIsReady(true);
@@ -46,12 +42,10 @@ export function AccessProvider({ children }: { children: ReactNode }) {
   
   if (isReady && session?.user?.permissions) {
     if (Array.isArray(session.user.permissions)) {
-      // Convertir array a objeto
       permissions = (session.user.permissions as string[]).reduce((acc: Record<string, boolean>, perm: string) => {
         acc[perm] = true;
         return acc;
       }, {});
-      console.log('🔐 Permissions processed from array:', permissions);
     } else if (typeof session.user.permissions === 'object') {
       // Ya es un objeto
       permissions = session.user.permissions as Record<string, boolean>;
@@ -101,7 +95,7 @@ export function AccessProvider({ children }: { children: ReactNode }) {
     user,
     hasPermission,
     isLoading,
-    isReady: isReady && !isLoading //   Listo cuando NextAuth terminó Y no está cargando
+    isReady: isReady && !isLoading 
   };
 
   //   Log del estado actual

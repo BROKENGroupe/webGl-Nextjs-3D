@@ -377,15 +377,9 @@ export default function DrawingScene() {
 
   // Función para manejar la extrusión con coordenadas XZ
   const handleExtrude = () => {
-    console.log("🏗️ Iniciando extrusión...");
-    console.log("📊 Estado actual currentPoints:", currentPoints);
-    console.log("📊 Estado actual isClosed:", isClosed);
 
     // Validar que tenemos una forma cerrada
-    if (!isClosed || currentPoints.length < 4) {
-      console.error(
-        "❌ No se puede extruir: forma no cerrada o insuficientes puntos"
-      );
+    if (!isClosed || currentPoints.length < 4) {      
       alert("⚠️ Necesitas cerrar la forma antes de extruir");
       return;
     }
@@ -395,10 +389,8 @@ export default function DrawingScene() {
 
     // Verificar que se guardaron correctamente
     const savedCoords = useDrawingStore.getState().planeXZCoordinates;
-    console.log("  Coordenadas guardadas para extrusión:", savedCoords);
 
     if (savedCoords.length < 3) {
-      console.error("❌ Error: coordenadas insuficientes para extrusión");
       alert("❌ Error al guardar las coordenadas");
       return;
     }
@@ -408,11 +400,6 @@ export default function DrawingScene() {
 
     // Cambiar a vista 3D
     setExtruded(true);
-
-    console.log(
-      "🎯 Extrusión completada. Coordenadas XZ finales:",
-      savedCoords
-    );
   };
 
   // Función para volver a 2D manteniendo las coordenadas guardadas
@@ -451,7 +438,6 @@ export default function DrawingScene() {
 
   // Agregar función para limpiar datos corruptos
   const handleCleanAndReset = () => {
-    console.log("🧹 Limpiando datos y reiniciando...");
     localStorage.removeItem("drawing-storage");
     resetAll();
     clearPlaneCoordinates();
@@ -471,7 +457,7 @@ export default function DrawingScene() {
   const handleStartDrag = (template: AcousticMaterial) => {
     console.log("🎯 Iniciando drag:", template.type);
     setIsDragActive(true);
-    setDraggedTemplate(template);
+    setDraggedTemplate(template);   
   };
 
   // Manejar drop en pared
@@ -693,7 +679,6 @@ export default function DrawingScene() {
     });
 
     setTimeout(() => {
-      console.log(`Total segments calculated: ${allSegments.length}`);
       setTimeout(() => {
         setSegments(allSegments);
         setShowSegments(true);
@@ -770,8 +755,7 @@ export default function DrawingScene() {
 
   return (
     <div
-      className={`w-full relative ${isDragActive ? "cursor-grabbing" : "cursor-default"
-        }`}
+      className={`w-full relative ${isDragActive ? "cursor-grabbing" : "cursor-default"}`}
       style={{ height: "93.5vh" }}
     >
       <Canvas
@@ -781,22 +765,22 @@ export default function DrawingScene() {
       >
         <ambientLight intensity={0.8} />
         <pointLight position={[10, 10, 10]} intensity={1} castShadow />
-        <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
+        {/* OrbitControls: solo permite rotar si no se está arrastrando un vértice */}
+        <OrbitControls enablePan={true} enableZoom={true} enableRotate={!isDragging} />
 
         <Suspense fallback={<Html center>Cargando 3D...</Html>}>
           {/* VISTA 2D - Cuando NO está extruido */}
           {!isExtruded && (
-            
-              <LineBuilder
-                points={currentPoints}
-                color="blue"
-                onPointMove={handlePointMove}
-                onDragStart={() => setDragging(true)}
-                onDragEnd={() => setDragging(false)}
-                onLineRightClick={handleLineRightClick}
-                onVertexRightClick={handleVertexRightClick}
-              />
-            )}
+            <LineBuilder
+              points={currentPoints}
+              color="blue"
+              onPointMove={handlePointMove}
+              onDragStart={() => setDragging(true)}
+              onDragEnd={() => setDragging(false)}
+              onLineRightClick={handleLineRightClick}
+              onVertexRightClick={handleVertexRightClick}
+            />
+          )}
       
         //MODO 3D - Renderizar con funcionalidad de drag & drop
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
@@ -817,8 +801,7 @@ export default function DrawingScene() {
             ceilings2={ceilings}
           />
         )}
-        {showSegments && <SegmentsVisualizer segments={segments} />}
-          
+        {showSegments && <SegmentsVisualizer segments={segments} />}         
 
           {/* VISTA 3D - Cuando está extruido Y tiene coordenadas */}
           {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length >= 3 && (
