@@ -42,7 +42,7 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
 
 // Componente principal
 export function ExtrudedShapeWithDraggableOpenings({
-  planeCoordinates, // Ahora opcional
+  planeCoordinates,
   onDropOpening,
   isDragActive,
   draggedTemplate,
@@ -52,11 +52,9 @@ export function ExtrudedShapeWithDraggableOpenings({
   onCeilingContextMenu,
   onFloorContextMenu,
   floors2 = [],
-  walls2 = [], // NUEVA PROP
+  walls2 = [],
   openings,
   ceilings2,
-
-  // NUEVAS PROPS
   floorHeight,
   floorId,
   opacity = 1.0,
@@ -73,11 +71,11 @@ export function ExtrudedShapeWithDraggableOpenings({
   if (planeCoordinates && planeCoordinates.length >= 3) {
     // 1. Prioridad: coordenadas pasadas por props (sistema multi-planta)
     coordinatesToUse = planeCoordinates;
-    console.log(`🏗️ [${floorId || "unknown"}] Usando coordenadas de props:`, coordinatesToUse);
+    
   } else if (hasPlaneCoordinates && planeXZCoordinates.length >= 3) {
     // 2. Fallback: coordenadas del store (sistema original)
     coordinatesToUse = planeXZCoordinates;
-    console.log("🏗️ Usando coordenadas del store:", coordinatesToUse);
+    
   } else {
     // 3. Fallback final: coordenadas por defecto
     coordinatesToUse = [
@@ -87,7 +85,6 @@ export function ExtrudedShapeWithDraggableOpenings({
       { x: -7.5, z: 4.5 },
       { x: -6.5, z: -6.5 },
     ];
-    console.log("🏗️ Usando coordenadas por defecto");
   }
 
   // Hooks de lógica (con datos específicos si están disponibles)
