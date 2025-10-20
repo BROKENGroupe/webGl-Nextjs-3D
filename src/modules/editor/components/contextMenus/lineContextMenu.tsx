@@ -24,7 +24,7 @@ export default function LineContextModal({
   lineId: string;
   onClose: () => void;
 }) {
-  const { currentLines, updateCurrentLine, setCurrentPoints } = useDrawingStore();
+  const { currentLines, updateCurrentLine, setCurrentPoints, removeCurrentLine } = useDrawingStore();
 
   const line = currentLines.find((l) => l.id === lineId);
 
@@ -42,15 +42,18 @@ export default function LineContextModal({
   const [keepProportion, setKeepProportion] = useState(true); // <-- Switch de proporción
   const [squareMode, setSquareMode] = useState(false); // <-- Nuevo estado
   const [limitVisualSize, setLimitVisualSize] = useState(true); // Nuevo switch
+  const [singleLineMode, setSingleLineMode] = useState(!squareMode && !keepProportion); // Nuevo estado
 
   React.useEffect(() => {
     setLineName(name);
     setSelectedColor(color);
     setLineWidth(width);
-    setLineLength(length);
     setOriginalLineLength(length);
     setOriginalLengths(currentLines.map(l => l.length || l.start.distanceTo(l.end)));
-  }, [lineId, name, color, width, length, currentLines]);
+    // Solo actualiza el valor del input si cambia el lineId (no por cada cambio en currentLines)
+    setLineLength(length);
+    // eslint-disable-next-line
+  }, [lineId, name, color, width, length]);
 
   if (!visible) return null;
 
@@ -80,8 +83,10 @@ export default function LineContextModal({
       action = "square";
     } else if (keepProportion) {
       action = "proportion";
-    } else if (currentLines.length === 4) {
+    } else if (currentLines.length === 4 && !singleLineMode) {
       action = "polygon";
+    } else if (singleLineMode) {
+      action = "single";
     }
 
     switch (action) {
@@ -131,6 +136,12 @@ export default function LineContextModal({
         break;
       }
     }
+  };
+
+  // Handler para eliminar la línea
+  const handleDeleteLine = () => {
+    removeCurrentLine(lineId);
+    onClose();
   };
 
   return (
@@ -209,6 +220,24 @@ export default function LineContextModal({
           </label>
         </div>
 
+        {/* Redimensionar solo esta línea */}
+        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={singleLineMode}
+            onChange={() => {
+              setSingleLineMode(v => !v);
+              setSquareMode(false);
+              setKeepProportion(false);
+            }}
+            id="single-line-mode-switch"
+            style={{ width: 18, height: 18 }}
+          />
+          <label htmlFor="single-line-mode-switch" style={{ fontSize: 14, fontWeight: 500 }}>
+            Redimensionar solo esta línea
+          </label>
+        </div>
+
         {/* Largo de la línea editable */}
         <div style={{ padding: "10px 24px" }}>
           <label
@@ -225,7 +254,7 @@ export default function LineContextModal({
             type="number"
             min={0.01}
             step={0.01}
-            value={lineLength}
+            value={Number(lineLength.toFixed(2))} // <-- Redondea a 2 decimales
             onChange={(e) => handleLengthChange(Number(e.target.value))}
             style={{
               width: "100%",
@@ -297,9 +326,6 @@ export default function LineContextModal({
           </label>
           <input
             type="number"
-            min={0.01}
-            max={1.0}
-            step={0.01}
             value={lineWidth}
             onChange={(e) => setLineWidth(Number(e.target.value))}
             style={{
@@ -313,44 +339,43 @@ export default function LineContextModal({
           />
         </div>
 
-        {/* Modo una sola línea */}
-        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
-          <button
-            type="button"
-            style={{
-              padding: "6px 12px",
-              borderRadius: 6,
-              border: "1px solid #ccc",
-              background: !squareMode && !keepProportion ? "#3b82f6" : "#fff",
-              color: !squareMode && !keepProportion ? "#fff" : "#222",
-              fontWeight: 500,
-              cursor: "pointer"
-            }}
-            onClick={() => {
-              setSquareMode(false);
-              setKeepProportion(false);
-            }}
-          >
-            Redimensionar solo esta línea
-          </button>
-        </div>
-
-        {/* Botón negro para aplicar cambios */}
-        <div style={{ padding: "10px 24px" }}>
+        {/* Botones "Aplicar cambios" y "Eliminar segmento" en la misma línea, más pequeños y sutiles */}
+        <div style={{ padding: "10px 24px", display: "flex", gap: 8 }}>
           <Button
             variant="default"
             style={{
-              width: "100%",
+              flex: 1,
               background: "#222",
               color: "#fff",
-              borderRadius: 6,
+              borderRadius: 5,
               fontWeight: 500,
-              fontSize: 14,
-              padding: "10px 0",
+              fontSize: 13,
+              padding: "7px 0",
+              minWidth: 0,
+              boxShadow: "none",
+              border: "1px solid #e5e7eb"
             }}
             onClick={handleApplyChanges}
           >
-            Aplicar cambios
+            Aplicar
+          </Button>
+          <Button
+            variant="destructive"
+            style={{
+              flex: 1,
+              background: "#ef4444",
+              color: "#fff",
+              borderRadius: 5,
+              fontWeight: 400,
+              fontSize: 13,
+              padding: "7px 0",
+              minWidth: 0,
+              boxShadow: "none",
+              border: "1px solid #e5e7eb"
+            }}
+            onClick={handleDeleteLine}
+          >
+            Eliminar
           </Button>
         </div>
       </div>

@@ -163,10 +163,11 @@ export class LineAdvanceEngine {
   /**
    * Redimensiona solo la línea seleccionada en el polígono, manteniendo las otras igual.
    * Devuelve las nuevas líneas y los nuevos puntos del polígono.
-   * Solo para cuadriláteros (4 lados).
+   * Soporta polígonos de n lados (n >= 3).
    */
   static resizePolygonWithOneLine(currentLines: any[], lineId: string, newLength: number) {
-    if (currentLines.length !== 4) return null;
+    const n = currentLines.length;
+    if (n < 3) return null;
 
     // Encuentra el índice de la línea editada
     const lineIdx = currentLines.findIndex(l => l.id === lineId);
@@ -177,22 +178,22 @@ export class LineAdvanceEngine {
 
     // Redimensiona solo la línea seleccionada
     const start = orderedPoints[lineIdx];
-    const end = orderedPoints[(lineIdx + 1) % 4];
+    const end = orderedPoints[(lineIdx + 1) % n];
     const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
     const direction = new THREE.Vector3().subVectors(end, start).normalize();
     const halfLength = newLength / 2;
     const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
     const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
 
-    // Actualiza los puntos del polígono
+    // Actualiza los puntos del polígono SOLO en los extremos de la línea editada
     const newPoints = [...orderedPoints];
     newPoints[lineIdx] = newStart;
     newPoints[(lineIdx + 1) % 4] = newEnd;
 
-    // Genera las nuevas líneas
+    // Reconstruye las líneas conectando cada punto con el siguiente, cerrando el ciclo
     const newLines = currentLines.map((l, idx) => {
       const nextIdx = (idx + 1) % 4;
-      const length = idx === lineIdx ? newLength : newPoints[idx].distanceTo(newPoints[nextIdx]);
+      const length = newPoints[idx].distanceTo(newPoints[nextIdx]);
       return {
         ...l,
         start: newPoints[idx],
