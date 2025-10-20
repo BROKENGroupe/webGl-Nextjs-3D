@@ -150,31 +150,55 @@ export default function LineContextModal({
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.25)",
-        zIndex: 99999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-      onClick={onClose}
-    >
+    <>
+      {/* Overlay */}
       <div
         style={{
-          minWidth: "320px",
-          background: "#fff",
-          border: "1px solid #ccc",
-          boxShadow: "0 2px 16px rgba(0,0,0,0.25)",
-          borderRadius: "12px",
-          padding: "24px 0",
-          zIndex: 99999,
-          position: "relative",
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.15)",
+          zIndex: 99998,
+          transition: "background 0.2s"
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={onClose}
+      />
+      {/* Aside lateral */}
+      <aside
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          height: "100vh",
+          width: 380,
+          background: "#fff",
+          borderLeft: "1px solid #ccc",
+          boxShadow: "-2px 0 16px rgba(0,0,0,0.10)",
+          zIndex: 99999,
+          padding: "24px 0",
+          overflowY: "auto",
+          transition: "transform 0.3s",
+          transform: visible ? "translateX(0)" : "translateX(100%)"
+        }}
+        onClick={e => e.stopPropagation()}
       >
+        {/* Cierre */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: 18,
+            right: 18,
+            background: "none",
+            border: "none",
+            fontSize: 22,
+            color: "#888",
+            cursor: "pointer"
+          }}
+          aria-label="Cerrar"
+        >
+          ×
+        </button>
+
         {/* Nombre de la línea editable */}
         <div style={{ padding: "10px 24px" }}>
           <EditableHeaderLine
@@ -398,7 +422,7 @@ export default function LineContextModal({
           visible={showPolygonEditModal}
           onClose={() => setShowPolygonEditModal(false)}
         />
-      </div>
-    </div>
+      </aside>
+    </>
   );
 }
