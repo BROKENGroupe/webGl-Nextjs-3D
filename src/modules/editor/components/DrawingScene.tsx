@@ -659,11 +659,13 @@ export default function DrawingScene() {
   // Define the handler for ISO config confirmation
   const handleIsoConfigConfirm = (config: {
     height: number;
-    studyType: string;
-    Lp_in: number;
-  }) => {
-    // Guarda los datos en el estado global zustand
-    useIsoStudyConfigStore.getState().setConfig(config);
+    venueType: string;
+  }) => {    
+    useIsoStudyConfigStore.getState().setConfig({
+      height: config.height,
+      studyType: "iso12354-4", 
+      Lp_in: 70,
+    });
     // Opcional: puedes cerrar el modal aquí si lo deseas
     setShowIsoConfigModal(false);
     // Opcional: lógica adicional (ejecutar análisis, mostrar resultados, etc.)
