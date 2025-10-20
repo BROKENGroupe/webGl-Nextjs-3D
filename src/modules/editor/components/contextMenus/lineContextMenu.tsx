@@ -13,6 +13,29 @@ const predefinedColors = [
   { name: "Amarillo", value: "#f59e0b" },
 ];
 
+function getSquarePoints(center: THREE.Vector3, size: number, direction?: THREE.Vector3) {
+  // Si tienes una dirección principal, úsala para rotar el cuadrado
+  const half = size / 2;
+  // Puntos de un cuadrado alineado a los ejes
+  const basePoints = [
+    new THREE.Vector3(-half, 0, -half),
+    new THREE.Vector3(half, 0, -half),
+    new THREE.Vector3(half, 0, half),
+    new THREE.Vector3(-half, 0, half),
+  ];
+
+  // Si tienes una dirección, calcula el cuaternión de rotación
+  let quaternion = new THREE.Quaternion();
+  if (direction) {
+    // Rota el cuadrado para que el primer lado coincida con la dirección original
+    const baseDir = new THREE.Vector3(1, 0, 0); // eje X
+    quaternion.setFromUnitVectors(baseDir, direction.clone().normalize());
+  }
+
+  // Aplica la rotación y traslada al centro
+  return basePoints.map(p => p.applyQuaternion(quaternion).add(center));
+}
+
 export default function LineContextModal({
   visible,
   lineId,
@@ -22,9 +45,8 @@ export default function LineContextModal({
   lineId: string;
   onClose: () => void;
 }) {
-  const { currentLines, updateCurrentLine, currentPoints, setCurrentPoints } = useDrawingStore();
+  const { currentLines, updateCurrentLine, setCurrentPoints } = useDrawingStore();
 
-  // Buscar la línea por id
   const line = currentLines.find((l) => l.id === lineId);
 
   const name = line?.name ?? "";
@@ -36,17 +58,22 @@ export default function LineContextModal({
   const [selectedColor, setSelectedColor] = useState(color);
   const [lineWidth, setLineWidth] = useState(width);
   const [lineLength, setLineLength] = useState(length);
+  const [originalLengths, setOriginalLengths] = useState<number[]>([]);
+  const [originalLineLength, setOriginalLineLength] = useState<number>(length);
+  const [keepProportion, setKeepProportion] = useState(true); // <-- Switch de proporción
+  const [squareMode, setSquareMode] = useState(false); // <-- Nuevo estado
 
   React.useEffect(() => {
     setLineName(name);
     setSelectedColor(color);
     setLineWidth(width);
     setLineLength(length);
-  }, [lineId, name, color, width, length]);
+    setOriginalLineLength(length);
+    setOriginalLengths(currentLines.map(l => l.length || l.start.distanceTo(l.end)));
+  }, [lineId, name, color, width, length, currentLines]);
 
   if (!visible) return null;
 
-  // Handler para aplicar cambios
   const handleApplyChanges = () => {
     updateCurrentLine(lineId, {
       name: lineName,
@@ -62,34 +89,86 @@ export default function LineContextModal({
     updateCurrentLine(lineId, { name: newTitle });
   };
 
-  // Handler para cambiar el largo en tiempo real
+  // Handler para cambiar el largo y ajustar proporcionalmente si el switch está activo
   const handleLengthChange = (newLength: number) => {
-    const line = currentLines.find((l) => l.id === lineId);
-    if (!line) return;
+    if (!originalLineLength || originalLengths.length !== currentLines.length) return;
 
-    const start = line.start;
-    const end = line.end;
-    const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-    const direction = new THREE.Vector3().subVectors(end, start).normalize();
+    if (squareMode && currentLines.length === 4) {
+      // Extrae los puntos únicos en orden (asumiendo líneas conectadas)
+      const orderedPoints = [
+        currentLines[0].start,
+        currentLines[0].end,
+        currentLines[1].end,
+        currentLines[2].end
+      ];
 
-    const halfLength = newLength / 2;
-    const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
-    const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
+      // Calcula el centro real del polígono
+      const avg = orderedPoints.reduce((acc, p) => acc.add(p), new THREE.Vector3(0, 0, 0)).multiplyScalar(1 / orderedPoints.length);
 
-    // Actualiza la línea en el store
-    updateCurrentLine(lineId, {
-      start: newStart,
-      end: newEnd,
-      length: newLength,
-    });
+      // Dirección del primer lado
+      const dir = new THREE.Vector3().subVectors(currentLines[0].end, currentLines[0].start).normalize();
 
-    // Actualiza los puntos extremos en el array de puntos
-    // setCurrentPoints((points: THREE.Vector3[]) =>
-    //   points.map((p, i) =>
-    //     i === startIndex ? newStart :
-    //     i === endIndex ? newEnd : p
-    //   )
-    // );
+      // Obtén los nuevos puntos del cuadrado alineado
+      const squarePoints = getSquarePoints(avg, newLength, dir);
+
+      // Actualiza las líneas para formar el cuadrado cerrado
+      const newLines = [
+        { ...currentLines[0], start: squarePoints[0], end: squarePoints[1], length: newLength },
+        { ...currentLines[1], start: squarePoints[1], end: squarePoints[2], length: newLength },
+        { ...currentLines[2], start: squarePoints[2], end: squarePoints[3], length: newLength },
+        { ...currentLines[3], start: squarePoints[3], end: squarePoints[0], length: newLength }, // <-- Cierra el cuadrado
+      ];
+
+      newLines.forEach(l => updateCurrentLine(l.id, l));
+      setCurrentPoints(squarePoints);
+      return;
+    }
+
+    if (keepProportion) {
+      // Mantener proporción
+      const factor = newLength / originalLineLength;
+      const newLines = currentLines.map((l, idx) => {
+        const origLen = originalLengths[idx];
+        const scaledLen = origLen * factor;
+        const start = l.start;
+        const end = l.end;
+        const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+        const direction = new THREE.Vector3().subVectors(end, start).normalize();
+        const halfLength = scaledLen / 2;
+        const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
+        const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
+        return {
+          ...l,
+          start: newStart,
+          end: newEnd,
+          length: scaledLen,
+        };
+      });
+      newLines.forEach(l => updateCurrentLine(l.id, l));
+      setLineLength(newLength);
+      setOriginalLineLength(newLength);
+      setOriginalLengths(newLines.map(l => l.length));
+    } else {
+      // Solo cambia la línea seleccionada
+      const l = currentLines.find(l => l.id === lineId);
+      if (!l) return;
+      const start = l.start;
+      const end = l.end;
+      const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+      const direction = new THREE.Vector3().subVectors(end, start).normalize();
+      const halfLength = newLength / 2;
+      const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
+      const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
+      updateCurrentLine(lineId, {
+        ...l,
+        start: newStart,
+        end: newEnd,
+        length: newLength,
+      });
+      setLineLength(newLength);
+      setOriginalLineLength(newLength);
+      setOriginalLengths(currentLines.map(l => l.length || l.start.distanceTo(l.end)));
+    }
   };
 
   return (
@@ -124,6 +203,34 @@ export default function LineContextModal({
             name={name}
             onUpdateName={(newName) => handleChangeTitle(newName)}
           />
+        </div>
+
+        {/* Switch para mantener proporción */}
+        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={keepProportion}
+            onChange={() => setKeepProportion(v => !v)}
+            id="keep-proportion-switch"
+            style={{ width: 18, height: 18 }}
+          />
+          <label htmlFor="keep-proportion-switch" style={{ fontSize: 14, fontWeight: 500 }}>
+            Mantener proporción al redimensionar
+          </label>
+        </div>
+
+        {/* Modo cuadrado */}
+        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={squareMode}
+            onChange={() => setSquareMode(v => !v)}
+            id="square-mode-switch"
+            style={{ width: 18, height: 18 }}
+          />
+          <label htmlFor="square-mode-switch" style={{ fontSize: 14, fontWeight: 500 }}>
+            Modo cuadrado (todas las líneas iguales)
+          </label>
         </div>
 
         {/* Largo de la línea editable */}
