@@ -48,14 +48,7 @@ export const MultiFloorRenderer: React.FC<MultiFloorRendererProps> = ({
     
     // Solo mostrar la planta activa
     return floorLevels.filter(floor => floor.id === activeFloorId);
-  }, [floorLevels, activeFloorId, showAllFloors, selectedFloorId]);
-
-  console.log('🏗️ MultiFloorRenderer:', {
-    totalFloors: floorLevels.length,
-    floorsToRender: floorsToRender.length,
-    activeFloorId,
-    showAllFloors
-  });
+  }, [floorLevels, activeFloorId, showAllFloors, selectedFloorId]);  
 
   // Si no hay plantas en el sistema multi-planta, usar el sistema original
   if (floorLevels.length === 0) {

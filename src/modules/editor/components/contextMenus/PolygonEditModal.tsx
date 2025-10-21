@@ -86,16 +86,14 @@ export function PolygonEditModal({ visible, onClose }: PolygonEditModalProps) {
     );
   }
 
-  const handleApplyPolygonChanges = () => {
-    if (currentPoints.length === 4) {
+  const handleApplyPolygonChanges = () => {    
       const center = currentPoints.reduce((acc, p) => acc.add(p), new THREE.Vector3()).multiplyScalar(1 / 4);
       const direction = new THREE.Vector3().subVectors(currentPoints[1], currentPoints[0]).normalize();
       const { lines, points } = LineAdvanceEngine.generateQuadrilateralFromSizes(sideLengths, center, direction);
 
       setCurrentPoints(points);
       lines.forEach(l => updateCurrentLine(l.id, l));
-      onClose();
-    }
+      onClose();    
   };
 
   return (

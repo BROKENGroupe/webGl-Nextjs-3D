@@ -317,6 +317,7 @@ export class LineAdvanceEngine {
     center: THREE.Vector3,
     direction: THREE.Vector3
   ) {
+    console.log("Generando cuadrilátero con tamaños:", sizes);
     if (sizes.length !== 4) return { lines: [], points: [] };
 
     // Si todos los lados son iguales, cuadrado perfecto
@@ -337,24 +338,22 @@ export class LineAdvanceEngine {
       return { lines, points };
     }
 
-    // Si los lados son diferentes, parte del primer punto y ajusta los siguientes
-    // Mantén el primer punto, calcula los siguientes usando los largos y ángulos de 90°
-    let points: THREE.Vector3[] = [];
-    let angle = 0;
+    // Si los lados son diferentes, parte del centro y calcula los 4 puntos en ciclo
     const baseDir = direction.clone().normalize();
-    let current = center.clone().add(baseDir.clone().multiplyScalar(sizes[0] / 2));
-    points.push(current.clone());
-    for (let i = 1; i < 4; i++) {
-      angle += Math.PI / 2;
-      const dir = baseDir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-      current = current.clone().add(dir.multiplyScalar(sizes[i]));
-      points.push(current.clone());
-    }
+    // Calcula el primer punto desplazado desde el centro
+    const p0 = center.clone().add(baseDir.clone().multiplyScalar(sizes[0] / 2));
+    // Calcula los otros puntos girando 90° cada vez y usando el tamaño correspondiente
+    const p1 = p0.clone().add(
+      baseDir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2).setLength(sizes[1])
+    );
+    const p2 = p1.clone().add(
+      baseDir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).setLength(sizes[2])
+    );
+    const p3 = p2.clone().add(
+      baseDir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), 3 * Math.PI / 2).setLength(sizes[3])
+    );
+    const points = [p0, p1, p2, p3];
 
-    // Ajusta el último punto para cerrar el polígono
-    // (opcional: puedes recalcular el centro si lo deseas)
-
-    // Genera las líneas conectando los puntos en ciclo
     const lines = points.map((start, i) => {
       const end = points[(i + 1) % 4];
       return {
