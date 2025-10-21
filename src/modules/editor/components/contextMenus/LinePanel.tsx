@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { LineAdvanceEngine } from "../../core/engine/LineAdvanceEngine";
 import { ArrowRight } from 'lucide-react';
 import { predefinedColors } from "@/shared/lib/utils";
+import { Checkbox } from "@/shared/ui/checkbox";
 
 export function LinePanel({
   lineId,
@@ -164,70 +165,68 @@ export function LinePanel({
   };
 
   return (
-    <div className="w-96 bg-white relative rounded-lg">
+    <div className="bg-white relative">
       {/* Botón de cerrar en la esquina superior izquierda */}
       <button
         onClick={onClose}
         aria-label="Cerrar panel"
-        className="top-2 left-4 text-gray-500 hover:text-gray-700 transition-colors z-10"
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors z-10"
       >
-        <ArrowRight size={24} />
+        <ArrowRight size={22} />
       </button>
-      <div className="p-0 w-full overflow-y-auto mt-2">
-        <h3 className="mb-5 px-3 pt-6 text-lg font-semibold">Configuración de línea</h3>
-        <div className="flex items-center px-3">
+      <div className="p-0 pt-8 w-full overflow-y-auto">
+        <h3 className="mb-6 px-3 text-xl font-bold text-gray-900 tracking-tight">
+          Configuración de línea
+        </h3>
+        <div className="flex items-center px-3 mb-4">
           <EditableHeaderLine
             name={lineName}
             onUpdateName={handleChangeTitle}
           />
         </div>
-        <div className="px-3 py-2 flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={keepProportion}
-            onChange={() => setKeepProportion((v) => !v)}
-            id="keep-proportion-switch"
-            className="w-4 h-4 accent-blue-600"
-          />
-          <label
-            htmlFor="keep-proportion-switch"
-            className="text-sm font-medium"
-          >
-            Mantener proporción al redimensionar
-          </label>
+        <div className="space-y-2 px-3">
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="keep-proportion-switch"
+              checked={keepProportion}
+              onCheckedChange={(v: boolean | "indeterminate") => setKeepProportion(!!v)}
+            />
+            <label
+              htmlFor="keep-proportion-switch"
+              className="text-sm font-medium text-gray-700"
+            >
+              Mantener proporción al redimensionar
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="square-mode-switch"
+              checked={squareMode}
+              onCheckedChange={(v: boolean | "indeterminate") => setSquareMode(!!v)}
+            />
+            <label
+              htmlFor="square-mode-switch"
+              className="text-sm font-medium text-gray-700"
+            >
+              Modo cuadrado <span className="text-gray-400">(todas las líneas iguales)</span>
+            </label>
+          </div>
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="limit-visual-size-switch"
+              checked={limitVisualSize}
+              onCheckedChange={(v: boolean | "indeterminate") => setLimitVisualSize(!!v)}
+            />
+            <label
+              htmlFor="limit-visual-size-switch"
+              className="text-sm font-medium text-gray-700"
+            >
+              Limitar tamaño visual <span className="text-gray-400">(no escalar más allá de un límite)</span>
+            </label>
+          </div>
         </div>
-        <div className="px-3 py-2 flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={squareMode}
-            onChange={() => setSquareMode((v) => !v)}
-            id="square-mode-switch"
-            className="w-4 h-4 accent-blue-600"
-          />
-          <label
-            htmlFor="square-mode-switch"
-            className="text-sm font-medium"
-          >
-            Modo cuadrado (todas las líneas iguales)
-          </label>
-        </div>
-        <div className="px-3 py-2 flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={limitVisualSize}
-            onChange={() => setLimitVisualSize((v) => !v)}
-            id="limit-visual-size-switch"
-            className="w-4 h-4 accent-blue-600"
-          />
-          <label
-            htmlFor="limit-visual-size-switch"
-            className="text-sm font-medium"
-          >
-            Limitar tamaño visual (no escalar más allá de un límite)
-          </label>
-        </div>
-        <div className="px-3 py-2">
-          <label className="text-sm font-medium mb-1 block">
+        <div className="px-3 pt-6">
+          <label className="text-sm font-semibold mb-1 block text-gray-700">
             Largo de línea (m)
           </label>
           <input
@@ -236,11 +235,11 @@ export function LinePanel({
             step={0.01}
             value={Number(lineLength.toFixed(2))}
             onChange={(e) => handleLengthChange(Number(e.target.value))}
-            className="w-full px-3 py-2 rounded border border-gray-300 text-sm mb-2"
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
           />
         </div>
-        <div className="px-3 py-2">
-          <label className="text-sm font-medium mb-1 block">
+        <div className="px-3 pt-4">
+          <label className="text-sm font-semibold mb-1 block text-gray-700">
             Color de línea
           </label>
           <div className="flex gap-2 mb-2">
@@ -266,28 +265,28 @@ export function LinePanel({
             ))}
           </div>
         </div>
-        <div className="px-3 py-2">
-          <label className="text-sm font-medium mb-1 block">
+        <div className="px-3 pt-4">
+          <label className="text-sm font-semibold mb-1 block text-gray-700">
             Grosor de línea (m)
           </label>
           <input
             type="number"
             value={lineWidth}
             onChange={(e) => setLineWidth(Number(e.target.value))}
-            className="w-full px-3 py-2 rounded border border-gray-300 text-sm mb-2"
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
           />
         </div>
-        <div className="px-3 py-4 flex gap-4">
+        <div className="px-3 py-6 flex gap-4">
           <Button
             variant="default"
-            className="flex-1 bg-gray-900 text-white rounded font-semibold text-sm py-2 shadow-none border border-gray-300"
+            className="flex-1 bg-gray-900 text-white rounded-lg font-semibold text-base py-2 shadow-none border border-gray-300 hover:bg-gray-800 transition"
             onClick={handleApplyChanges}
           >
             Aplicar
           </Button>
           <Button
             variant="destructive"
-            className="flex-1 bg-red-500 text-white rounded font-semibold text-sm py-2 shadow-none border border-gray-300"
+            className="flex-1 bg-red-500 text-white rounded-lg font-semibold text-base py-2 shadow-none border border-gray-300 hover:bg-red-600 transition"
             onClick={handleDeleteLine}
           >
             Eliminar

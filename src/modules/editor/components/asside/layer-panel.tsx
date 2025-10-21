@@ -3,45 +3,25 @@
 import {
   handleOpeningDragStart,
   handleOpeningDragEnd,
-  getBorderColor,
 } from "@/modules/editor/core/engine/dragOpenings";
 import { Button } from "@/shared/ui/button";
-import { CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
-import {
-  AcousticMaterial,
-  ThirdOctave,
-} from "@/modules/materials/types/AcousticMaterial";
-// import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
+import { CardContent } from "@/shared/ui/card";
 import {
   Accordion,
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
 } from "@/shared/ui/accordion";
-import { WALL_TEMPLATES } from "@/modules/editor/types/walls";
-
-import { Skeleton } from "@/shared/ui/skeleton";
-import { useEffect, useState } from "react";
-import { LayerTreePanel } from "./LayerTreePanel";
-import { OPENING_TEMPLATES } from "@/modules/editor/types/openings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import {
-  EyeNoneIcon,
   EyeOpenIcon,
   GearIcon,
-  MagicWandIcon,
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
-import {
-  ceilingAcousticPanel,
-  ceilingConcreteSlab,
-  ceilingGypsumBoard,
-  ceilingMetalPanel,
-  ceilingMineralWool,
-} from "@/data/acousticCeilings";
 import { MaterialSkeletonGrid } from "./MaterialSkeletonGrid";
 import { MaterialSearchInput } from "./MaterialSearchInput";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover";
+import { LayerTreePanel } from "./LayerTreePanel";
 import {
   wallCeramicBrick,
   wallConcreteBlock,
@@ -49,7 +29,6 @@ import {
   wallLightWoodPanel,
   wallThinBrickPartition,
 } from "@/data/acousticWalls";
-import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 import {
   windowStandard,
   windowDoubleGlazed,
@@ -57,10 +36,19 @@ import {
   windowAcoustic,
   windowTripleGlazed,
 } from "@/data/acousticWindows";
+import { doorStandard, doorDouble, doorAcoustic } from "@/data/acousticDoors";
 import { floorConcreteSlab, floorAcousticPanel } from "@/data/floors";
+import {
+  ceilingAcousticPanel,
+  ceilingConcreteSlab,
+  ceilingGypsumBoard,
+  ceilingMetalPanel,
+  ceilingMineralWool,
+} from "@/data/acousticCeilings";
 import { materialsService } from "@/services/materialsService";
+import { useEffect, useState } from "react";
 
-const PALETTE_MATERIALS: AcousticMaterial[] = [
+const PALETTE_MATERIALS = [
   wallCeramicBrick,
   wallConcreteBlock,
   wallGypsumBoard,
@@ -85,11 +73,6 @@ const PALETTE_MATERIALS: AcousticMaterial[] = [
 
 export type LayerVisibility = Record<string, boolean>;
 
-// Lógica drag-and-drop separada
-// const handleDragStart = (e: React.DragEvent, template: OpeningTemplate) => {
-//   handleOpeningDragStart(e, template, onStartDrag, setDraggedItem);
-// };
-
 export function LayerPanel({
   visibility,
   onChange,
@@ -101,17 +84,15 @@ export function LayerPanel({
   onChange: (v: LayerVisibility) => void;
   selected?: string;
   onSelect?: (key: any, edit: boolean) => void;
-  onStartDrag?: (template: AcousticMaterial) => void;
+  onStartDrag?: (template: any) => void;
 }) {
-  const [showMenu, setShowMenu] = useState(false);
-  // Estado local para visual feedback (opcional)
-  const [draggedItem, setDraggedItem] = useState<AcousticMaterial | null>(null);
+  const [draggedItem, setDraggedItem] = useState<any | null>(null);
   const [tab, setTab] = useState("materials");
   const [loading, setLoading] = useState(true);
   const [materialFilter, setMaterialFilter] = useState("");
   const [groupedMaterials, setGroupedMaterials] = useState<Record<
     string,
-    AcousticMaterial[]
+    any[]
   > | null>(null);
   const [dataSource, setDataSource] = useState<"local" | "backend">("local");
 
@@ -121,19 +102,16 @@ export function LayerPanel({
         setGroupedMaterials(null);
         return;
       }
-
       setLoading(true);
       setGroupedMaterials(null);
-
       try {
-        let materials: AcousticMaterial[] = [];
+        let materials: any[] = [];
         if (dataSource === "backend") {
           materials = await materialsService.getMaterials();
           await new Promise((resolve) => setTimeout(resolve, 1500));
         } else {
           materials = PALETTE_MATERIALS;
         }
-
         const newGroupedMaterials = {
           Fachadas: materials.filter(
             (m) =>
@@ -153,7 +131,6 @@ export function LayerPanel({
             m.type?.toLowerCase().includes("ceiling")
           ),
         };
-
         setGroupedMaterials(newGroupedMaterials);
       } catch (error) {
         console.error("Error fetching materials for palette:", error);
@@ -161,38 +138,41 @@ export function LayerPanel({
         setLoading(false);
       }
     };
-
     fetchAndGroupMaterials();
   }, [tab, dataSource]);
-
-  const [showSearch, setShowSearch] = useState(false);
 
   const handleTabChange = (value: string) => {
     setTab(value);
   };
 
-  // Simulación de selección de capa
   const handleSelect = (key: string, edit: boolean) => {
     onSelect?.(key, edit);
   };
 
   return (
-    <div className="w-96 border-gray-200 bg-white">      
+    <div className="bg-white overflow-hidden">
       <CardContent className="p-0">
         <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-2">
-            <TabsTrigger value="materials">Materiales</TabsTrigger>
-            <TabsTrigger value="layers">Capas</TabsTrigger>
+          <TabsList>
+            <TabsTrigger value="materials" className="text-base font-semibold">
+              Materiales
+            </TabsTrigger>
+            <TabsTrigger value="layers" className="text-base font-semibold">
+              Capas
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="materials">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-semibold">Materiales disponibles</h4>
+            <div className="flex items-center justify-between mb-4 pt-6">
+              <h4 className="font-bold text-base mb-4 text-gray-900">
+                Materiales disponibles
+              </h4>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
                     aria-label="Buscar material"
+                    className="hover:bg-gray-100"
                   >
                     <MagnifyingGlassIcon />
                   </Button>
@@ -214,6 +194,7 @@ export function LayerPanel({
                 <Accordion
                   type="multiple"
                   defaultValue={Object.keys(groupedMaterials)}
+                  className="space-y-2"
                 >
                   {Object.entries(groupedMaterials).map(
                     ([group, materials]) => {
@@ -224,7 +205,7 @@ export function LayerPanel({
                       );
                       return (
                         <AccordionItem key={group} value={group}>
-                          <AccordionTrigger className="bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded text-black font-semibold text-[15px] mb-2">
+                          <AccordionTrigger className="bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg text-gray-900 font-semibold text-base mb-2 transition">
                             {group}
                           </AccordionTrigger>
                           <AccordionContent>
@@ -244,17 +225,17 @@ export function LayerPanel({
                                   onDragEnd={() => {
                                     handleOpeningDragEnd(setDraggedItem);
                                   }}
-                                  className={`flex flex-col border border-gray-200 rounded-2xl shadow-md bg-white p-5 transition-all
+                                  className={`flex flex-col border border-gray-200 rounded-xl shadow-sm bg-white p-4 transition-all
             ${
               draggedItem?.descriptor === material.descriptor
-                ? "cursor-grabbing"
+                ? "cursor-grabbing ring-2 ring-blue-300"
                 : "cursor-grab"
             }
             w-full min-w-0
             hover:shadow-lg
           `}
                                   style={{
-                                    minHeight: "150px",
+                                    minHeight: "140px",
                                     margin: "0",
                                   }}
                                   role="button"
@@ -270,31 +251,25 @@ export function LayerPanel({
                                     <span className="text-2xl">
                                       {material.imageRef || "🧱"}
                                     </span>
-                                    {/* Círculo de color sutil */}
                                     {material.color && (
                                       <span
+                                        className="inline-block w-7 h-4 rounded-full border border-gray-200 mr-2"
                                         style={{
-                                          display: "inline-block",
-                                          width: 28,
-                                          height: 16,
-                                          borderRadius: "50%",
                                           background: material.color,
-                                          border: "1px solid #eee",
-                                          marginRight: 6,
                                           boxShadow: "0 0 2px #ccc",
                                         }}
                                         title={`Color: ${material.color}`}
                                       />
                                     )}
-                                    <span className="font-semibold text-black text-[14px] truncate">
+                                    <span className="font-semibold text-gray-900 text-[15px] truncate">
                                       {material.descriptor}
                                     </span>
                                   </div>
-                                  <div className="text-[12px] text-gray-800 mb-1">
+                                  <div className="text-[13px] text-gray-700 mb-1">
                                     <span className="font-medium">Tipo:</span>{" "}
                                     {material.type}
                                   </div>
-                                  <div className="text-[11px] text-gray-600 mb-1">
+                                  <div className="text-[12px] text-gray-500 mb-1">
                                     <span className="font-medium">
                                       Espesor:
                                     </span>{" "}
@@ -304,7 +279,7 @@ export function LayerPanel({
                                     </span>{" "}
                                     {material.mass_kg_m2} kg/m²
                                   </div>
-                                  <div className="text-[11px] text-black mb-1">
+                                  <div className="text-[12px] text-gray-700 mb-1">
                                     <span className="font-medium">Rw:</span>{" "}
                                     {material.weightedIndex?.Rw} dB
                                   </div>
@@ -313,6 +288,7 @@ export function LayerPanel({
                                       variant="ghost"
                                       size="icon"
                                       aria-label="Ver material"
+                                      className="hover:bg-gray-100"
                                     >
                                       <EyeOpenIcon />
                                     </Button>
@@ -320,6 +296,7 @@ export function LayerPanel({
                                       variant="ghost"
                                       size="icon"
                                       aria-label="Editar material"
+                                      className="hover:bg-gray-100"
                                     >
                                       <GearIcon />
                                     </Button>
@@ -342,10 +319,12 @@ export function LayerPanel({
             </div>
           </TabsContent>
           <TabsContent value="layers">
-            <div className="p-4">
-              <div className="font-semibold text-sm mb-2">Árbol de capas</div>
-              <LayerTreePanel onSelect={onSelect} />
+            <div className="flex items-center justify-between mb-4 pt-6">
+              <div className="font-bold text-base mb-4 text-gray-900">
+                Árbol de capas
+              </div>
             </div>
+            <LayerTreePanel onSelect={onSelect} />
           </TabsContent>
         </Tabs>
       </CardContent>
