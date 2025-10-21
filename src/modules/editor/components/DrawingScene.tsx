@@ -299,18 +299,18 @@ export default function DrawingScene() {
   };
 
   // NUEVO: Manejador de clic específico para vértices
-  const handleVertexClick = (index: number) => {
-    if (isDragging) return;
-
-    // Si se hace clic en el primer vértice y hay suficientes puntos, cerrar la forma
-    if (!isClosed && index === 0 && currentPoints.length > 2) {
-      const closedPoints = [...currentPoints, currentPoints[0]];
-      setCurrentPoints(closedPoints);
-      setClosed(true);
-      return true; // Indicar que el evento fue manejado
-    }
-    return false; // Indicar que el evento no fue manejado
-  };
+    const handleVertexClick = (index: number): boolean => {
+      if (isDragging) return false;
+  
+      // Si se hace clic en el primer vértice y hay suficientes puntos, cerrar la forma
+      if (!isClosed && index === 0 && currentPoints.length > 2) {
+        const closedPoints = [...currentPoints, currentPoints[0]];
+        setCurrentPoints(closedPoints);
+        setClosed(true);
+        return true; // Indicar que el evento fue manejado
+      }
+      return false; // Indicar que el evento no fue manejado
+    };
 
   const handleClick3D = (point: THREE.Vector3) => {
     if (isDragging) return; // No procesar clicks si se está arrastrando
