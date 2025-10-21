@@ -1,4 +1,6 @@
 import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
+import * as THREE from 'three';
+import { de } from 'zod/v4/locales';
 
 /**
  * Clase base para cálculos acústicos según la norma ISO 12354-4.
@@ -116,20 +118,12 @@ export class ISO12354_4Engine {
       for (let i = 1; i < numHorizontalSegments; i++) {
         horizontalDivisions.add(i / numHorizontalSegments);
       }
-      positionedOpenings.forEach(op => {
-        horizontalDivisions.add(Math.max(0, Math.min(1, op.leftEdge)));
-        horizontalDivisions.add(Math.max(0, Math.min(1, op.rightEdge)));
-      });
       const sortedHorizontalDivisions = Array.from(horizontalDivisions).sort((a, b) => a - b);
 
       const verticalDivisions = new Set<number>([0, 1]);
       for (let i = 1; i < numVerticalSegments; i++) {
         verticalDivisions.add(i / numVerticalSegments);
       }
-      positionedOpenings.forEach(op => {
-        verticalDivisions.add(Math.max(0, Math.min(1, op.bottomEdge)));
-        verticalDivisions.add(Math.max(0, Math.min(1, op.topEdge)));
-      });
       const sortedVerticalDivisions = Array.from(verticalDivisions).sort((a, b) => a - b);
 
       const segments: any[] = [];
@@ -164,7 +158,7 @@ export class ISO12354_4Engine {
               const overlapHeight = (overlapVEnd - overlapVStart) * height;
               const overlapArea = overlapLength * overlapHeight;
               totalOpeningArea += overlapArea;
-              elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template,  material: op.template, currentCondition: op.currentCondition });
+              elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template, material: op.template, currentCondition: op.currentCondition });
             });
             const wallAreaInSegment = segmentArea - totalOpeningArea;
             if (wallAreaInSegment > 0.001) {
@@ -174,6 +168,8 @@ export class ISO12354_4Engine {
           } else {
             elements.push({ type: 'wall', area: segmentArea, material: wall.template || 'default' });
           }
+
+          const wallNormal = new THREE.Vector3(-dz, 0, dx).normalize();
 
           segments.push({
             wallIndex: wall.wallIndex,
@@ -186,6 +182,8 @@ export class ISO12354_4Engine {
             height: segmentHeight,
             totalArea: segmentArea,
             elements: elements,
+            orientation: 'vertical',
+            normal: { x: wallNormal.x, y: wallNormal.y, z: wallNormal.z },
             center: { x: start.x + dx * ((hStart + hEnd) / 2), y: height * ((vStart + vEnd) / 2), z: start.z + dz * ((hStart + hEnd) / 2) },
             corners: {
               bottomLeft: { x: start.x + dx * hStart, y: height * vStart, z: start.z + dz * hStart },
@@ -249,20 +247,12 @@ export class ISO12354_4Engine {
       for (let i = 1; i < numHorizontalSegments; i++) {
         horizontalDivisions.add(i / numHorizontalSegments);
       }
-      positionedOpenings.forEach(op => {
-        horizontalDivisions.add(Math.max(0, Math.min(1, op.leftEdge)));
-        horizontalDivisions.add(Math.max(0, Math.min(1, op.rightEdge)));
-      });
       const sortedHorizontalDivisions = Array.from(horizontalDivisions).sort((a, b) => a - b);
 
       const verticalDivisions = new Set<number>([0, 1]);
       for (let i = 1; i < numVerticalSegments; i++) {
         verticalDivisions.add(i / numVerticalSegments);
       }
-      positionedOpenings.forEach(op => {
-        verticalDivisions.add(Math.max(0, Math.min(1, op.bottomEdge)));
-        verticalDivisions.add(Math.max(0, Math.min(1, op.topEdge)));
-      });
       const sortedVerticalDivisions = Array.from(verticalDivisions).sort((a, b) => a - b);
 
       const segments: any[] = [];
@@ -303,7 +293,7 @@ export class ISO12354_4Engine {
               const overlapDepth = (overlapVEnd - overlapVStart) * surfaceDepth;
               const overlapArea = overlapWidth * overlapDepth;
               totalOpeningArea += overlapArea;
-              elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template,material: op.template ,currentCondition: op.currentCondition });
+              elements.push({ type: op.type, id: op.id, title: op.title, area: overlapArea, template: op.template, material: op.template, currentCondition: op.currentCondition });
             });
             const surfaceAreaInSegment = segmentArea - totalOpeningArea;
             if (surfaceAreaInSegment > 0.001) {
@@ -318,6 +308,8 @@ export class ISO12354_4Engine {
           const z1 = minZ + vStart * surfaceDepth;
           const z2 = minZ + vEnd * surfaceDepth;
 
+          const normal = type === 'ceiling' ? { x: 0, y: 1, z: 0 } : { x: 0, y: -1, z: 0 };
+
           const newSegment: any = {
             segmentIndex: segmentIndex++,
             startPosH: hStart,
@@ -328,6 +320,8 @@ export class ISO12354_4Engine {
             height: segmentDepth,
             totalArea: segmentArea,
             elements: elements,
+            orientation: 'horizontal',
+            normal: normal,
             center: { x: centerX, y: baseHeight, z: centerZ },
             corners: {
               bottomLeft: { x: x1, y: baseHeight, z: z1 },
@@ -426,7 +420,7 @@ export class ISO12354_4Engine {
     // const referenceBands = materialsData[materialId].thirdOctaveBands;
     console.log(elements)
     debugger;
-    const referenceBands = elements[0].material.thirdOctaveBands ||  elements[0].template.thirdOctaveBands;
+    const referenceBands = elements[0].material.thirdOctaveBands || elements[0].template.thirdOctaveBands;
     const frequencies = Object.keys(referenceBands).map(Number) as ThirdOctave[];
 
     const compositeR: Record<ThirdOctave, number> = {} as any;
@@ -451,11 +445,12 @@ export class ISO12354_4Engine {
 
 
         const transmissionFactor = Math.pow(10, -R_i / 10);
+        // const calcByOne =  transmissionFactor
         transmissionFactorSum += element.area * transmissionFactor;
       }
 
       const averageTransmissionFactor = transmissionFactorSum / totalArea;
-
+      debugger;
       if (averageTransmissionFactor > 0) {
         compositeR[freq] = -10 * Math.log10(averageTransmissionFactor);
       } else {
@@ -519,7 +514,7 @@ export class ISO12354_4Engine {
 
     // const 
 
-    const Lw  = this.calcLw(totalR, wall.area, Lpint);
+    const Lw = this.calcLw(totalR, wall.area, Lpint);
 
 
     return {
