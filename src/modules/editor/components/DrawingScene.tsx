@@ -298,10 +298,25 @@ export default function DrawingScene() {
     setLineMenuVisible(true);
   };
 
+  // NUEVO: Manejador de clic específico para vértices
+  const handleVertexClick = (index: number) => {
+    if (isDragging) return;
+
+    // Si se hace clic en el primer vértice y hay suficientes puntos, cerrar la forma
+    if (!isClosed && index === 0 && currentPoints.length > 2) {
+      const closedPoints = [...currentPoints, currentPoints[0]];
+      setCurrentPoints(closedPoints);
+      setClosed(true);
+      return true; // Indicar que el evento fue manejado
+    }
+    return false; // Indicar que el evento no fue manejado
+  };
+
   const handleClick3D = (point: THREE.Vector3) => {
     if (isDragging) return; // No procesar clicks si se está arrastrando
 
     if (!isClosed) {
+      // RE-INTRODUCIR el cierre por proximidad
       if (
         currentPoints.length > 2 &&
         point.distanceTo(currentPoints[0]) < 0.2
@@ -311,6 +326,7 @@ export default function DrawingScene() {
         setCurrentPoints(closedPoints);
         setClosed(true);
       } else {
+        // Si no hay proximidad, simplemente agregar el punto
         addCurrentPoint(point);
       }
     } else if (!isExtruded) {
@@ -337,7 +353,18 @@ export default function DrawingScene() {
   };
 
   const handlePointMove = (index: number, newPosition: THREE.Vector3) => {
-    updateCurrentPoint(index, newPosition);
+    // Si la forma está cerrada y se está moviendo el vértice de unión (el primero o el último)
+    if (isClosed && (index === 0 || index === currentPoints.length - 1)) {
+      // Actualizar ambos puntos (el inicial y el final) para que permanezcan unidos
+      const newPoints = [...currentPoints];
+      newPoints[0] = newPosition;
+      newPoints[newPoints.length - 1] = newPosition;
+      setCurrentPoints(newPoints);
+    } else {
+      // Comportamiento normal: mover solo el punto seleccionado
+      updateCurrentPoint(index, newPosition);
+    }
+
     // Actualizar las coordenadas del plano si ya están guardadas
     updatePlaneCoordinatesFromCurrent();
   };
@@ -781,6 +808,7 @@ export default function DrawingScene() {
               onDragEnd={() => setDragging(false)}
               onLineRightClick={handleLineContextMenu}
               onVertexRightClick={handleVertexRightClick}
+              onVertexClick={handleVertexClick} // NUEVO: Pasar el manejador de clic
             />
           )}
       
