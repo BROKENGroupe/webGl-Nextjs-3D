@@ -784,11 +784,11 @@ export default function DrawingScene() {
 
   return (
     <div
-      className={`w-full relative ${isDragActive ? "cursor-grabbing" : "cursor-default"}`}
+      className={`w-full relative ${isDragActive ? "cursor-grabbing" : !isExtruded ? "cursor-crosshair" : "cursor-default"}`}
       style={{ height: "93.5vh" }}
     >
       <Canvas
-        camera={{ position: [0, 10, 15], fov: 50 }}
+        camera={{ position: [0, 10, 0], fov: 50 }}
         shadows
         onContextMenu={(e) => e.preventDefault()}
       >
@@ -870,8 +870,14 @@ export default function DrawingScene() {
           )}
         </Suspense>
 
-        {/* Superficie de dibujo - Solo visible en 2D */}
-        {!isExtruded && <DrawingSurface onClick3D={handleClick3D} />}
+        {/* Superficie de dibujo y Grid - Solo visible en 2D */}
+        {!isExtruded && (
+          <>
+
+            <gridHelper args={[150, 150, '#cccccc', '#e0e0e0']} />
+            <DrawingSurface onClick3D={handleClick3D} />
+          </>
+        )}
       </Canvas>
 
       {/* Controles de la aplicación actualizados */}

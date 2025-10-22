@@ -34,6 +34,19 @@ export class LineGeometryEngine {
    */
   static calculateLineTransform(start: THREE.Vector3, end: THREE.Vector3) {
     const distance = start.distanceTo(end);
+
+    // FIX: Si la distancia es casi cero, no se puede normalizar el vector de dirección.
+    // Devuelve una transformación por defecto para evitar errores de NaN.
+    const epsilon = 0.0001;
+    if (distance < epsilon) {
+      return {
+        distance: 0,
+        direction: new THREE.Vector3(1, 0, 0), // Dirección por defecto, no importa cuál
+        midPoint: start,
+        quaternion: new THREE.Quaternion(), // Cuaternión identidad
+      };
+    }
+
     const direction = new THREE.Vector3().subVectors(end, start).normalize();
     const midPoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
     
