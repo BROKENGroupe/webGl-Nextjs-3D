@@ -294,7 +294,7 @@ export function DrawingSurface({ onClick3D }: DrawingSurfaceProps) {
         - 50x50 unidades: Área amplia para proyectos grandes
         - Sin subdivisiones adicionales: Optimización de rendimiento
       */}
-      <planeGeometry args={[50, 50]} />
+      <planeGeometry args={[150, 150]} />
       
       {/* 
         Material invisible pero interactivo

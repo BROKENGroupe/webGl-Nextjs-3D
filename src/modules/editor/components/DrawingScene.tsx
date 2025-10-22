@@ -788,7 +788,7 @@ export default function DrawingScene() {
       style={{ height: "93.5vh" }}
     >
       <Canvas
-        camera={{ position: [0, 10, 0], fov: 50 }}
+        camera={{ position: [0, 10, 20], fov: 50 }}
         shadows
         onContextMenu={(e) => e.preventDefault()}
       >
@@ -874,7 +874,7 @@ export default function DrawingScene() {
         {!isExtruded && (
           <>
 
-            <gridHelper args={[150, 150, '#cccccc', '#e0e0e0']} />
+            <gridHelper args={[150, 150, '#a0a0a0', '#e0e0e0']} />
             <DrawingSurface onClick3D={handleClick3D} />
           </>
         )}
@@ -899,49 +899,57 @@ export default function DrawingScene() {
         setShowFloorReplicationModal={setShowFloorReplicationModal} // NUEVO
       />
 
-      <FacadeContextMenu
-        x={menuPosition.x}
-        y={menuPosition.y}
-        visible={menuVisible}
-        facadeName={selectedFacadeName ?? 0}
-        title={title}
-        onProperties={handleProperties}
-        onChangeMaterial={handleChangeMaterial}
-        onClose={() => setMenuVisible(false)}
-      />
+      {menuVisible && (
+        <FacadeContextMenu
+          x={menuPosition.x}
+          y={menuPosition.y}
+          visible={menuVisible}
+          facadeName={selectedFacadeName ?? 0}
+          title={title}
+          onProperties={handleProperties}
+          onChangeMaterial={handleChangeMaterial}
+          onClose={() => setMenuVisible(false)}
+        />
+      )}
 
-      <OpeningContextMenu
-        x={openingMenuPosition.x}
-        y={openingMenuPosition.y}
-        visible={openingMenuVisible}
-        openingId={selectedOpeningId ?? ""}
-        title={title}
-        onProperties={handleProperties}
-        onChangeMaterial={handleChangeMaterial}
-        onClose={() => setOpeningMenuVisible(false)}
-      />
+      {openingMenuVisible && (
+        <OpeningContextMenu
+          x={openingMenuPosition.x}
+          y={openingMenuPosition.y}
+          visible={openingMenuVisible}
+          openingId={selectedOpeningId ?? ""}
+          title={title}
+          onProperties={handleProperties}
+          onChangeMaterial={handleChangeMaterial}
+          onClose={() => setOpeningMenuVisible(false)}
+        />
+      )}
 
-      <OpenCellingContextMenu
-        x={ceilingMenuPosition.x}
-        y={ceilingMenuPosition.y}
-        visible={ceilingMenuVisible}
-        facadeName={selectedCeilingId ?? ""}
-        title={title}
-        onProperties={handleProperties}
-        onChangeMaterial={handleChangeMaterial}
-        onClose={() => setCeilingMenuVisible(false)}
-      />
+      {ceilingMenuVisible && (
+        <OpenCellingContextMenu
+          x={ceilingMenuPosition.x}
+          y={ceilingMenuPosition.y}
+          visible={ceilingMenuVisible}
+          facadeName={selectedCeilingId ?? ""}
+          title={title}
+          onProperties={handleProperties}
+          onChangeMaterial={handleChangeMaterial}
+          onClose={() => setCeilingMenuVisible(false)}
+        />
+      )}
 
-      <OpenFloorContextMenu
-        x={floorMenuPosition.x}
-        y={floorMenuPosition.y}
-        visible={floorMenuVisible}
-        facadeName={selectedFloorId ?? ""}
-        title={title}
-        onProperties={handleProperties}
-        onChangeMaterial={handleChangeMaterial}
-        onClose={() => setFloorMenuVisible(false)}
-      />
+      {floorMenuVisible && (
+        <OpenFloorContextMenu
+          x={floorMenuPosition.x}
+          y={floorMenuPosition.y}
+          visible={floorMenuVisible}
+          facadeName={selectedFloorId ?? ""}
+          title={title}
+          onProperties={handleProperties}
+          onChangeMaterial={handleChangeMaterial}
+          onClose={() => setFloorMenuVisible(false)}
+        />
+      )}
 
       {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
       {/* <DraggableOpeningsPalette
