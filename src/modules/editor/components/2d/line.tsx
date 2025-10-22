@@ -85,7 +85,7 @@ export function Line({
         style={{ pointerEvents: "auto", cursor: "hand" }}
         position={[
           transform.midPoint.x,
-          transform.midPoint.y + 0.005,
+          transform.midPoint.y,
           transform.midPoint.z,
         ]}
         quaternion={[
@@ -101,7 +101,7 @@ export function Line({
         }}
       >
         <boxGeometry
-          args={[dimensions.width, transform.distance, dimensions.depth]}
+          args={[transform.distance, dimensions.width, dimensions.depth]}
         />
         <meshBasicMaterial
           color={renderColor}
@@ -158,7 +158,7 @@ export function Line({
       <mesh
         position={[
           transform.midPoint.x,
-          transform.midPoint.y + 0.006,
+          transform.midPoint.y,
           transform.midPoint.z,
         ]}
         quaternion={[
@@ -169,7 +169,7 @@ export function Line({
         ]}
       >
         <boxGeometry
-          args={[dimensions.outlineWidth, transform.distance + 0.015, 0.004]}
+          args={[transform.distance + 0.015, 0.004, dimensions.outlineWidth]}
         />
         <meshBasicMaterial
           // color={

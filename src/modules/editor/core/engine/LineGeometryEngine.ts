@@ -51,7 +51,7 @@ export class LineGeometryEngine {
     const midPoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
     
     // Calcular cuaternión para orientación
-    const axis = new THREE.Vector3(0, 1, 0); // Eje Y (altura del rectángulo)
+    const axis = new THREE.Vector3(1, 0, 0); // Eje X (longitud del rectángulo)
     const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, direction);
     
     return {
@@ -79,15 +79,15 @@ export class LineGeometryEngine {
     } = {}
   ) {
     const {
-      baseWidth = 0.02,
-      hoverWidth = 0.02,
+      baseWidth = 0.1,
+      hoverWidth = 0.06,
       depth = 0.005
     } = options;
 
     return {
       width: isHovered ? hoverWidth : baseWidth,
       depth,
-      outlineWidth: isHovered ? 0.043 : 0.035
+      outlineWidth: isHovered ? 0.083 : 0.065
     };
   }
 

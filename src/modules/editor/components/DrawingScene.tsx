@@ -873,8 +873,7 @@ export default function DrawingScene() {
         {/* Superficie de dibujo y Grid - Solo visible en 2D */}
         {!isExtruded && (
           <>
-
-            <gridHelper args={[150, 150, '#a0a0a0', '#e0e0e0']} />
+  <gridHelper args={[500, 100, '#606060', '#f0f0f0']} />
             <DrawingSurface onClick3D={handleClick3D} />
           </>
         )}
