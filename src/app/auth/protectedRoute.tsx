@@ -59,7 +59,6 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     }   
 
     if (allowWithoutPermissions) {
-      console.log('🟢 Route allowed without permissions check');
       return { type: 'granted' as const, message: 'Acceso permitido sin permisos' };
     }
 
@@ -71,18 +70,10 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     const hasAccess = hasRequiredPermission && hasRequiredRole;
 
     if (!hasAccess) {
-      console.log('🔴 Access denied:', { 
-        requiredPermissions: permissionsArr, 
-        requiredRoles: rolesArr, 
-        userRole,
-        hasRequiredPermission,
-        hasRequiredRole 
-      });
       setTimeout(() => router.replace(redirectTo), 0);
       return { type: 'denied' as const, message: 'Permisos insuficientes' };
     }
 
-    console.log('🟢 Access granted with permissions');
     return { type: 'granted' as const, message: 'Acceso concedido' };
     
   }, [
@@ -106,15 +97,11 @@ export const ProtectedRoute = memo(function ProtectedRoute({
     case 'denied':
       return (
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div>Verificando permisos...</div>
-            <div className="text-sm text-gray-500 mt-2">
-              {accessState.message}
-            </div>
+          {/* <div className="text-center">           
             <div className="text-xs text-gray-400 mt-1">
               Redirigiendo...
             </div>
-          </div>
+          </div> */}
         </div>
       );
       

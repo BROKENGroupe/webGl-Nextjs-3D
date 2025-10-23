@@ -11,6 +11,9 @@ export function resolveUserAction(action: string, payload: any): RegisterAction 
       case 'create-user-google':
         return { endpoint: '/users/createGoogle', method: 'POST' };
 
+        case 'update-onboarding':
+        return { endpoint: '/accounts/onboarding', method: 'POST' };
+
     default:
       return null;
   }

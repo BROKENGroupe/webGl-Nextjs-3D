@@ -1,5 +1,4 @@
 // src/modules/onb/components/OnboardingWizard.tsx
-"use client";
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -12,6 +11,7 @@ import { useOnboardingValidation } from "../hooks/useOnboardingValidation";
 import NavigationButtons from "./Navigation";
 import { OnboardingFormData } from "../types/onboarding";
 import { AccountType } from "../types/enum";
+import { registerOnboardingAction } from "@/actions/user/user";
 export default function OnboardingWizard() {
   const { update } = useSession();
   const [step, setStep] = useState(0);
@@ -20,7 +20,7 @@ export default function OnboardingWizard() {
   const router = useRouter();
 
   const totalSteps = ONBOARDING_STEPS.length;
-  const { validateStep, validateFinalSubmission } = useOnboardingValidation();
+  const { validateStep } = useOnboardingValidation();
 
   // ✅ Actualizar para soportar más tipos de input
   const handleChange = (
@@ -66,133 +66,29 @@ export default function OnboardingWizard() {
     if (step > 0) setStep(step - 1);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleSubmit = async (values: OnboardingFormData) => {
     setLoading(true);
-
-    try {
-      // ✅ Generar nombre completo desde firstName y lastName
-      const fullName =
-        `${form.firstName || ""} ${form.lastName || ""}`.trim() || "Usuario";
-
-      // ✅ Generar descripción más rica
-      const businessTypesText =
-        form.businessTypes?.join(", ") ||
-        form.businessType ||
-        "establecimientos comerciales";
-      const description = form.businessName
-        ? `${form.businessName} - ${businessTypesText} ubicado en ${
-            form.city || "ubicación no especificada"
-          }`
-        : `Propietario/administrador de ${businessTypesText} en ${
-            form.city || "No especificada"
-          }`;
-
-      // ✅ Mapear mainRole a campos legacy
-      const mapMainRoleToLegacy = (mainRole?: string) => {
-        switch (mainRole) {
-          case "owner":
-            return "owner";
-          case "admin":
-            return "admin";
-          case "manager":
-            return "manager";
-          case "consultant":
-            return "consultant";
-          default:
-            return form.role || "admin";
-        }
-      };
-
-      // ✅ Determinar platformRole y platformUsage
-      const platformRole =
-        form.mainRole === "owner"
-          ? ("owner" as const)
-          : form.mainRole === "employee"
-          ? ("collaborator" as const)
-          : ("admin" as const);
-
-      const platformUsage =
-        form.acousticExperience === "expert" ||
-        form.acousticExperience === "advanced"
-          ? ("professional" as const)
-          : ("educational" as const);
-
-      // ✅ Generar intereses expandidos
-      const interests = [
-        ...(form.businessTypes || [form.businessType].filter(Boolean)),
-        "acustica",
-        "control-ruido",
-      ].filter(Boolean);
-
-      // ✅ Generar experiencia expandida
-      const experienceParts = [
-        form.acousticExperience &&
-          `Experiencia acústica: ${form.acousticExperience}`,
-        form.specificRole && `Rol específico: ${form.specificRole}`,
-        form.businessName && `Trabaja en: ${form.businessName}`,
-        form.establishmentCount &&
-          `Maneja ${form.establishmentCount} establecimiento(s)`,
-        form.role && `${form.role}`,
-      ].filter(Boolean);
-
-      const experience =
-        experienceParts.length > 0
-          ? experienceParts.join(". ")
-          : "Sin experiencia especificada";
-
+    try {           
       const onboardingData = {
-        id: "temp-id",
-        name: fullName, // ✅ Nombre completo generado
-        email: form.email || "",
-        phone: form.phone, // ✅ Nuevo campo
-        description,
+        ...values,
         accountType: AccountType.merchant,
-        ownerId: form.id || "temp-owner-id",
-        department: mapMainRoleToLegacy(form.mainRole), // ✅ Mapeo mejorado
-        city: form.city || "",
-        gender: "other" as const,
-        birthDate: "1990-01-01",
-        platformUsage,
-        platformRole,
-        interests,
-        experience,
         acceptTerms: true,
-
-        // ✅ Campos adicionales para referencia futura
-        businessTypes: form.businessTypes,
-        acousticExperience: form.acousticExperience,
-        mainRole: form.mainRole,
-        specificRole: form.specificRole,
-        establishmentCount: form.establishmentCount,
+        registrationComplete: true,
       };
-
-      console.log("📋 Datos enviados desde el formulario:", onboardingData);
-      console.log("📝 Datos originales del formulario:", form);
-
-       // ✅ Función para marcar registro como completado
-  
-    try {
-      await update({        
-          registrationComplete: true,
-          completedAt: new Date().toISOString() 
-      });
-      router.refresh();
-      console.log("✅ Sesión actualizada - Registration marked as complete");
-    } catch (error) {
-      console.error('❌ Error updating session:', error);
-    }
+      
+      const result = await registerOnboardingAction(onboardingData);  
+      if (result.error) {
+        console.error("❌ Error en el onboarding:", result.error);
+      } else {
+        await update({ user: { ...values, registrationComplete: true } });
+        router.push("/home");
+      }
     } catch (error: any) {
-      console.error("❌ Error en el onboarding:", error);
-      alert(
-        "Error al crear la cuenta: " + (error.message || "Error desconocido")
-      );
+      
     } finally {
       setLoading(false);
     }
-  }; 
+  };
 
   return (
     <div className="min-h-screen flex bg-white">
@@ -210,7 +106,7 @@ export default function OnboardingWizard() {
               formData={form}
               onChange={handleChange}
               onSelect={handleSelect}
-              onMultipleSelect={handleMultipleSelect} 
+              onMultipleSelect={handleMultipleSelect}
               onSubmit={handleSubmit}
             />
           </div>

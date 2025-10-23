@@ -1,14 +1,22 @@
 import { z } from "zod";
 
-export const createCredentialSchema = z.object({
-  name: z.string().min(3, { message: "Name must be at least 3 characters." }),
+const strongPasswordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':",.<>/?\\|`~]).{8,}$/;
+
+export const registerCredentialSchema = z.object({
   email: z.string().email({ message: "Your email is invalid." }),
-  password: z.string().min(4),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters." })
+    .regex(strongPasswordRegex, {
+      message:
+        "Password must contain uppercase, lowercase, number, and special character.",
+    }),
 });
-export type CreateCredentialSchemaType = z.infer<typeof createCredentialSchema>;
+export type CreateCredentialSchemaType = z.infer<typeof registerCredentialSchema>;
 
 export async function validateCredentialInput(
   input: CreateCredentialSchemaType,
 ): Promise<CreateCredentialSchemaType> {
-  return createCredentialSchema.parseAsync(input);
+  return registerCredentialSchema.parseAsync(input);
 }

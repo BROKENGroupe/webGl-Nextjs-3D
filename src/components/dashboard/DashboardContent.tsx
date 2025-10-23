@@ -5,6 +5,8 @@ import { DashboardStatsComponent } from '@/components/dashboard/DashboardStats';
 import { StudiesSection } from '@/components/dashboard/StudiesSection';
 import { EstablishmentsSection } from '@/components/dashboard/EstablishmentsSection';
 import { toast } from 'sonner';
+import { Can } from '@/app/auth/can';
+import { Permission, Role } from '@/app/auth/types/enum.rolePermission';
 
 export default function DashboardContent() {
   const {
@@ -48,17 +50,23 @@ export default function DashboardContent() {
       <DashboardStatsComponent stats={stats} />
 
       {/* Sección de Estudios */}
-      <StudiesSection 
-        studies={studies}
-        onCreateStudy={handleCreateStudy}
-        loading={loading}
-      />
+      <Can role={Role.Admin} permission={Permission.DashboardView}>
+        <StudiesSection
+          studies={studies}
+          onCreateStudy={handleCreateStudy}
+          loading={loading}
+        />
+      </Can>
 
       {/* Sección de Establecimientos */}
-      <EstablishmentsSection 
-        establishments={establishments}
-        onCreateEstablishment={handleCreateEstablishment}
-      />
+      <Can role={Role.Admin} permission={Permission.DashboardView}>
+        <EstablishmentsSection
+          establishments={establishments}
+          onCreateEstablishment={handleCreateEstablishment}
+        />
+      </Can>
+
     </main>
   );
 }
+     

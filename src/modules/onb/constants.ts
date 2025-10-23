@@ -6,26 +6,19 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     subtitle: "Información básica para tu perfil",
     fields: [
       { 
-        label: "Nombres", 
-        name: "firstName", 
+        label: "Nombre", 
+        name: "name", 
         type: "text",
         placeholder: "Ej: Juan Carlos",
         required: true
-      },
-      { 
-        label: "Apellidos", 
-        name: "lastName", 
-        type: "text",
-        placeholder: "Ej: González López",
-        required: true
-      },
-      { 
-        label: "Email", 
-        name: "email", 
-        type: "email",
-        placeholder: "Ej: juan@empresa.com",
-        required: true
-      },
+      },     
+      // { 
+      //   label: "Email", 
+      //   name: "email", 
+      //   type: "email",
+      //   placeholder: "Ej: juan@empresa.com",
+      //   required: true
+      // },
       { 
         label: "Teléfono de contacto", 
         name: "phone", 
@@ -40,18 +33,18 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
         placeholder: "",
         required: true
       },
-      {
-        label: "Género",
-        name: "gender",
-        type: "select-cards",
-        required: true,
-        options: [
-          { label: "Masculino", value: "male", icon: "♂️" },
-          { label: "Femenino", value: "female", icon: "♀️" },
-          { label: "Otro", value: "other", icon: "⚧️" },
-          { label: "Prefiero no decir", value: "not_specified", icon: "❓" },
-        ],
-      },
+      // {
+      //   label: "Género",
+      //   name: "gender",
+      //   type: "select-cards",
+      //   required: true,
+      //   options: [
+      //     { label: "Masculino", value: "male", icon: "♂️" },
+      //     { label: "Femenino", value: "female", icon: "♀️" },
+      //     { label: "Otro", value: "other", icon: "⚧️" },
+      //     { label: "Prefiero no decir", value: "not_specified", icon: "❓" },
+      //   ],
+      // },
     ],
   },
   {
@@ -129,23 +122,23 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
           { label: "Soy profesional del audio", value: "professional", icon: "🎚️" },
         ],
       },
-      {
-        label: "¿Qué marcas de equipos de audio conoces? (Opcional)",
-        name: "knownBrands",
-        type: "select-cards-multiple",
-        required: false,
-        options: [
-          { label: "JBL", value: "jbl", icon: "🔊" },
-          { label: "Bose", value: "bose", icon: "🎵" },
-          { label: "Yamaha", value: "yamaha", icon: "🎹" },
-          { label: "Pioneer", value: "pioneer", icon: "🎧" },
-          { label: "Behringer", value: "behringer", icon: "🎛️" },
-          { label: "QSC", value: "qsc", icon: "📢" },
-          { label: "Meyer Sound", value: "meyer", icon: "🔈" },
-          { label: "d&b audiotechnik", value: "db", icon: "🎤" },
-          { label: "Ninguna", value: "none", icon: "❓" },
-        ],
-      },
+      // {
+      //   label: "¿Qué marcas de equipos de audio conoces? (Opcional)",
+      //   name: "knownBrands",
+      //   type: "select-cards-multiple",
+      //   required: false,
+      //   options: [
+      //     { label: "JBL", value: "jbl", icon: "🔊" },
+      //     { label: "Bose", value: "bose", icon: "🎵" },
+      //     { label: "Yamaha", value: "yamaha", icon: "🎹" },
+      //     { label: "Pioneer", value: "pioneer", icon: "🎧" },
+      //     { label: "Behringer", value: "behringer", icon: "🎛️" },
+      //     { label: "QSC", value: "qsc", icon: "📢" },
+      //     { label: "Meyer Sound", value: "meyer", icon: "🔈" },
+      //     { label: "d&b audiotechnik", value: "db", icon: "🎤" },
+      //     { label: "Ninguna", value: "none", icon: "❓" },
+      //   ],
+      // },
     ],
   },
   {
@@ -202,78 +195,78 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
           },
         ],
       },
-      {
-        label: "Describe tu cargo específico",
-        name: "specificRole",
-        type: "text",
-        placeholder: "Ej: Gerente de Operaciones, DJ Residente, Ingeniero de Sonido",
-        required: false
-      },
-      {
-        label: "¿Tienes autoridad para tomar decisiones sobre equipos de audio?",
-        name: "decisionAuthority",
-        type: "select-cards",
-        required: true,
-        options: [
-          { label: "Sí, tengo autoridad completa", value: "full", icon: "✅" },
-          { label: "Tengo autoridad limitada", value: "limited", icon: "⚠️" },
-          { label: "Debo consultar con otros", value: "consultation", icon: "🤝" },
-          { label: "No tengo autoridad", value: "none", icon: "❌" },
-        ],
-      },
+      // {
+      //   label: "Describe tu cargo específico",
+      //   name: "specificRole",
+      //   type: "text",
+      //   placeholder: "Ej: Gerente de Operaciones, DJ Residente, Ingeniero de Sonido",
+      //   required: false
+      // },
+      // // {
+      // //   label: "¿Tienes autoridad para tomar decisiones sobre equipos de audio?",
+      // //   name: "decisionAuthority",
+      // //   type: "select-cards",
+      // //   required: true,
+      // //   options: [
+      // //     { label: "Sí, tengo autoridad completa", value: "full", icon: "✅" },
+      // //     { label: "Tengo autoridad limitada", value: "limited", icon: "⚠️" },
+      // //     { label: "Debo consultar con otros", value: "consultation", icon: "🤝" },
+      // //     { label: "No tengo autoridad", value: "none", icon: "❌" },
+      // //   ],
+      // // },
     ],
   },
-  {
-    title: "Información del Establecimiento",
-    subtitle: "Detalles sobre tu negocio principal",
-    fields: [
-      {
-        label: "Nombre del establecimiento principal",
-        name: "businessName",
-        type: "text",
-        placeholder: "Ej: Club Nocturno Aurora",
-        required: true
-      },
-      { 
-        label: "Ciudad donde opera", 
-        name: "city", 
-        type: "text",
-        placeholder: "Ej: Bogotá, Medellín, Cali",
-        required: true
-      },
-      { 
-        label: "Dirección completa", 
-        name: "address", 
-        type: "text",
-        placeholder: "Ej: Carrera 15 # 93-07, Zona Rosa",
-        required: false
-      },
-      {
-        label: "¿Cuántos establecimientos manejas?",
-        name: "establishmentCount",
-        type: "select-cards",
-        required: true,
-        options: [
-          { label: "1 establecimiento", value: "1", icon: "1️⃣" },
-          { label: "2-3 establecimientos", value: "2-3", icon: "2️⃣" },
-          { label: "4-10 establecimientos", value: "4-10", icon: "🔢" },
-          { label: "Más de 10 establecimientos", value: "10+", icon: "🏢" },
-        ],
-      },
-      {
-        label: "Tamaño aproximado del establecimiento principal",
-        name: "venueSize",
-        type: "select-cards",
-        required: true,
-        options: [
-          { label: "Pequeño (menos de 100m²)", value: "small", icon: "🏠" },
-          { label: "Mediano (100-300m²)", value: "medium", icon: "🏬" },
-          { label: "Grande (300-1000m²)", value: "large", icon: "🏢" },
-          { label: "Muy grande (más de 1000m²)", value: "xlarge", icon: "🏟️" },
-        ],
-      },
-    ],
-  },
+  // {
+  //   title: "Información del Establecimiento",
+  //   subtitle: "Detalles sobre tu negocio principal",
+  //   fields: [
+  //     {
+  //       label: "Nombre del establecimiento principal",
+  //       name: "businessName",
+  //       type: "text",
+  //       placeholder: "Ej: Club Nocturno Aurora",
+  //       required: true
+  //     },
+  //     { 
+  //       label: "Ciudad donde opera", 
+  //       name: "city", 
+  //       type: "text",
+  //       placeholder: "Ej: Bogotá, Medellín, Cali",
+  //       required: true
+  //     },
+  //     { 
+  //       label: "Dirección completa", 
+  //       name: "address", 
+  //       type: "text",
+  //       placeholder: "Ej: Carrera 15 # 93-07, Zona Rosa",
+  //       required: false
+  //     },
+  //     {
+  //       label: "¿Cuántos establecimientos manejas?",
+  //       name: "establishmentCount",
+  //       type: "select-cards",
+  //       required: true,
+  //       options: [
+  //         { label: "1 establecimiento", value: "1", icon: "1️⃣" },
+  //         { label: "2-3 establecimientos", value: "2-3", icon: "2️⃣" },
+  //         { label: "4-10 establecimientos", value: "4-10", icon: "🔢" },
+  //         { label: "Más de 10 establecimientos", value: "10+", icon: "🏢" },
+  //       ],
+  //     },
+  //     {
+  //       label: "Tamaño aproximado del establecimiento principal",
+  //       name: "venueSize",
+  //       type: "select-cards",
+  //       required: true,
+  //       options: [
+  //         { label: "Pequeño (menos de 100m²)", value: "small", icon: "🏠" },
+  //         { label: "Mediano (100-300m²)", value: "medium", icon: "🏬" },
+  //         { label: "Grande (300-1000m²)", value: "large", icon: "🏢" },
+  //         { label: "Muy grande (más de 1000m²)", value: "xlarge", icon: "🏟️" },
+  //       ],
+  //     },
+  //   ],
+  // },
   {
     title: "Necesidades y Objetivos",
     subtitle: "¿Qué buscas lograr con tu sistema de audio?",
@@ -294,19 +287,19 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
           { label: "Asesoría técnica", value: "technical_advice", icon: "🎯" },
         ],
       },
-      {
-        label: "¿Cuál es tu presupuesto aproximado para inversión en audio?",
-        name: "budget",
-        type: "select-cards",
-        required: true,
-        options: [
-          { label: "Menos de $5M COP", value: "under_5m", icon: "💰" },
-          { label: "$5M - $15M COP", value: "5m_15m", icon: "💵" },
-          { label: "$15M - $50M COP", value: "15m_50m", icon: "💸" },
-          { label: "Más de $50M COP", value: "over_50m", icon: "🏦" },
-          { label: "Aún no lo he definido", value: "undefined", icon: "❓" },
-        ],
-      },
+      // {
+      //   label: "¿Cuál es tu presupuesto aproximado para inversión en audio?",
+      //   name: "budget",
+      //   type: "select-cards",
+      //   required: true,
+      //   options: [
+      //     { label: "Menos de $5M COP", value: "under_5m", icon: "💰" },
+      //     { label: "$5M - $15M COP", value: "5m_15m", icon: "💵" },
+      //     { label: "$15M - $50M COP", value: "15m_50m", icon: "💸" },
+      //     { label: "Más de $50M COP", value: "over_50m", icon: "🏦" },
+      //     { label: "Aún no lo he definido", value: "undefined", icon: "❓" },
+      //   ],
+      // },
       {
         label: "¿Cuándo planeas implementar mejoras?",
         name: "timeframe",
@@ -340,13 +333,13 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
           { label: "Otro", value: "other", icon: "❓" },
         ],
       },
-      {
-        label: "¿Tienes algún comentario o necesidad específica?",
-        name: "comments",
-        type: "textarea",
-        placeholder: "Ej: Tengo problemas específicos con el eco en mi local, necesito asesoría urgente para cumplir con normativas municipales...",
-        required: false
-      },
+      // {
+      //   label: "¿Tienes algún comentario o necesidad específica?",
+      //   name: "comments",
+      //   type: "textarea",
+      //   placeholder: "Ej: Tengo problemas específicos con el eco en mi local, necesito asesoría urgente para cumplir con normativas municipales...",
+      //   required: false
+      // },
       {
         label: "¿Te gustaría recibir información sobre nuestros servicios?",
         name: "newsletter",
@@ -374,15 +367,15 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
 ];
 
 // ✅ Constantes adicionales para validación
-export const VALIDATION_RULES = {
-  firstName: { minLength: 2, maxLength: 50 },
-  lastName: { minLength: 2, maxLength: 50 },
-  email: { type: 'email' },
-  phone: { minLength: 7, maxLength: 20 },
-  city: { minLength: 2, maxLength: 50 },
-  businessName: { minLength: 2, maxLength: 100 },
-  address: { maxLength: 200 },
-  specificRole: { maxLength: 100 },
-  comments: { maxLength: 1000 },
-} as const;
+// export const VALIDATION_RULES = {
+//   firstName: { minLength: 2, maxLength: 50 },
+//   lastName: { minLength: 2, maxLength: 50 },
+//   email: { type: 'email' },
+//   phone: { minLength: 7, maxLength: 20 },
+//   city: { minLength: 2, maxLength: 50 },
+//   businessName: { minLength: 2, maxLength: 100 },
+//   address: { maxLength: 200 },
+//   specificRole: { maxLength: 100 },
+//   comments: { maxLength: 1000 },
+// } as const;
 

@@ -1,5 +1,4 @@
 import "./globals.css";
-import { Toaster } from "@/shared/ui/sonner";
 import ClientProviders from "@/providers/ClientProviders";
 import { Inter } from 'next/font/google';
 import React from 'react';
@@ -22,11 +21,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <ClientProviders>
           <RegisterProvider>
-          {children}
-          <Toaster position="top-right" />
+          {children}          
           </RegisterProvider>
-        </ClientProviders>
-        <Toaster />
+        </ClientProviders>        
       </body>
     </html>
   );
