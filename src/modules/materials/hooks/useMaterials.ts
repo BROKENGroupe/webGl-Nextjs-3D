@@ -1,6 +1,6 @@
 // hooks/useMaterials.ts
 import { useState, useEffect, useCallback } from 'react';
-import { Material, MaterialType, ViewMode, CreateMaterial } from '../types/materials';
+import { MaterialType, ViewMode, CreateMaterial } from '../types/AcousticMaterial';
 import {
   materialsService,
   MaterialResponse,
@@ -23,9 +23,9 @@ export const useMaterials = () => {
   const [selectedCategory, setSelectedCategory] = useState<MaterialType | 'ALL'>('ALL');
 
   // Modal and selected material state
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null); // For details view
-  const [materialToEdit, setMaterialToEdit] = useState<Material | null>(null);
-  const [materialToDelete, setMaterialToDelete] = useState<Material | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<any | null>(null); // For details view
+  const [materialToEdit, setMaterialToEdit] = useState<any | null>(null);
+  const [materialToDelete, setMaterialToDelete] = useState<any | null>(null);
 
   // Fetch materials from backend
   const fetchMaterials = useCallback(async () => {
@@ -120,10 +120,10 @@ export const useMaterials = () => {
 
   // --- Modal Control ---
 
-  const handleOpenEditModal = (material: Material) => setMaterialToEdit(material);
+  const handleOpenEditModal = (material: any) => setMaterialToEdit(material);
   const handleCloseEditModal = () => setMaterialToEdit(null);
 
-  const handleOpenDeleteModal = (material: Material) => setMaterialToDelete(material);
+  const handleOpenDeleteModal = (material: any) => setMaterialToDelete(material);
   const handleCloseDeleteModal = () => setMaterialToDelete(null);
 
   return {
