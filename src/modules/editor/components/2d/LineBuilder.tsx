@@ -42,6 +42,8 @@ interface LineBuilderProps {
   onLineRightClick?: (id: string, event: { clientX: number; clientY: number }) => void;
   /** Callback ejecutado cuando se hace click derecho en un vértice */
   onVertexRightClick?: (vertexIndex: number, event: { clientX: number; clientY: number }) => void;
+  /** Callback ejecutado al hacer clic izquierdo en un vértice */
+  onVertexClick?: (index: number) => boolean;
 }
 
 /**
@@ -55,7 +57,7 @@ export function LineBuilder({
   onDragEnd,
   onLineRightClick,
   onVertexRightClick,
-  
+  onVertexClick,
 }: LineBuilderProps) {
   
   // Estados de UI
@@ -83,6 +85,7 @@ export function LineBuilder({
   
   // Event handler
   const eventHandler = new LineEventHandler({
+    onVertexClick,
     onVertexDragStart: (index) => {
       console.log('🔥 EventHandler: Starting drag for vertex', index); // DEBUG
       dragSystem.startDrag(index);

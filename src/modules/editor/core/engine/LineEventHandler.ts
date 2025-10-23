@@ -9,6 +9,7 @@
  */
 
 export interface LineEventCallbacks {
+  onVertexClick?: (index: number) => boolean; // NUEVO
   onVertexDragStart?: (index: number) => void;
   onVertexDragEnd?: () => void;
   onVertexHover?: (index: number | null) => void;
@@ -40,7 +41,14 @@ export class LineEventHandler {
           // Click derecho
           this.handleVertexRightClick(e, vertexIndex);
         } else {
-          // Click izquierdo - iniciar arrastre
+          // Click izquierdo
+          // Primero, intentar manejarlo como un clic de cierre.
+          if (this.callbacks.onVertexClick?.(vertexIndex)) {
+            // Si onVertexClick devuelve true, significa que manejó el evento (y cerró la forma).
+            // No hacemos nada más para no iniciar un arrastre.
+            return;
+          }
+          // Si no, proceder a iniciar el arrastre.
           this.callbacks.onVertexDragStart?.(vertexIndex);
         }
       },

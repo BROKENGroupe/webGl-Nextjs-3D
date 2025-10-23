@@ -20,6 +20,7 @@ import { useCoordinatesStore } from "@/modules/editor/store/coordinatesStore";
 import { useDrawingStore } from "@/modules/editor/store/drawingStore";
 import { useIsoStudyConfigStore } from "@/modules/editor/store/isoStudyConfigStore";
 import { useOpeningsStore } from "@/modules/editor/store/openingsStore";
+import { useIsoResultStore } from "@/modules/editor/store/isoResultStore";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
 import { GeometryEngine } from "@/modules/editor/core/engine/GeometryEngine";
 import { Opening, OpeningType } from "@/modules/editor/types/openings";
@@ -297,10 +298,25 @@ export default function DrawingScene() {
     setLineMenuVisible(true);
   };
 
+  // NUEVO: Manejador de clic específico para vértices
+    const handleVertexClick = (index: number): boolean => {
+      if (isDragging) return false;
+  
+      // Si se hace clic en el primer vértice y hay suficientes puntos, cerrar la forma
+      if (!isClosed && index === 0 && currentPoints.length > 2) {
+        const closedPoints = [...currentPoints, currentPoints[0]];
+        setCurrentPoints(closedPoints);
+        setClosed(true);
+        return true; // Indicar que el evento fue manejado
+      }
+      return false; // Indicar que el evento no fue manejado
+    };
+
   const handleClick3D = (point: THREE.Vector3) => {
     if (isDragging) return; // No procesar clicks si se está arrastrando
 
     if (!isClosed) {
+      // RE-INTRODUCIR el cierre por proximidad
       if (
         currentPoints.length > 2 &&
         point.distanceTo(currentPoints[0]) < 0.2
@@ -310,6 +326,7 @@ export default function DrawingScene() {
         setCurrentPoints(closedPoints);
         setClosed(true);
       } else {
+        // Si no hay proximidad, simplemente agregar el punto
         addCurrentPoint(point);
       }
     } else if (!isExtruded) {
@@ -336,7 +353,18 @@ export default function DrawingScene() {
   };
 
   const handlePointMove = (index: number, newPosition: THREE.Vector3) => {
-    updateCurrentPoint(index, newPosition);
+    // Si la forma está cerrada y se está moviendo el vértice de unión (el primero o el último)
+    if (isClosed && (index === 0 || index === currentPoints.length - 1)) {
+      // Actualizar ambos puntos (el inicial y el final) para que permanezcan unidos
+      const newPoints = [...currentPoints];
+      newPoints[0] = newPosition;
+      newPoints[newPoints.length - 1] = newPosition;
+      setCurrentPoints(newPoints);
+    } else {
+      // Comportamiento normal: mover solo el punto seleccionado
+      updateCurrentPoint(index, newPosition);
+    }
+
     // Actualizar las coordenadas del plano si ya están guardadas
     updatePlaneCoordinatesFromCurrent();
   };
@@ -626,23 +654,56 @@ export default function DrawingScene() {
     }
 
     setIsCalculating(true);
-    const wallSegments = walls.flatMap((wall) =>
-      ISO12354_4Engine.calcRBySegment(wall, openings)
+    debugger;
+    console.log("Calculating segments for all surfaces...");
+
+    const wallCalculationResults = walls.map((wall) =>
+      ISO12354_4Engine.calculateFacadeSoundInsulation(wall, openings, [])
     );
 
-    const ceilingSegments = ceilings.flatMap((ceiling) =>
-      ISO12354_4Engine.calcRBySegment(ceiling, openings)
-    );
+    const wallSegments = wallCalculationResults.flatMap(result => result.segments);
 
-    const floorSegments = floors.flatMap((floor) =>
-      ISO12354_4Engine.calcRBySegment(floor, openings)
+    const ceilingCalculationResults = ceilings.map((ceiling) =>
+      ISO12354_4Engine.calculateFacadeSoundInsulation(ceiling, openings, [])
     );
+    const ceilingSegments = ceilingCalculationResults.flatMap(result => result.segments);
+
+    const floorCalculationResults = floors.map((floor) =>
+      ISO12354_4Engine.calculateFacadeSoundInsulation(floor, openings, [])
+    );
+    const floorSegments = floorCalculationResults.flatMap(result => result.segments);
+
 
     const allSegments = [
       ...wallSegments,
       ...ceilingSegments,
       ...floorSegments,
-    ];
+    ].map(segment => {
+      if (!segment || !segment.elements || segment.elements.length === 0) {
+        return { ...segment, Lw: {}, R_segment: {} };
+      }
+      const R_segment = ISO12354_4Engine.calcSegmentR(segment.elements, []);
+      const Lw_segment = ISO12354_4Engine.calcLw(R_segment, segment.totalArea, useIsoStudyConfigStore.getState().Lp_in);
+      return { ...segment, Lw: Lw_segment, R_segment: R_segment };
+    });
+
+    // Store the results in the Zustand store
+    useIsoResultStore.getState().setIsoResult({
+      rwFinal: allSegments.reduce((acc, segment) => acc + (segment.R_segment[500] || 0), 0) / allSegments.length, // Example calculation
+      input: {
+        walls: walls,
+        openings: openings,
+        wallCoordinates: planeXZCoordinates,
+        Lp_in: useIsoStudyConfigStore.getState().Lp_in,
+      },
+      heatmap: allSegments.map(segment => ({
+        id: segment.segmentIndex,
+        type: 'segment',
+        description: `Segment ${segment.segmentIndex}`,
+        coordinates: segment.center,
+        intensity: (segment.R_segment[500] || 0) / 100, // Example intensity
+      })),
+    });
 
     setTimeout(() => {
       setTimeout(() => {
@@ -747,6 +808,7 @@ export default function DrawingScene() {
               onDragEnd={() => setDragging(false)}
               onLineRightClick={handleLineContextMenu}
               onVertexRightClick={handleVertexRightClick}
+              onVertexClick={handleVertexClick} // NUEVO: Pasar el manejador de clic
             />
           )}
       
@@ -887,6 +949,7 @@ export default function DrawingScene() {
         isOpen={showAcousticModal}
         onClose={() => setShowAcousticModal(false)}
         walls={walls.map((wall) => wall.template).filter(Boolean)}
+        handleCalculateInsulation={handleCalculateInsulation}
       />
 
       {/* Listener global para detectar drag end */}

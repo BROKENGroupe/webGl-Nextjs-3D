@@ -1,3 +1,5 @@
+import { Octave } from "@/modules/materials/types/AcousticMaterial";
+
 export const THIRD_OCTAVE_BANDS = [
   50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630,
   800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000,
@@ -29,7 +31,7 @@ export interface AcousticMaterial {
   thirdOctaveBands: Record<ThirdOctave, number>;
 
   // Bandas de octava resumidas (como aparecen en la tabla final)
-  octaveBands: { range: string; value: string }[];
+  octaveBands:Record<Octave, number>;
 
   // Índice ponderado
   weightedIndex?: { Rw: number; C: number; Ctr: number };
