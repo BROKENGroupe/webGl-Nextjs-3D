@@ -2,7 +2,7 @@
 
 
 import { MATERIAL_CATEGORIES } from '@/app/(dashboard)/materials/data';
-import { MaterialType } from '../types/materials';
+//import { MaterialType } from '../types/materials';
 
 // Store para nombres de materiales dinámicos
 const dynamicMaterialNames = new Map<string, string>();
@@ -32,17 +32,17 @@ export const getMaterialName = (key: string): string => {
   return names[key] ?? key;
 };
 
-export const getMaterialCategory = (materialKey: string): MaterialType => {
+export const getMaterialCategory = (materialKey: string): any => {
   for (const [category, materials] of Object.entries(MATERIAL_CATEGORIES)) {
     if (materials.includes(materialKey)) {
-      return category as MaterialType;
+      return category as any;
     }
   }
   return 'other';
 };
 
-export const getCategoryColor = (category: MaterialType): string => {
-  const colors: Record<MaterialType, string> = {
+export const getCategoryColor = (category: any): string => {
+  const colors: Record<any, string> = {
     ALL: 'bg-gray-100 text-gray-800',
     wall: 'bg-blue-100 text-blue-800',
     floor: 'bg-green-100 text-green-800',

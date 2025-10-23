@@ -2,10 +2,11 @@
 import React, { useEffect } from 'react';
 import { Info, Waves, Layers, X, Thermometer, Palette, Flag, BarChart2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Material } from '../types/materials';
+
+//import { Material } from '../types/materials';
 
 interface MaterialDetailModalProps {
-  material: Material | null;
+  material: any | null;
   onClose: () => void;
 }
 
@@ -149,7 +150,7 @@ export const MaterialDetailModal: React.FC<MaterialDetailModalProps> = ({
                 Capas Constructivas
               </h3>
               <ul className="space-y-2 pl-4 border-l-2 border-blue-200">
-                {material.layers.map((layer, index) => (
+                {material.layers.map((layer: { name: string; thickness_mm: number }, index: number) => (
                   <li key={index} className="text-gray-700">
                     <span className="font-semibold">{layer.name}:</span> {layer.thickness_mm} mm
                   </li>
@@ -165,7 +166,7 @@ export const MaterialDetailModal: React.FC<MaterialDetailModalProps> = ({
                 Bandas de Octava
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {material.octaveBands.map((band, index) => (
+                {material.octaveBands.map((band: { range: string; value: number }, index: number) => (
                   <div key={index} className="bg-gray-100 p-2 rounded-md text-center">
                     <p className="text-sm font-semibold text-gray-700">{band.range}</p>
                     <p className="text-lg font-bold text-blue-600">{band.value}</p>
