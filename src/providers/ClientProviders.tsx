@@ -15,7 +15,7 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider 
-        refetchInterval={5 * 60}
+        refetchInterval={5 * 60 * 1000}
         refetchOnWindowFocus={false}
       >
         <AccessProvider>

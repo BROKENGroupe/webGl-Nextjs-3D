@@ -3,13 +3,13 @@ import React from 'react';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { MaterialResponse } from '@/services/materialsService';
 import { getCategoryColor } from '../utils/materials';
-import { Material } from '../types/materials';
+//import { Material } from '../types/materials';
 
 interface MaterialsTableProps {
-  materials: Material[];
-  onViewDetails: (material: Material) => void;
-  onEdit: (material: Material) => void;
-  onDelete: (material: Material) => void;
+  materials: any[];
+  onViewDetails: (material: any) => void;
+  onEdit: (material: any) => void;
+  onDelete: (material: any) => void;
 }
 
 export const MaterialsTable: React.FC<MaterialsTableProps> = ({ 

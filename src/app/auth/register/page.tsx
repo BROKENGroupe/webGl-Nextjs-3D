@@ -4,20 +4,20 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/shared/ui/button";
-import React from "react";
-import { Loader2 } from "lucide-react";
+import React, { useState } from "react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerUser } from "@/services/userService";
 import { signIn } from "next-auth/react";
 import { useRegisterFlow } from "@/context/RegisterContext";
-import { createCredentialSchema } from "@/schemas/registerCredentials.schema";
+import { registerCredentialSchema } from "@/schemas/registerCredentials.schema";
 
 export default function RegisterPage() {
   const [isPending, startTransition] = React.useTransition();
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
-  //   Usar Context API en lugar de Zustand
   const { saveRegistrationData, isLoading, error } = useRegisterFlow();
 
   const {
@@ -26,14 +26,14 @@ export default function RegisterPage() {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(createCredentialSchema),
+    resolver: zodResolver(registerCredentialSchema),
     mode: "all",
   });
 
   const onSubmit = (data: any) => {
     startTransition(async () => {
       try {
-        const res = await registerUser(data);
+        const res = await registerUser({ ...data, name: data.email });
 
         if (res) {
           const response = await signIn("credentials", {
@@ -44,9 +44,7 @@ export default function RegisterPage() {
           saveRegistrationData(response, data);
 
           router.push(
-            !res?.user.registrationComplete
-              ? "/register-onboarding"
-              : "/home"
+            !res?.user.registrationComplete ? "/onboarding" : "/home"
           );
 
           if (response?.error) {
@@ -65,7 +63,6 @@ export default function RegisterPage() {
     signIn("google", { callbackUrl: "/home" });
   };
 
-  //   Mostrar error del contexto si existe
   React.useEffect(() => {
     if (error) {
       toast.error("Error en registro", { description: error });
@@ -73,43 +70,24 @@ export default function RegisterPage() {
   }, [error]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen">
+    <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen bg-gray-50">
       {/* Columna Izquierda: Formulario */}
-      <div className="flex flex-col justify-center items-center p-8 sm:p-12 bg-white md:col-span-2">
-        <div className="w-full max-w-md">
-          <div className="flex justify-between items-center">
+      <div className="flex flex-col justify-center items-center p-6 sm:p-10 bg-white md:col-span-2">
+        <div className="w-full max-w-sm bg-white px-3 py-8 border-gray-100">
+          <div className="flex justify-between items-center mb-8">
             <Image
               src="/assets/images/insonor.png"
               alt="Logo"
-              width={150}
-              height={70}
-              className="mb-8"
+              width={120}
+              height={50}
+              className="mb-0"
             />
-            <h3 className="text-2xl text-gray-800 mb-8">Crear cuenta</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              Crear cuenta
+            </h3>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                {...register("name", { required: "Name is required" })}
-                placeholder="Enter your name"
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
-              {errors.name && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-
             <div>
               <label
                 htmlFor="email"
@@ -122,7 +100,7 @@ export default function RegisterPage() {
                 type="email"
                 {...register("email", { required: "Email is required" })}
                 placeholder="Enter your email"
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
+                className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 text-sm"
               />
               {errors.email && (
                 <p className="text-red-500 text-xs mt-1">
@@ -130,7 +108,6 @@ export default function RegisterPage() {
                 </p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="password"
@@ -138,16 +115,29 @@ export default function RegisterPage() {
               >
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: 8,
-                })}
-                placeholder="Enter your password"
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  {...register("password", {
+                    required: "Password is required",
+                  })}
+                  placeholder="Enter your password"
+                  className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 text-sm pr-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Ver contraseña"
+                  }
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.password.message}
@@ -160,7 +150,7 @@ export default function RegisterPage() {
                 id="terms"
                 name="terms"
                 type="checkbox"
-                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label
                 htmlFor="terms"
@@ -170,7 +160,10 @@ export default function RegisterPage() {
               </label>
             </div>
 
-            <Button className="w-full" disabled={isPending || isLoading}>
+            <Button
+              className="w-full rounded-lg text-base font-semibold py-2"
+              disabled={isPending || isLoading}
+            >
               {(isPending || isLoading) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
@@ -179,16 +172,16 @@ export default function RegisterPage() {
           </form>
 
           <div className="relative flex items-center my-6">
-            <div className="flex-grow border-t border-gray-300"></div>
-            <span className="mx-4 flex-shrink text-gray-400 text-sm">Or</span>
-            <div className="flex-grow border-t border-gray-300"></div>
+            <div className="flex-grow border-t border-gray-200"></div>
+            <span className="mx-4 flex-shrink text-gray-400 text-xs">Or</span>
+            <div className="flex-grow border-t border-gray-200"></div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-2">
             <button
               onClick={handleGoogleLogin}
               disabled={isPending || isLoading}
-              className="flex items-center justify-center gap-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-md border border-gray-300 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-lg border border-gray-200 transition-colors disabled:opacity-50"
             >
               <svg
                 className="w-5 h-5"
@@ -212,11 +205,11 @@ export default function RegisterPage() {
                   d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.574l6.19 5.238C39.904 35.638 44 28.718 44 20c0-1.341-.138-2.65-.389-3.917z"
                 ></path>
               </svg>
-              Sign Up with Google
+              <span className="text-sm font-medium">Sign Up with Google</span>
             </button>
           </div>
 
-          <p className="text-center text-sm text-gray-500 mt-8">
+          <p className="text-center text-xs text-gray-500 mt-6">
             Have an account?{" "}
             <Link
               href="/auth/login"

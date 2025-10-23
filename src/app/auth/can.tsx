@@ -3,12 +3,12 @@ import { Skeleton } from '@/shared/ui/skeleton';
 import { ReactNode } from 'react';
 
 type CanProps = {
-  permission?: string | string[]; // Ej: "3d:render" o ["3d:view", "clients:update"]
+  permission?: string | string[];
   role?: string | string[];
   children: ReactNode;
   fallback?: ReactNode;
-  loadingType?: 'button' | 'card' | 'text' | 'nav' | 'custom'; //   Tipo de skeleton
-  loadingSkeleton?: ReactNode; //   Skeleton personalizado
+  loadingType?: 'button' | 'card' | 'text' | 'nav' | 'custom';
+  loadingSkeleton?: ReactNode;
 };
 
 export function Can({ 
@@ -64,27 +64,13 @@ export function Can({
 
   //   Verificar permisos usando la función hasPermission
   const hasRequiredPermission =
-    permissionsArr.length === 0 || // Si no se requiere permiso específico
-    permissionsArr.some((p: string) => hasPermission(p)); // Verificar cada permiso
+    permissionsArr.length === 0 || 
+    permissionsArr.some((p: string) => hasPermission(p));
 
   // Verificar roles
   const hasRequiredRole =
-    rolesArr.length === 0 || // Si no se requiere rol específico
-    (userRole && rolesArr.includes(userRole));
-
-  //   Logs para debugging
-  console.log(`🛡️ Can component check:`, {
-    requestedPermissions: permissionsArr,
-    requestedRoles: rolesArr,
-    userRole,
-    hasRequiredPermission,
-    hasRequiredRole,
-    finalResult: hasRequiredPermission && hasRequiredRole,
-    permissionChecks: permissionsArr.map((p) => ({
-      permission: p,
-      result: hasPermission(p),
-    })),
-  });
+    rolesArr.length === 0 ||
+    (userRole && rolesArr.includes(userRole)); 
 
   // Solo mostrar children si tiene tanto el permiso como el rol requerido
   if (hasRequiredPermission && hasRequiredRole) {

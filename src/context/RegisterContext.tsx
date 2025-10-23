@@ -85,17 +85,14 @@ export function RegisterProvider({ children }: { children: ReactNode }) {
 
   //   Actions
   const setRegisterData = (data: RegisterData) => {
-    console.log('🔄 Context: Setting register data:', data);
     dispatch({ type: 'SET_REGISTER_DATA', payload: data });
   };
 
   const updateRegisterData = (updates: Partial<RegisterData>) => {
-    console.log('🔄 Context: Updating register data:', updates);
     dispatch({ type: 'UPDATE_REGISTER_DATA', payload: updates });
   };
 
   const clearRegisterData = () => {
-    console.log('🗑️ Context: Clearing register data');
     dispatch({ type: 'CLEAR_REGISTER_DATA' });
   };
 
@@ -186,8 +183,7 @@ export function useRegisterFlow() {
       const registerDataToSave: RegisterData = {
         status: userData.status,
       };
-
-      console.log('💾 Context: Saving registration data:', registerDataToSave);
+      
       context.setRegisterData(registerDataToSave);
       context.setError(null);
       

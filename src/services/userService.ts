@@ -13,6 +13,20 @@ export const registerUser = async (user: any) => {
   return res.json();
 };
 
+export const registerOnboarding = async (update: any) => {
+  console.log('Registering onboarding with data:', update);
+  const res = await fetch(`/api/users/onboarding`, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'update-onboarding',
+      payload: update,
+    }),
+    cache: 'no-store',
+  });
+
+  return res.json();
+};
+
 
 export const registerAccount = async (account: any) => {
   console.log('Registering account with data:', account);

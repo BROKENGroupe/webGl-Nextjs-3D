@@ -16,7 +16,7 @@ interface StepFormProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onSelect: (fieldName: string, value: string) => void;
   onMultipleSelect: (fieldName: string, values: string[]) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (values: OnboardingFormData) => void;
 }
 
 const variants = {
@@ -34,7 +34,12 @@ export default function StepForm({
   onMultipleSelect,
   onSubmit 
 }: StepFormProps) {
-  
+
+  // Memoiza los valores combinados de formData
+  const values = React.useMemo(() => {
+    return { ...formData };
+  }, [formData]);
+
   const {
     register,
     handleSubmit,
@@ -97,9 +102,11 @@ export default function StepForm({
     await trigger(fieldName as any);
   };
 
-  const onFormSubmit = (data: any) => {
-    const event = { preventDefault: () => {} } as React.FormEvent;
-    onSubmit(event);
+  const onFormSubmit = () => {
+    debugger;
+    if (isValid && values) {
+      onSubmit(values);
+    }
   };
 
   const onFormError = (errors: any) => {

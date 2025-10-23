@@ -41,7 +41,7 @@ export function mapUserToToken(user: Partial<User>, account?: any): MappedUser {
     image: (user as any).image ?? null,
     role: (user as any).role ?? null,
     permissions: (user as any).permissions ?? null,
-    registrationComplete: user.registrationComplete ?? false, // ✅ Incluir siempre
+    registrationComplete: user.registrationComplete ?? false, 
     createdAt: (user as any).createdAt ?? null,
     updatedAt: (user as any).updatedAt ?? null,
     
@@ -92,6 +92,7 @@ export function mapTokenToSession(token: JWT, session: any) {
   // Tokens y otros datos de sesión
   session.accessToken = (token as any).accessToken ?? null;
   session.refreshToken = (token as any).refreshToken ?? null;
+  session.registrationComplete = (token as any).registrationComplete ?? null;
   session.error = (token as any).error ?? null;
 
   // Mantener slug en el nivel raíz para compatibilidad

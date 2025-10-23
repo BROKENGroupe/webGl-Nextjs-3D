@@ -6,15 +6,13 @@ export function useDragAndDrop() {
   const [draggedTemplate, setDraggedTemplate] = useState<AcousticMaterial | null>(null);
   const [hoveredWall, setHoveredWall] = useState<number | null>(null);
 
-  const handleDragStart = useCallback((template: AcousticMaterial) => {
-    console.log('🎯 GLOBAL: Iniciando drag de', template.type);
+  const handleDragStart = useCallback((template: AcousticMaterial) => {    
     setIsDragActive(true);
     setDraggedTemplate(template);
     setHoveredWall(null);
   }, []);
 
-  const handleDragEnd = useCallback(() => {
-    console.log('🎯 GLOBAL: Finalizando drag');
+  const handleDragEnd = useCallback(() => {    
     setIsDragActive(false);
     setDraggedTemplate(null);
     setHoveredWall(null);
@@ -26,8 +24,6 @@ export function useDragAndDrop() {
 
   const handleDrop = useCallback((wallIndex: number, position: number) => {
     if (!draggedTemplate) return null;
-    
-    console.log('🎯 GLOBAL: Drop en pared', wallIndex, 'posición', position);
     
     const droppedTemplate = draggedTemplate;
     handleDragEnd();

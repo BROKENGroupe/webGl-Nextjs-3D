@@ -32,7 +32,6 @@ export async function GET(req: NextRequest, response: any) {
     });
 
   } catch (error: any) {
-    console.error("Error al obtener notificaciones:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

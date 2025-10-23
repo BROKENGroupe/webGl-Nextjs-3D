@@ -316,15 +316,6 @@ export const AppSidebar = React.memo(function AppSidebar({
   ]);
   // SidebarData para el menú principal
   const sidebarData2 = React.useMemo(() => {
-    // if (!isDataReady) {
-    //   return {
-    //     user: { name: "", email: "", avatar: "" },
-    //     teams: [],
-    //     navMain: [],
-    //     navSecondary: STATIC_NAV_SECONDARY,
-    //     projects: [],
-    //   };
-    // }
 
     const navMainItems = placesSection;
 
