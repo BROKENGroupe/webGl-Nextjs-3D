@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Extrude, OrbitControls } from "@react-three/drei";
+import { Extrude, OrbitControls, GizmoHelper, GizmoViewport } from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useRef, Suspense } from "react";
 import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
@@ -654,7 +654,6 @@ export default function DrawingScene() {
     }
 
     setIsCalculating(true);
-    debugger;
     console.log("Calculating segments for all surfaces...");
 
     const wallCalculationResults = walls.map((wall) =>
@@ -797,6 +796,13 @@ export default function DrawingScene() {
         {/* OrbitControls: solo permite rotar si no se está arrastrando un vértice */}
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={!isDragging} />
 
+        {/* Control de órbita y vistas tipo CAD */}
+        {isExtruded && (
+          <GizmoHelper alignment="top-right" margin={[80, 80]}>
+            <GizmoViewport axisColors={['#f38ba8', '#a6e3a1', '#89b4fa']} labelColor="#cdd6f4" hideAxisHeads={true} />
+          </GizmoHelper>
+        )}
+
         <Suspense fallback={<Html center>Cargando 3D...</Html>}>
           {/* VISTA 2D - Cuando NO está extruido */}
           {!isExtruded && (
@@ -811,8 +817,7 @@ export default function DrawingScene() {
               onVertexClick={handleVertexClick} // NUEVO: Pasar el manejador de clic
             />
           )}
-      
-        //MODO 3D - Renderizar con funcionalidad de drag & drop
+              {/* //MODO 3D - Renderizar con funcionalidad de drag & drop
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           <ExtrudedShapeWithDraggableOpenings
             planeCoordinates={[]}
@@ -830,7 +835,8 @@ export default function DrawingScene() {
             openings={openings}
             ceilings2={ceilings}
           />
-        )}
+        )} */}
+
         {showSegments && <SegmentsVisualizer segments={segments} />}         
 
           {/* VISTA 3D - Cuando está extruido Y tiene coordenadas */}
