@@ -794,7 +794,7 @@ export default function DrawingScene() {
         <ambientLight intensity={0.8} />
         <pointLight position={[10, 10, 10]} intensity={1} castShadow />
         {/* OrbitControls: solo permite rotar si no se está arrastrando un vértice */}
-        <OrbitControls enablePan={true} enableZoom={true} enableRotate={!isDragging} />
+        <OrbitControls enablePan={true} enableZoom={true} enableRotate={!isDragging} mouseButtons={{ RIGHT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN, }} />
 
         {/* Control de órbita y vistas tipo CAD */}
         {isExtruded && (
