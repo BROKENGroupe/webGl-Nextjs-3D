@@ -73,7 +73,7 @@ export default function RegisterPage() {
     <div className="grid grid-cols-1 md:grid-cols-5 w-full min-h-screen bg-gray-50">
       {/* Columna Izquierda: Formulario */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-10 bg-white md:col-span-2">
-        <div className="w-full max-w-sm bg-white px-6 py-8 border-gray-100">
+        <div className="w-full max-w-sm bg-white px-3 py-8 border-gray-100">
           <div className="flex justify-between items-center mb-8">
             <Image
               src="/assets/images/insonor.png"
