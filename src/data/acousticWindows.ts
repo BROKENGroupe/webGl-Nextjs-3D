@@ -2,7 +2,7 @@ import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/Acousti
 
 enum WindowSubtypes {
   FloatGlass = "Float Glass",
-  ArgonFilled = "Argon Filled", 
+  ArgonFilled = "Argon Filled",
   LaminatedSafetyGlass = "Laminated Safety Glass",
   TripleGlassArgon = "Triple Glass Argon",
   SpecialAcousticGlass = "Special Acoustic Glass"
@@ -27,9 +27,12 @@ export const windowStandard: AcousticMaterial = {
     50: 14, 63: 15, 80: 16, 100: 17, 125: 18, 160: 19, 200: 20, 250: 22, 315: 23, 400: 24,
     500: 26, 630: 26, 800: 25, 1000: 26, 1250: 25, 1600: 24, 2000: 23, 2500: 22, 3150: 21, 4000: 20, 5000: 19
   },
-  octaveBands: [
-    { range: "125-4000", value: "26(-2;-4)" }
-  ],
+  "octaveBands": {
+    "63": 16.0, "125": 19.0,
+    "250": 22.0, "500": 25.0,
+    "1000": 28.0, "2000": 31.0,
+    "4000": 34.0
+  },
   weightedIndex: { Rw: 26, C: -2, Ctr: -4 },
   height: 1,
   width: 1,
@@ -58,9 +61,12 @@ export const windowDoubleGlazed: AcousticMaterial = {
     500: 35, 630: 34, 800: 33, 1000: 35, 1250: 34, 1600: 33, 2000: 32, 2500: 31, 3150: 30, 4000: 29,
     5000: 28
   },
-  octaveBands: [
-    { range: "125-4000", value: "35(-1;-3)" }
-  ],
+  "octaveBands": {
+    "63": 16.0, "125": 19.0,
+    "250": 22.0, "500": 25.0,
+    "1000": 28.0, "2000": 31.0,
+    "4000": 34.0
+  },
   weightedIndex: { Rw: 35, C: -1, Ctr: -3 },
   height: 1,
   width: 1,
@@ -86,9 +92,12 @@ export const windowLaminated: AcousticMaterial = {
     50: 16, 63: 17, 80: 18, 100: 19, 125: 20, 160: 21, 200: 22, 250: 23, 315: 24, 400: 25,
     500: 27, 630: 27, 800: 26, 1000: 27, 1250: 26, 1600: 25, 2000: 24, 2500: 23, 3150: 22, 4000: 21, 5000: 20
   },
-  octaveBands: [
-    { range: "125-4000", value: "28(-2;-5)" }
-  ],
+  "octaveBands": {
+    "63": 16.0, "125": 19.0,
+    "250": 22.0, "500": 25.0,
+    "1000": 28.0, "2000": 31.0,
+    "4000": 34.0
+  },
   weightedIndex: { Rw: 28, C: -2, Ctr: -5 },
   height: 1,
   width: 1,
@@ -119,9 +128,12 @@ export const windowTripleGlazed: AcousticMaterial = {
     500: 39, 630: 38, 800: 37, 1000: 39, 1250: 38, 1600: 37, 2000: 36, 2500: 35, 3150: 34, 4000: 33,
     5000: 32
   },
-  octaveBands: [
-    { range: "125-4000", value: "39(-1;-3)" }
-  ],
+  "octaveBands": {
+    "63": 16.0, "125": 19.0,
+    "250": 22.0, "500": 25.0,
+    "1000": 28.0, "2000": 31.0,
+    "4000": 34.0
+  },
   weightedIndex: { Rw: 39, C: -1, Ctr: -3 },
   height: 1,
   width: 1,
@@ -148,9 +160,12 @@ export const windowAcoustic: AcousticMaterial = {
     50: 20, 63: 22, 80: 24, 100: 25, 125: 26, 160: 28, 200: 30, 250: 32, 315: 33, 400: 34,
     500: 36, 630: 36, 800: 35, 1000: 36, 1250: 35, 1600: 34, 2000: 33, 2500: 32, 3150: 31, 4000: 30, 5000: 29
   },
-  octaveBands: [
-    { range: "125-4000", value: "36(-1;-3)" }
-  ],
+  "octaveBands": {
+    "63": 16.0, "125": 19.0,
+    "250": 22.0, "500": 25.0,
+    "1000": 28.0, "2000": 31.0,
+    "4000": 34.0
+  },
   weightedIndex: { Rw: 43, C: -1, Ctr: -3 },
   height: 1,
   width: 1,
