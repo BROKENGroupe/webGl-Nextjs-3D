@@ -4,20 +4,32 @@ import * as THREE from "three";
  * Motor avanzado para manipulación de líneas y polígonos regulares.
  */
 export class LineAdvanceEngine {
-  /** Tamaño visual máximo permitido para el cuadrado en modo limitado */
   static MAX_VISUAL_SIZE = 50;
 
   /**
-   * Escala el largo visual de la línea según el límite visual.
+   * Aplica snap-to-grid a un valor dado.
+   * @param value Valor a ajustar.
+   * @param snapSize Tamaño del grid.
+   * @returns Valor ajustado al grid.
+   */
+  static snapToGrid(value: number, snapSize: number): number {
+    return Math.round(value / snapSize) * snapSize;
+  }
+
+  /**
+   * Escala el largo visual de la línea según el límite visual y aplica snap-to-grid.
    * @param input Valor real ingresado por el usuario.
    * @param limitVisualSize Si es true, limita el tamaño visual a MAX_VISUAL_SIZE.
+   * @param snapSize Tamaño del grid.
    * @returns Largo visual a usar para la geometría.
    */
-  static scaleLength(input: number, limitVisualSize: boolean): number {
-    if (!limitVisualSize) return input;
-    return input > LineAdvanceEngine.MAX_VISUAL_SIZE
+  static scaleLength(input: number, limitVisualSize: boolean, snapSize: number): number {
+    let scaled = !limitVisualSize
+      ? input
+      : input > LineAdvanceEngine.MAX_VISUAL_SIZE
       ? LineAdvanceEngine.MAX_VISUAL_SIZE
       : input;
+    return LineAdvanceEngine.snapToGrid(scaled, snapSize);
   }
 
   /**
@@ -95,13 +107,20 @@ export class LineAdvanceEngine {
   }
 
   /**
-   * Redimensiona todas las líneas proporcionalmente.
+   * Redimensiona todas las líneas proporcionalmente y aplica snap-to-grid.
    */
-  static resizeProportionally(currentLines: any[], originalLengths: number[], originalLineLength: number, newLength: number) {
+  static resizeProportionally(
+    currentLines: any[],
+    originalLengths: number[],
+    originalLineLength: number,
+    newLength: number,
+    snapSize: number
+  ) {
     const factor = newLength / originalLineLength;
     return currentLines.map((l: any, idx: number) => {
       const origLen = originalLengths[idx];
-      const scaledLen = origLen * factor;
+      let scaledLen = origLen * factor;
+      scaledLen = LineAdvanceEngine.snapToGrid(scaledLen, snapSize);
       const start = l.start;
       const end = l.end;
       const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
@@ -119,33 +138,35 @@ export class LineAdvanceEngine {
   }
 
   /**
-   * Redimensiona solo una línea.
+   * Redimensiona solo una línea y aplica snap-to-grid.
    */
-  static resizeSingleLine(line: any, newLength: number) {
+  static resizeSingleLine(line: any, newLength: number, snapSize: number) {
+    let snappedLength = LineAdvanceEngine.snapToGrid(newLength, snapSize);
     const start = line.start;
     const end = line.end;
     const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
     const direction = new THREE.Vector3().subVectors(end, start).normalize();
-    const halfLength = newLength / 2;
+    const halfLength = snappedLength / 2;
     const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
     const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
     return {
       ...line,
       start: newStart,
       end: newEnd,
-      length: newLength,
+      length: snappedLength,
     };
   }
 
   /**
-   * Redimensiona una línea y devuelve los nuevos puntos (start, end) y la línea actualizada.
+   * Redimensiona una línea y devuelve los nuevos puntos (start, end) y la línea actualizada, aplicando snap-to-grid.
    */
-  static resizeLineAndGetPoints(line: any, newLength: number) {
+  static resizeLineAndGetPoints(line: any, newLength: number, snapSize: number) {
+    let snappedLength = LineAdvanceEngine.snapToGrid(newLength, snapSize);
     const start = line.start;
     const end = line.end;
     const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
     const direction = new THREE.Vector3().subVectors(end, start).normalize();
-    const halfLength = newLength / 2;
+    const halfLength = snappedLength / 2;
     const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
     const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
     return {
@@ -153,10 +174,10 @@ export class LineAdvanceEngine {
         ...line,
         start: newStart,
         end: newEnd,
-        length: newLength,
+        length: snappedLength,
       },
       newPoints: [newStart, newEnd],
-      distance: newLength
+      distance: snappedLength
     };
   }
 
@@ -253,7 +274,7 @@ export class LineAdvanceEngine {
       const rot = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), currentAngle);
       const dir = baseDir.clone().applyQuaternion(rot);
       // Para cuadrilátero, usa el promedio de los tamaños para el radio
-      const radius = n === 4 ? (sizes[i] / 2) / Math.sin(Math.PI / n) : sizes[i] / 2;
+      const radius = n === 5 ? (sizes[i] / 2) / Math.sin(Math.PI / n) : sizes[i] / 2;
       const pt = center.clone().add(dir.multiplyScalar(radius));
       points.push(pt);
       currentAngle += angleStep;
@@ -318,7 +339,7 @@ export class LineAdvanceEngine {
     direction: THREE.Vector3
   ) {
     console.log("Generando cuadrilátero con tamaños:", sizes);
-    if (sizes.length !== 4) return { lines: [], points: [] };
+    if (sizes.length !== 5) return { lines: [], points: [] };
 
     // Si todos los lados son iguales, cuadrado perfecto
     if (sizes.every(s => Math.abs(s - sizes[0]) < 1e-6)) {
@@ -369,4 +390,77 @@ export class LineAdvanceEngine {
 
     return { lines, points };
   }
+}
+
+/**
+ * Redimensiona una línea sumando snapSize/2 a cada extremo y actualiza las líneas contiguas.
+ * @param lineId ID de la línea a redimensionar.
+ * @param currentLines Array de todas las líneas del polígono.
+ * @param snapSize Tamaño del snap-to-grid.
+ * @returns { updatedLines, newPoints } - Líneas actualizadas y nuevos puntos.
+ */
+export function resizeLineWithSnapAndUpdateNeighbors(
+  lineId: string,
+  currentLines: any[],
+  snapSize: number
+) {
+  // Encuentra la línea a redimensionar
+  const idx = currentLines.findIndex(l => l.id === lineId);
+  if (idx === -1) return { updatedLines: currentLines, newPoints: [] };
+
+  const n = currentLines.length;
+  const line = currentLines[idx];
+
+  // Calcula la nueva longitud sumando snapSize a la actual
+  const newLength = (line.length ?? line.start.distanceTo(line.end)) + snapSize;
+
+  // Calcula el centro y dirección de la línea
+  const center = new THREE.Vector3().addVectors(line.start, line.end).multiplyScalar(0.5);
+  const direction = new THREE.Vector3().subVectors(line.end, line.start).normalize();
+
+  // Calcula los nuevos extremos sumando snapSize/2 a cada lado
+  const halfLength = newLength / 2;
+  const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
+  const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
+
+  // Actualiza los puntos del polígono
+  // Suponemos que los puntos están en orden y cada línea conecta puntos consecutivos
+  // Actualiza el punto de inicio de la línea anterior y el punto final de la línea siguiente
+  const newPoints = currentLines.map((l, i) => {
+    if (i === idx) return newStart;
+    if (i === (idx + 1) % n) return newEnd;
+    return l.start;
+  });
+
+  // Reconstruye todas las líneas conectando los nuevos puntos
+  const updatedLines = currentLines.map((l, i) => {
+    const start = newPoints[i];
+    const end = newPoints[(i + 1) % n];
+    return {
+      ...l,
+      start,
+      end,
+      length: start.distanceTo(end),
+    };
+  });
+
+  return { updatedLines, newPoints };
+}
+
+// Genera líneas conectando todos los puntos, cerrando el polígono
+export function generatePolygonLines(points: THREE.Vector3[]) {
+  const closedPoints = [...points, points[0].clone()];
+  const lines = [];
+  for (let i = 0; i < closedPoints.length - 1; i++) {
+    const start = closedPoints[i];
+    const end = closedPoints[i + 1];
+    lines.push({
+      id: `line-${i}`,
+      start,
+      end,
+      length: start.distanceTo(end),
+      // ...otros datos
+    });
+  }
+  return lines;
 }

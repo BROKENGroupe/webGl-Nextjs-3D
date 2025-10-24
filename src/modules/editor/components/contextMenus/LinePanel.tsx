@@ -3,8 +3,8 @@ import { useDrawingStore } from "@/modules/editor/store/drawingStore";
 import { Button } from "@/shared/ui/button";
 import EditableHeaderLine from "./EditableHeaderLine";
 import * as THREE from "three";
-import { LineAdvanceEngine } from "../../core/engine/LineAdvanceEngine";
-import { ArrowRight } from 'lucide-react';
+import { LineAdvanceEngine, resizeLineWithSnapAndUpdateNeighbors } from "../../core/engine/LineAdvanceEngine";
+import { ArrowRight } from "lucide-react";
 import { predefinedColors } from "@/shared/lib/utils";
 import { Checkbox } from "@/shared/ui/checkbox";
 
@@ -38,6 +38,9 @@ export function LinePanel({
   const [limitVisualSize, setLimitVisualSize] = useState(true);
   const [showPolygonEditModal, setShowPolygonEditModal] = useState(false);
 
+  // Snap-to-grid size (puedes obtenerlo de la configuración global si lo tienes)
+  const snapSize = 1; // Ejemplo: 1 metro
+
   React.useEffect(() => {
     setLineName(name);
     setSelectedColor(color);
@@ -68,9 +71,11 @@ export function LinePanel({
     if (!originalLineLength || originalLengths.length !== currentLines.length)
       return;
 
+    // NO aplicar snap-to-grid al valor ingresado, usar el valor exacto del input
     const scaledLength = LineAdvanceEngine.scaleLength(
       newLength,
-      limitVisualSize
+      limitVisualSize,
+      snapSize
     );
 
     let action: "square" | "proportion" | "polygon" | "single" = "single";
@@ -83,34 +88,18 @@ export function LinePanel({
     }
 
     switch (action) {
-      case "square": {
-        const orderedPoints =
-          LineAdvanceEngine.getOrderedSquarePoints(currentLines);
-        const avg = orderedPoints
-          .reduce(
-            (acc: THREE.Vector3, p: THREE.Vector3) => acc.add(p),
-            new THREE.Vector3(0, 0, 0)
-          )
-          .multiplyScalar(1 / orderedPoints.length);
-        const dir = new THREE.Vector3()
-          .subVectors(orderedPoints[1], orderedPoints[0])
-          .normalize();
-        const squarePoints = LineAdvanceEngine.getSquarePoints(
-          avg,
-          scaledLength,
-          dir
-        );
-        const newLines = LineAdvanceEngine.generateSquareLines(
+      case "square":
+      case "polygon": {
+        const { updatedLines, newPoints } = resizeLineWithSnapAndUpdateNeighbors(
+          lineId,
           currentLines,
-          squarePoints,
-          newLength
+          scaledLength // <-- pasa el valor exacto
         );
-
-        newLines.forEach((l) => updateCurrentLine(l.id, l));
-        setCurrentPoints(squarePoints);
-        setLineLength(newLength);
-        setOriginalLineLength(newLength);
-        setOriginalLengths(newLines.map((l) => l.length));
+        updatedLines.forEach((l) => updateCurrentLine(l.id, l));
+        setCurrentPoints(newPoints[0].clone ? [...newPoints, newPoints[0].clone()] : []);
+        setLineLength(scaledLength);
+        setOriginalLineLength(scaledLength);
+        setOriginalLengths(updatedLines.map((l) => l.length));
         break;
       }
       case "proportion": {
@@ -118,39 +107,28 @@ export function LinePanel({
           currentLines,
           originalLengths,
           originalLineLength,
-          newLength
+          scaledLength, // <-- pasa el valor exacto
+          snapSize
         );
         newLines.forEach((l) => updateCurrentLine(l.id, l));
-        setLineLength(newLength);
-        setOriginalLineLength(newLength);
+        setLineLength(scaledLength);
+        setOriginalLineLength(scaledLength);
         setOriginalLengths(newLines.map((l) => l.length));
-        break;
-      }
-      case "polygon": {
-        const result = LineAdvanceEngine.resizePolygonWithOneLine(
-          currentLines,
-          lineId,
-          newLength
-        );
-        if (result) {
-          result.newLines.forEach((l) => updateCurrentLine(l.id, l));
-          setCurrentPoints(result.newPoints);
-          setLineLength(newLength);
-          setOriginalLineLength(newLength);
-          setOriginalLengths(result.newLines.map((l) => l.length));
-        }
         break;
       }
       case "single":
       default: {
         const l = currentLines.find((l) => l.id === lineId);
         if (!l) return;
-        const { updatedLine, newPoints } =
-          LineAdvanceEngine.resizeLineAndGetPoints(l, newLength);
-        updateCurrentLine(lineId, updatedLine);
-        setCurrentPoints(newPoints);
-        setLineLength(newLength);
-        setOriginalLineLength(newLength);
+        const { updatedLines, newPoints } = resizeLineWithSnapAndUpdateNeighbors(
+          lineId,
+          currentLines,
+          scaledLength // <-- pasa el valor exacto
+        );
+        updatedLines.forEach((l) => updateCurrentLine(l.id, l));
+        setCurrentPoints(newPoints[0].clone ? [...newPoints, newPoints[0].clone()] : []);
+        setLineLength(scaledLength);
+        setOriginalLineLength(scaledLength);
         setOriginalLengths(
           currentLines.map((l) => l.length || l.start.distanceTo(l.end))
         );
@@ -162,6 +140,29 @@ export function LinePanel({
   const handleDeleteLine = () => {
     removeCurrentLine(lineId);
     //onClose();
+  };
+
+  // Permite edición controlada del input
+  const [inputLength, setInputLength] = useState(lineLength);
+
+  React.useEffect(() => {
+    setInputLength(lineLength);
+  }, [lineLength]);
+
+  const handleLengthInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if(value === "") {
+      return;
+    }
+    // Permite vacío o número válido
+    setInputLength(Number(value));
+  };
+
+  const handleLengthBlur = () => {
+    // Solo aplica el cambio si es un número válido
+    if (typeof inputLength === "number" && !isNaN(inputLength)) {
+      handleLengthChange(inputLength);
+    }
   };
 
   return (
@@ -189,7 +190,9 @@ export function LinePanel({
             <Checkbox
               id="keep-proportion-switch"
               checked={keepProportion}
-              onCheckedChange={(v: boolean | "indeterminate") => setKeepProportion(!!v)}
+              onCheckedChange={(v: boolean | "indeterminate") =>
+                setKeepProportion(!!v)
+              }
             />
             <label
               htmlFor="keep-proportion-switch"
@@ -202,26 +205,34 @@ export function LinePanel({
             <Checkbox
               id="square-mode-switch"
               checked={squareMode}
-              onCheckedChange={(v: boolean | "indeterminate") => setSquareMode(!!v)}
+              onCheckedChange={(v: boolean | "indeterminate") =>
+                setSquareMode(!!v)
+              }
             />
             <label
               htmlFor="square-mode-switch"
               className="text-sm font-medium text-gray-700"
             >
-              Modo cuadrado <span className="text-gray-400">(todas las líneas iguales)</span>
+              Modo cuadrado{" "}
+              <span className="text-gray-400">(todas las líneas iguales)</span>
             </label>
           </div>
           <div className="flex items-center gap-3">
             <Checkbox
               id="limit-visual-size-switch"
               checked={limitVisualSize}
-              onCheckedChange={(v: boolean | "indeterminate") => setLimitVisualSize(!!v)}
+              onCheckedChange={(v: boolean | "indeterminate") =>
+                setLimitVisualSize(!!v)
+              }
             />
             <label
               htmlFor="limit-visual-size-switch"
               className="text-sm font-medium text-gray-700"
             >
-              Limitar tamaño visual <span className="text-gray-400">(no escalar más allá de un límite)</span>
+              Limitar tamaño visual{" "}
+              <span className="text-gray-400">
+                (no escalar más allá de un límite)
+              </span>
             </label>
           </div>
         </div>
@@ -231,12 +242,15 @@ export function LinePanel({
           </label>
           <input
             type="number"
-            min={0.01}
-            step={0.01}
-            value={Number(lineLength.toFixed(2))}
-            onChange={(e) => handleLengthChange(Number(e.target.value))}
+            min={1}
+            value={inputLength !== undefined && inputLength !== null ? Number(inputLength).toFixed(2) : ""}
+            onChange={handleLengthInput}
+            onBlur={handleLengthBlur}
             className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
           />
+          <span className="text-xs text-gray-400">
+            Snap-to-grid: {snapSize} m
+          </span>
         </div>
         <div className="px-3 pt-4">
           <label className="text-sm font-semibold mb-1 block text-gray-700">
@@ -296,5 +310,3 @@ export function LinePanel({
     </div>
   );
 }
-
-
