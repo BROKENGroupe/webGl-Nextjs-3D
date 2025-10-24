@@ -1,7 +1,6 @@
 import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
+import { FrequencyAnalysisResult } from './FrequencyAnalysis';
 import * as THREE from 'three';
-import { de } from 'zod/v4/locales';
-
 /**
  * Clase base para cálculos acústicos según la norma ISO 12354-4.
  * Permite modelar la transmisión del sonido desde el interior hacia el exterior
@@ -85,6 +84,11 @@ export class ISO12354_4Engine {
 
   // CALCULOS BASADOS EN LA NORMA ISO 12354-4 SEGMENTADOS
 
+
+
+
+
+
   static calcRBySegment(element: any, openings: any[]) {
     // Type guard for vertical walls
 
@@ -100,9 +104,11 @@ export class ISO12354_4Engine {
       const wallLength = Math.sqrt(dx * dx + dz * dz);
 
       const minSegmentSize = 3;
-      const numHorizontalSegments = Math.max(2, Math.ceil(wallLength / minSegmentSize));
-      const numVerticalSegments = Math.max(1, Math.ceil(height / minSegmentSize));
-
+      const numHorizontalSegments = 3;
+      // const numHorizontalSegments = Math.max(2, Math.ceil(wallLength / minSegmentSize));
+      // const numVerticalSegments = Math.max(1, Math.ceil(height / minSegmentSize));
+      const numVerticalSegments = 1;
+      debugger;
       const positionedOpenings = openingsInFace.map((op: any) => {
         const relPos = op.position ?? 0.5;
         return {
@@ -200,7 +206,6 @@ export class ISO12354_4Engine {
     // Type guard for horizontal surfaces
     else if (element.coordinates && typeof element.baseHeight !== 'undefined') {
 
-      debugger;
       const surface = element;
       const { coordinates, baseHeight, type, material, id } = surface;
 
@@ -391,91 +396,47 @@ export class ISO12354_4Engine {
    * 
    * @throws Will log error if no valid materials are found for the elements
    */
-  static calcSegmentR(elements: any[], materialsData: any): Record<ThirdOctave, number> {
-    const totalArea = elements.reduce((sum, el) => sum + el.area, 0);
 
-    if (totalArea === 0) {
-      return {
-        50: 0, 63: 0, 80: 0, 100: 0, 125: 0, 160: 0, 200: 0, 250: 0, 315: 0, 400: 0, 500: 0, 630: 0,
-        800: 0, 1000: 0, 1250: 0, 1600: 0, 2000: 0, 2500: 0, 3150: 0, 4000: 0, 5000: 0
-      };
-    }
 
-    // Find a representative material to get the frequency bands from
-    // debugger;
-    // const firstElementWithMaterial = elements.find(el => {
-    //   const materialId = el.material || el.template;
-    //   return materialsData[materialId];
-    // });
+  static calcSegmentR(elements: any[], freqType: string, frequencies: ThirdOctave[]): Record<ThirdOctave, number> {
+    const totalArea = elements.reduce((sum, el) => sum + (el.area || 0), 0);
 
-    // if (!firstElementWithMaterial) {
-    //   console.error("No valid materials found for elements in segment.");
-    //   return {
-    //     50: 0, 63: 0, 80: 0, 100: 0, 125: 0, 160: 0, 200: 0, 250: 0, 315: 0, 400: 0, 500: 0, 630: 0,
-    //     800: 0, 1000: 0, 1250: 0, 1600: 0, 2000: 0, 2500: 0, 3150: 0, 4000: 0, 5000: 0
-    //   };
-    // }
-
-    // const materialId = firstElementWithMaterial.material || firstElementWithMaterial.template;
-    // const referenceBands = materialsData[materialId].thirdOctaveBands;
-    console.log(elements)
-    debugger;
-    const referenceBands = elements[0].material.thirdOctaveBands || elements[0].template.thirdOctaveBands;
-    const frequencies = Object.keys(referenceBands).map(Number) as ThirdOctave[];
-
-    const compositeR: Record<ThirdOctave, number> = {} as any;
-
+    const compositeR: Record<number, number> = {} as any;
+    debugger
     for (const freq of frequencies) {
       let transmissionFactorSum = 0;
-      // debugger;
+
       for (const element of elements) {
-        // const elementMaterialId = element.material || element.template;
-        // const material = materialsData[elementMaterialId];
-        const material = element.material;
-        // debugger;
+        debugger
+        const material = element.material || element.template || null;
+        let R_i: number | undefined = undefined;
 
-        if (!material || !material.thirdOctaveBands || typeof material.thirdOctaveBands[freq] === 'undefined') {
-          // If a material or its R value for the band is missing, treat it as a hole (R=0)
-          // A transmission factor of 1 (10^(-0/10)) means full transmission.
-          transmissionFactorSum += element.area * 1;
-          continue;
+        if (freqType === 'third-octave') {
+          R_i = material.thirdOctaveBands[freq];
+        } else {
+          R_i = material.octaveBands[freq];
         }
-
-        const R_i = material.thirdOctaveBands[freq];
-
-
-        const transmissionFactor = Math.pow(10, -R_i / 10);
-        // const calcByOne =  transmissionFactor
-        transmissionFactorSum += element.area * transmissionFactor;
+        // debugger
+        if (typeof R_i === 'undefined' || R_i === null) {
+          // hueco => transmisión completa
+          transmissionFactorSum += (element.area || 0) * 1;
+        } else {
+          const tf = Math.pow(10, -Number(R_i) / 10);
+          transmissionFactorSum += (element.area || 0) * tf;
+        }
       }
 
       const averageTransmissionFactor = transmissionFactorSum / totalArea;
-      debugger;
+      // debugger
       if (averageTransmissionFactor > 0) {
         compositeR[freq] = -10 * Math.log10(averageTransmissionFactor);
       } else {
-        // Avoid log(0) - theoretically means infinite insulation
-        compositeR[freq] = 999; // A very high R value
+        compositeR[freq] = 999; // muy alto si transmisión es 0
       }
     }
 
-    // debugger;
-    return compositeR;
+    return compositeR as Record<ThirdOctave, number>;
   }
-
-  // /**
-  //  * Calcula la diferencia de nivel normalizada D_2m,nT para un segmento de fachada.
-  //  * @param R_segment Índice de reducción acústica del segmento.
-  //  * @param S_segment Área del segmento en m².
-  //  * @param V_receiver Volumen del recinto receptor (exterior, teóricamente infinito).
-  //  * @returns D_2m,nT por banda de frecuencia.
-  //  */
-  // static calcD2mnT(R_segment: Record<ThirdOctave, number>, S_segment: number, V_receiver: number) {
-  //   // TODO: Implementar la fórmula D_2m,nT = R' + 10 * log10(A_0 * T_0 / (S_segment * 0.16 * V_receiver))
-  //   // Esta fórmula es compleja para exterior, se simplificará.
-  //   console.log("TODO: Implementar calcD2mnT");
-  //   //return {}; // Placeholder
-  // }
 
   /**
    * Función principal para calcular el aislamiento acústico de una fachada según ISO 12354-4.
@@ -488,7 +449,7 @@ export class ISO12354_4Engine {
   static calculateFacadeSoundInsulation(
     wall: any,
     openings: any[],
-    materialsData: any,
+    frequencies: FrequencyAnalysisResult,
     Lpint = 70
   ) {
     // 1. Discretizar la fachada en segmentos
@@ -497,51 +458,48 @@ export class ISO12354_4Engine {
     // 2. Para cada segmento, calcular su índice de reducción acústica combinado
     const segmentsWithR = segments.map(segment => {
       // debugger;
-      const R_segment = this.calcSegmentR(segment.elements, materialsData);
+      const R_segment = this.calcSegmentR(segment.elements, frequencies.bandType, frequencies.frequencies);
       return { ...segment, R_segment };
     });
+    // 3. Para cada segmento, calcular su Nivel de potencia acústica
+    const segmentsWithLw = segmentsWithR.map(segment => {
+      debugger
+      const Lw_segment = this.calcLw(segment.R_segment, segment.totalArea, Lpint, frequencies.frequencies)
+      return { ...segment, Lw_segment };
+    })
 
-    // 3. (Simplificación) Calcular un R' total para la fachada
-    // En una implementación completa, se calcularía la contribución de cada segmento a un punto receptor.
-    // const totalArea = segments.reduce((sum, seg) => sum + seg.totalArea, 0);
-    // debugger;
+    // 4.Con todas las potencias calculadas se hace la sumatoria 
+    const Lw = this.calcLwTotal(segmentsWithLw, frequencies.frequencies)
 
-    const totalR = this.calcSegmentR(
-      segmentsWithR.flatMap(s => s.elements.map((e: any) => ({ ...e, area: e.area }))),
-      materialsData
-    );
-
-
-    // const 
-
-    const Lw = this.calcLw(totalR, wall.area, Lpint);
-
+//5. Calculo Lpext 
 
     return {
-      totalFacadeR: totalR,
-      segments: segmentsWithR,
+      totalFacadeR: [],
+      segments: segmentsWithLw,
       Lw: Lw
     };
+
   }
 
+
   /**
-   * Calculates the sound power level (Lw) radiated by a building element.
-   * Lw = Lp_in - R + 10 * log10(S)
-   * This is a simplified model. The full ISO 12354-4 is more complex.
-   *
-   * @param R_element - Sound reduction index of the element for each frequency band.
-   * @param S_element - Area of the element in m².
-   * @param Lp_in - Sound pressure level in the source room.
-   * @returns The sound power level (Lw) for each frequency band.
-   */
+  * Calculates the sound power level (Lw) radiated by a building element.
+  * Lw = Lp_in - R + 10 * log10(S)
+  * This is a simplified model. The full ISO 12354-4 is more complex.
+  *
+  * @param R_element - Sound reduction index of the element for each frequency band.
+  * @param S_element - Area of the element in m².
+  * @param Lp_in - Sound pressure level in the source room.
+  * @returns The sound power level (Lw) for each frequency band.
+  */
   static calcLw(
     R_element: Record<ThirdOctave, number>,
     S_element: number,
-    Lp_in: number
+    Lp_in: number,
+    frequencies: ThirdOctave[]
   ): Record<ThirdOctave, number> {
     const Lw: Record<ThirdOctave, number> = {} as any;
-    const frequencies = Object.keys(R_element).map(Number) as ThirdOctave[];
-
+    debugger
     for (const freq of frequencies) {
       const R = R_element[freq];
       // Formula: Lw = Lp_in - R + 10 * log10(S)
@@ -558,6 +516,38 @@ export class ISO12354_4Engine {
   }
 
   /**
+   * Calculates the sound power level (Lw) radiated by a building element.
+   * Lw = Lp_in - R + 10 * log10(S)
+   * This is a simplified model. The full ISO 12354-4 is more complex.
+   *
+   * @param R_element - Sound reduction index of the element for each frequency band.
+   * @param S_element - Area of the element in m².
+   * @param Lp_in - Sound pressure level in the source room.
+   * @returns The sound power level (Lw) for each frequency band.
+   */
+  static calcLwTotal(
+    segments: any[],
+    frequencies: ThirdOctave[]
+  ): Record<ThirdOctave, number> {
+
+    // const Lw_segment: Record<ThirdOctave, number>,
+    const LwTotal: Record<ThirdOctave, number> = {} as any;
+    // const frequencies = Object.keys(Lw_segment).map(Number) as ThirdOctave[];
+
+    for (const freq of frequencies) {
+      debugger
+      let sumLw = 0;
+      for (const segment of segments) {
+        const Lw = segment.Lw_segment[freq];
+        const factorElevation = Lw / 10;
+        sumLw += Math.pow(10, factorElevation)
+      }
+      LwTotal[freq] = 10 * Math.log10(sumLw);
+    }
+    return LwTotal;
+  }
+
+  /**
    * Calculates the sound pressure level (Lp) at a certain distance from a source.
    * Assumes hemispherical free field radiation (e.g., from a facade).
    * Lp = Lw - 10 * log10(2 * pi * r^2)
@@ -568,10 +558,11 @@ export class ISO12354_4Engine {
    */
   static calcLpExterior(
     Lw: Record<ThirdOctave, number>,
-    r: number
+    r: number,
+    frequencies: ThirdOctave[]
   ): Record<ThirdOctave, number> {
     const Lp: Record<ThirdOctave, number> = {} as any;
-    const frequencies = Object.keys(Lw).map(Number) as ThirdOctave[];
+    // const frequencies = Object.keys(Lw).map(Number) as ThirdOctave[];
 
     for (const freq of frequencies) {
       if (r > 0) {
@@ -584,21 +575,7 @@ export class ISO12354_4Engine {
     return Lp;
   }
 
-  // --- Métodos auxiliares matemáticos ---
-  // static distance(a: [number, number, number], b: [number, number, number]) {
-  //   return Math.sqrt(
-  //     Math.pow(a[0] - b[0], 2) +
-  //     Math.pow(a[1] - b[1], 2) +
-  //     Math.pow(a[2] - b[2], 2)
-  //   );
-  // }
-  // static sub(a: [number, number, number], b: [number, number, number]) {
-  //   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]] as [number, number, number];
-  // }
-  // static normalize(v: [number, number, number]): [number, number, number] {
-  //   const len = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-  //   return len > 0 ? [v[0] / len, v[1] / len, v[2] / len] : [0, 0, 0];
-  // }
+
 
 
 }

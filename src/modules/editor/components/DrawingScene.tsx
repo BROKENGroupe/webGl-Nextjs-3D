@@ -49,6 +49,7 @@ import { MultiFloorRenderer } from './MultiFloorRenderer';
 import { useFloorsStore } from '../store/floorsStore';
 import { LinePanel } from "./contextMenus/LinePanel";
 import { CollapsibleAsideTrigger } from "./asside/asside-lateral-trigger";
+import { FrequencyBandManager } from "../core/engineMath/FrequencyAnalysis";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -299,18 +300,18 @@ export default function DrawingScene() {
   };
 
   // NUEVO: Manejador de clic específico para vértices
-    const handleVertexClick = (index: number): boolean => {
-      if (isDragging) return false;
-  
-      // Si se hace clic en el primer vértice y hay suficientes puntos, cerrar la forma
-      if (!isClosed && index === 0 && currentPoints.length > 2) {
-        const closedPoints = [...currentPoints, currentPoints[0]];
-        setCurrentPoints(closedPoints);
-        setClosed(true);
-        return true; // Indicar que el evento fue manejado
-      }
-      return false; // Indicar que el evento no fue manejado
-    };
+  const handleVertexClick = (index: number): boolean => {
+    if (isDragging) return false;
+
+    // Si se hace clic en el primer vértice y hay suficientes puntos, cerrar la forma
+    if (!isClosed && index === 0 && currentPoints.length > 2) {
+      const closedPoints = [...currentPoints, currentPoints[0]];
+      setCurrentPoints(closedPoints);
+      setClosed(true);
+      return true; // Indicar que el evento fue manejado
+    }
+    return false; // Indicar que el evento no fue manejado
+  };
 
   const handleClick3D = (point: THREE.Vector3) => {
     if (isDragging) return; // No procesar clicks si se está arrastrando
@@ -406,7 +407,7 @@ export default function DrawingScene() {
   const handleExtrude = () => {
 
     // Validar que tenemos una forma cerrada
-    if (!isClosed || currentPoints.length < 4) {      
+    if (!isClosed || currentPoints.length < 4) {
       alert("⚠️ Necesitas cerrar la forma antes de extruir");
       return;
     }
@@ -484,7 +485,7 @@ export default function DrawingScene() {
   const handleStartDrag = (template: AcousticMaterial) => {
     console.log("🎯 Iniciando drag:", template.type);
     setIsDragActive(true);
-    setDraggedTemplate(template);   
+    setDraggedTemplate(template);
   };
 
   // Manejar drop en pared
@@ -656,19 +657,23 @@ export default function DrawingScene() {
     setIsCalculating(true);
     console.log("Calculating segments for all surfaces...");
 
+
+    debugger
+    const frequencies = FrequencyBandManager.determineFrequencyBands(walls, ceilings, floors, openings)
+
     const wallCalculationResults = walls.map((wall) =>
-      ISO12354_4Engine.calculateFacadeSoundInsulation(wall, openings, [])
+      ISO12354_4Engine.calculateFacadeSoundInsulation(wall, openings, frequencies, 70)
     );
 
     const wallSegments = wallCalculationResults.flatMap(result => result.segments);
 
     const ceilingCalculationResults = ceilings.map((ceiling) =>
-      ISO12354_4Engine.calculateFacadeSoundInsulation(ceiling, openings, [])
+      ISO12354_4Engine.calculateFacadeSoundInsulation(ceiling, openings, frequencies, 70)
     );
     const ceilingSegments = ceilingCalculationResults.flatMap(result => result.segments);
 
     const floorCalculationResults = floors.map((floor) =>
-      ISO12354_4Engine.calculateFacadeSoundInsulation(floor, openings, [])
+      ISO12354_4Engine.calculateFacadeSoundInsulation(floor, openings, frequencies, 70)
     );
     const floorSegments = floorCalculationResults.flatMap(result => result.segments);
 
@@ -681,8 +686,8 @@ export default function DrawingScene() {
       if (!segment || !segment.elements || segment.elements.length === 0) {
         return { ...segment, Lw: {}, R_segment: {} };
       }
-      const R_segment = ISO12354_4Engine.calcSegmentR(segment.elements, []);
-      const Lw_segment = ISO12354_4Engine.calcLw(R_segment, segment.totalArea, useIsoStudyConfigStore.getState().Lp_in);
+      const R_segment = ISO12354_4Engine.calcSegmentR(segment.elements,frequencies.bandType,frequencies.frequencies);
+      const Lw_segment = ISO12354_4Engine.calcLw(R_segment, segment.totalArea, useIsoStudyConfigStore.getState().Lp_in, frequencies.frequencies);
       return { ...segment, Lw: Lw_segment, R_segment: R_segment };
     });
 
@@ -720,10 +725,10 @@ export default function DrawingScene() {
   const handleIsoConfigConfirm = (config: {
     height: number;
     venueType: string;
-  }) => {    
+  }) => {
     useIsoStudyConfigStore.getState().setConfig({
       height: config.height,
-      studyType: "iso12354-4", 
+      studyType: "iso12354-4",
       Lp_in: 70,
     });
     // Opcional: puedes cerrar el modal aquí si lo deseas
@@ -817,7 +822,7 @@ export default function DrawingScene() {
               onVertexClick={handleVertexClick} // NUEVO: Pasar el manejador de clic
             />
           )}
-              {/* //MODO 3D - Renderizar con funcionalidad de drag & drop
+          {/* //MODO 3D - Renderizar con funcionalidad de drag & drop
         {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
           <ExtrudedShapeWithDraggableOpenings
             planeCoordinates={[]}
@@ -837,7 +842,7 @@ export default function DrawingScene() {
           />
         )} */}
 
-        {showSegments && <SegmentsVisualizer segments={segments} />}         
+          {showSegments && <SegmentsVisualizer segments={segments} />}
 
           {/* VISTA 3D - Cuando está extruido Y tiene coordenadas */}
           {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length >= 3 && (
@@ -879,7 +884,7 @@ export default function DrawingScene() {
         {/* Superficie de dibujo y Grid - Solo visible en 2D */}
         {!isExtruded && (
           <>
-  <gridHelper args={[500, 100, '#606060', '#f0f0f0']} />
+            <gridHelper args={[500, 100, '#606060', '#f0f0f0']} />
             <DrawingSurface onClick3D={handleClick3D} />
           </>
         )}
@@ -1024,9 +1029,9 @@ export default function DrawingScene() {
         onClose={() => setShowMaterialModal(false)}
       />
 
-      {/* Modal de contexto para la línea, fuera del grupo 3D */}      
+      {/* Modal de contexto para la línea, fuera del grupo 3D */}
 
-       <CollapsibleAsideTrigger side="right" open={lineMenuVisible && !!Extrude}>       
+      <CollapsibleAsideTrigger side="right" open={lineMenuVisible && !!Extrude}>
         <LinePanel
           lineId={selectedLineId ?? ""}
           onClose={() => setLineMenuVisible(false)}
