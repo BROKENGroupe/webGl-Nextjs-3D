@@ -402,30 +402,23 @@ export class LineAdvanceEngine {
 export function resizeLineWithSnapAndUpdateNeighbors(
   lineId: string,
   currentLines: any[],
-  snapSize: number
+  newLength: number // <-- este valor es absoluto, no suma
 ) {
-  // Encuentra la línea a redimensionar
   const idx = currentLines.findIndex(l => l.id === lineId);
   if (idx === -1) return { updatedLines: currentLines, newPoints: [] };
 
   const n = currentLines.length;
   const line = currentLines[idx];
 
-  // Calcula la nueva longitud sumando snapSize a la actual
-  const newLength = (line.length ?? line.start.distanceTo(line.end)) + snapSize;
-
-  // Calcula el centro y dirección de la línea
+  // Usa el valor plano como nuevo largo
   const center = new THREE.Vector3().addVectors(line.start, line.end).multiplyScalar(0.5);
   const direction = new THREE.Vector3().subVectors(line.end, line.start).normalize();
 
-  // Calcula los nuevos extremos sumando snapSize/2 a cada lado
   const halfLength = newLength / 2;
   const newStart = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(-halfLength));
   const newEnd = new THREE.Vector3().addVectors(center, direction.clone().multiplyScalar(halfLength));
 
   // Actualiza los puntos del polígono
-  // Suponemos que los puntos están en orden y cada línea conecta puntos consecutivos
-  // Actualiza el punto de inicio de la línea anterior y el punto final de la línea siguiente
   const newPoints = currentLines.map((l, i) => {
     if (i === idx) return newStart;
     if (i === (idx + 1) % n) return newEnd;

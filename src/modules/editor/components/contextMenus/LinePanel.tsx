@@ -39,7 +39,7 @@ export function LinePanel({
   const [showPolygonEditModal, setShowPolygonEditModal] = useState(false);
 
   // Snap-to-grid size (puedes obtenerlo de la configuración global si lo tienes)
-  const snapSize = 1; // Ejemplo: 1 metro
+  const snapSize = 0.5;
 
   React.useEffect(() => {
     setLineName(name);
@@ -93,7 +93,7 @@ export function LinePanel({
         const { updatedLines, newPoints } = resizeLineWithSnapAndUpdateNeighbors(
           lineId,
           currentLines,
-          scaledLength // <-- pasa el valor exacto
+          scaledLength
         );
         updatedLines.forEach((l) => updateCurrentLine(l.id, l));
         setCurrentPoints(newPoints[0].clone ? [...newPoints, newPoints[0].clone()] : []);
@@ -107,7 +107,7 @@ export function LinePanel({
           currentLines,
           originalLengths,
           originalLineLength,
-          scaledLength, // <-- pasa el valor exacto
+          scaledLength,
           snapSize
         );
         newLines.forEach((l) => updateCurrentLine(l.id, l));
@@ -123,7 +123,7 @@ export function LinePanel({
         const { updatedLines, newPoints } = resizeLineWithSnapAndUpdateNeighbors(
           lineId,
           currentLines,
-          scaledLength // <-- pasa el valor exacto
+          scaledLength
         );
         updatedLines.forEach((l) => updateCurrentLine(l.id, l));
         setCurrentPoints(newPoints[0].clone ? [...newPoints, newPoints[0].clone()] : []);
@@ -139,7 +139,6 @@ export function LinePanel({
 
   const handleDeleteLine = () => {
     removeCurrentLine(lineId);
-    //onClose();
   };
 
   // Permite edición controlada del input
@@ -243,7 +242,7 @@ export function LinePanel({
           <input
             type="number"
             min={1}
-            value={inputLength !== undefined && inputLength !== null ? Number(inputLength).toFixed(2) : ""}
+            value={inputLength}
             onChange={handleLengthInput}
             onBlur={handleLengthBlur}
             className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
