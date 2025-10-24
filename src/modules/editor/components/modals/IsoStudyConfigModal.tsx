@@ -1,6 +1,8 @@
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent } from "@/shared/ui/dialog";
 import React, { useState } from "react";
+import { useIsoResultStore } from "../../store/isoResultStore";
+import { useWallsStore } from "../../store/wallsStore";
 
 interface IsoStudyConfigModalProps {
   open: boolean;
@@ -29,10 +31,18 @@ export const IsoStudyConfigModal: React.FC<IsoStudyConfigModalProps> = ({
     venueType: "discoteca",
   });
 
+  const { setWallHeight } = useWallsStore();
+
+  type IsoResult = {
+    height: number;
+    venueType: string;
+    // add other properties if needed
+  };
+
   // Actualiza el estado isoConfig cuando cambian los inputs
   const handleHeightChange = (value: number) => {
     setHeight(value);
-    setIsoConfig((prev) => ({ ...prev, height: value }));
+    //setWallHeight(value);
   };
 
   const handleVenueTypeChange = (value: string) => {
@@ -41,6 +51,7 @@ export const IsoStudyConfigModal: React.FC<IsoStudyConfigModalProps> = ({
   };
 
   const handleConfirm = () => {
+    setWallHeight(height);
     onConfirm(isoConfig);
     onClose();
   };

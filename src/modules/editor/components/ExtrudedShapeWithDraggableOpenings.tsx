@@ -14,6 +14,7 @@ import { RoomFloor } from "./extrudeFloor/RoomFloor";
 import { RoomWall } from "./extrudeFloor/RoomWall";
 import { ElementType } from "../types/walls";
 import { COLORS } from "@/config/materials";
+import { useIsoResultStore } from "../store/isoResultStore";
 
 // Props interface
 interface ExtrudedShapeWithDraggableOpenings2Props {
@@ -26,13 +27,33 @@ interface ExtrudedShapeWithDraggableOpenings2Props {
   onAddFloor?: () => void;
   floors2?: any[];
   walls2?: any[]; // NUEVA PROP para paredes específicas
-  onWallContextMenu?: (event: any, facadeName: number, title: string, elementType: ElementType) => void;
-  onOpeningContextMenu?: (event: any, openingId: any, title: string, elementType: ElementType) => void;
+  onWallContextMenu?: (
+    event: any,
+    facadeName: number,
+    title: string,
+    elementType: ElementType
+  ) => void;
+  onOpeningContextMenu?: (
+    event: any,
+    openingId: any,
+    title: string,
+    elementType: ElementType
+  ) => void;
   openings: any[];
   ceilings2: any[];
-  onCeilingContextMenu?: (event: any, facadeName: string, title: string, elementType: ElementType) => void;
-  onFloorContextMenu?: (event: any, facadeName: string, title: string, elementType: ElementType) => void;
-  
+  onCeilingContextMenu?: (
+    event: any,
+    facadeName: string,
+    title: string,
+    elementType: ElementType
+  ) => void;
+  onFloorContextMenu?: (
+    event: any,
+    facadeName: string,
+    title: string,
+    elementType: ElementType
+  ) => void;
+
   // Props multi-planta
   floorHeight?: number;
   floorId?: string;
@@ -60,9 +81,11 @@ export function ExtrudedShapeWithDraggableOpenings({
   opacity = 1.0,
   interactive = true,
 }: ExtrudedShapeWithDraggableOpenings2Props) {
-  const { walls, ceilings, floors } = useWallsStore();
-  const depth = 3;
-  const { planeXZCoordinates, hasPlaneCoordinates, currentLines } = useDrawingStore();
+  const { walls, ceilings, floors, wallHeight } = useWallsStore();
+
+  const depth = wallHeight ?? 3;
+  const { planeXZCoordinates, hasPlaneCoordinates, currentLines } =
+    useDrawingStore();
   const { updateOpeningPosition } = useOpeningsStore();
 
   // LÓGICA DE COORDENADAS MEJORADA
@@ -71,11 +94,9 @@ export function ExtrudedShapeWithDraggableOpenings({
   if (planeCoordinates && planeCoordinates.length >= 3) {
     // 1. Prioridad: coordenadas pasadas por props (sistema multi-planta)
     coordinatesToUse = planeCoordinates;
-    
   } else if (hasPlaneCoordinates && planeXZCoordinates.length >= 3) {
     // 2. Fallback: coordenadas del store (sistema original)
     coordinatesToUse = planeXZCoordinates;
-    
   } else {
     // 3. Fallback final: coordenadas por defecto
     coordinatesToUse = [
@@ -142,7 +163,7 @@ export function ExtrudedShapeWithDraggableOpenings({
   const materialProps = {
     // Solo aplicar transparencia durante drag, NO a plantas duplicadas
     opacity: isDragActive || openingDrag.isDraggingOpening ? 0.8 : 1.0,
-    transparent: isDragActive || openingDrag.isDraggingOpening
+    transparent: isDragActive || openingDrag.isDraggingOpening,
   };
 
   return (
@@ -159,39 +180,44 @@ export function ExtrudedShapeWithDraggableOpenings({
               ((wallInteractions.hoveredWall === index &&
                 (isDragActive || openingDrag.isDraggingOpening)) ||
                 openingDrag.previewPosition?.wallIndex === index),
-            isDragActive: interactive && (isDragActive || openingDrag.isDraggingOpening),
+            isDragActive:
+              interactive && (isDragActive || openingDrag.isDraggingOpening),
             // OPACIDAD COMPLETA SIEMPRE
             opacity: 1.0,
           })}
           ceilingId={cl.id}
           ceilingIndex={index}
-          eventHandlers={interactive ? {
-            onPointerEnter: (e: any) => {
-              e.stopPropagation();
-              wallInteractions.handleWallPointerEnter(index);
-            },
-            onPointerLeave: wallInteractions.handleWallPointerLeave,
-            onPointerMove: (e: any) =>
-              openingDrag.handleMouseMove(
-                e,
-                wallInteractions.calculatePositionFromMouse
-              ),
-            onClick: (e: any) => {
-              e.stopPropagation();
-              wallInteractions.handleWallClick(index, e);
-            },
-            onContextMenu: (e: any) => {
-              e.stopPropagation();
-              if (onCeilingContextMenu) {
-                onCeilingContextMenu(
-                  e.nativeEvent,
-                  cl.id,
-                  cl.title,
-                  ElementType.Ceiling
-                );
-              }
-            },
-          } : {}}
+          eventHandlers={
+            interactive
+              ? {
+                  onPointerEnter: (e: any) => {
+                    e.stopPropagation();
+                    wallInteractions.handleWallPointerEnter(index);
+                  },
+                  onPointerLeave: wallInteractions.handleWallPointerLeave,
+                  onPointerMove: (e: any) =>
+                    openingDrag.handleMouseMove(
+                      e,
+                      wallInteractions.calculatePositionFromMouse
+                    ),
+                  onClick: (e: any) => {
+                    e.stopPropagation();
+                    wallInteractions.handleWallClick(index, e);
+                  },
+                  onContextMenu: (e: any) => {
+                    e.stopPropagation();
+                    if (onCeilingContextMenu) {
+                      onCeilingContextMenu(
+                        e.nativeEvent,
+                        cl.id,
+                        cl.title,
+                        ElementType.Ceiling
+                      );
+                    }
+                  },
+                }
+              : {}
+          }
         />
       ))}
 
@@ -206,13 +232,6 @@ export function ExtrudedShapeWithDraggableOpenings({
         const wall = wallsToUse[index];
         const wallColor = wall?.color || COLORS.wall;
 
-        console.log(`🎨 [${floorId || 'main'}] Pared ${index}:`, {
-          hasWall2: walls2.length > 0,
-          wallColor,
-          wallsToUseLength: wallsToUse.length,
-          interactive
-        });
-
         return (
           <RoomWall
             key={`wall-${floorId || "default"}-${index}`}
@@ -224,38 +243,43 @@ export function ExtrudedShapeWithDraggableOpenings({
                 ((wallInteractions.hoveredWall === index &&
                   (isDragActive || openingDrag.isDraggingOpening)) ||
                   openingDrag.previewPosition?.wallIndex === index),
-              isDragActive: interactive && (isDragActive || openingDrag.isDraggingOpening),
+              isDragActive:
+                interactive && (isDragActive || openingDrag.isDraggingOpening),
               // PAREDES SIEMPRE OPACAS
               opacity: 1.0,
             })}
             wallIndex={index}
-            eventHandlers={interactive ? {
-              onPointerEnter: (e: any) => {
-                e.stopPropagation();
-                wallInteractions.handleWallPointerEnter(index);
-              },
-              onPointerLeave: wallInteractions.handleWallPointerLeave,
-              onPointerMove: (e: any) =>
-                openingDrag.handleMouseMove(
-                  e,
-                  wallInteractions.calculatePositionFromMouse
-                ),
-              onClick: (e: any) => {
-                e.stopPropagation();
-                wallInteractions.handleWallClick(index, e);
-              },
-              onContextMenu: (e: any) => {
-                e.stopPropagation();
-                if (onWallContextMenu) {
-                  onWallContextMenu(
-                    e.nativeEvent,
-                    index,
-                    "Fachada",
-                    ElementType.Wall
-                  );
-                }
-              },
-            } : {}}
+            eventHandlers={
+              interactive
+                ? {
+                    onPointerEnter: (e: any) => {
+                      e.stopPropagation();
+                      wallInteractions.handleWallPointerEnter(index);
+                    },
+                    onPointerLeave: wallInteractions.handleWallPointerLeave,
+                    onPointerMove: (e: any) =>
+                      openingDrag.handleMouseMove(
+                        e,
+                        wallInteractions.calculatePositionFromMouse
+                      ),
+                    onClick: (e: any) => {
+                      e.stopPropagation();
+                      wallInteractions.handleWallClick(index, e);
+                    },
+                    onContextMenu: (e: any) => {
+                      e.stopPropagation();
+                      if (onWallContextMenu) {
+                        onWallContextMenu(
+                          e.nativeEvent,
+                          index,
+                          "Fachada",
+                          ElementType.Wall
+                        );
+                      }
+                    },
+                  }
+                : {}
+            }
           >
             {/* Aberturas específicas de esta planta */}
             {wallOpenings.map((opening) => (
@@ -265,32 +289,39 @@ export function ExtrudedShapeWithDraggableOpenings({
                 nextCoord={nextCoord}
                 wallHeight={depth}
                 opening={opening}
-                eventHandlers={interactive ? {
-                  onPointerDown: (e: any) =>
-                    openingDrag.handleOpeningPointerDown(
-                      opening,
-                      e,
-                      wallInteractions.calculatePositionFromMouse
-                    ),
-                  onPointerUp: (e: any) => openingDrag.handleOpeningPointerUp(),
-                  onPointerMove: (e: any) =>
-                    openingDrag.handleMouseMove(
-                      e,
-                      wallInteractions.calculatePositionFromMouse
-                    ),
-                  onPointerEnter: () => (document.body.style.cursor = "move"),
-                  onPointerLeave: () => (document.body.style.cursor = "default"),
-                  onContextMenu: (e: any) => {
-                    if (onOpeningContextMenu) {
-                      onOpeningContextMenu(
-                        e.nativeEvent,
-                        opening.id,
-                        opening.title,
-                        ElementType.Opening
-                      );
-                    }
-                  },
-                } : {}}
+                eventHandlers={
+                  interactive
+                    ? {
+                        onPointerDown: (e: any) =>
+                          openingDrag.handleOpeningPointerDown(
+                            opening,
+                            e,
+                            wallInteractions.calculatePositionFromMouse
+                          ),
+                        onPointerUp: (e: any) =>
+                          openingDrag.handleOpeningPointerUp(),
+                        onPointerMove: (e: any) =>
+                          openingDrag.handleMouseMove(
+                            e,
+                            wallInteractions.calculatePositionFromMouse
+                          ),
+                        onPointerEnter: () =>
+                          (document.body.style.cursor = "move"),
+                        onPointerLeave: () =>
+                          (document.body.style.cursor = "default"),
+                        onContextMenu: (e: any) => {
+                          if (onOpeningContextMenu) {
+                            onOpeningContextMenu(
+                              e.nativeEvent,
+                              opening.id,
+                              opening.title,
+                              ElementType.Opening
+                            );
+                          }
+                        },
+                      }
+                    : {}
+                }
               />
             ))}
           </RoomWall>
@@ -310,38 +341,43 @@ export function ExtrudedShapeWithDraggableOpenings({
               ((wallInteractions.hoveredWall === index &&
                 (isDragActive || openingDrag.isDraggingOpening)) ||
                 openingDrag.previewPosition?.wallIndex === index),
-            isDragActive: interactive && (isDragActive || openingDrag.isDraggingOpening),
+            isDragActive:
+              interactive && (isDragActive || openingDrag.isDraggingOpening),
             // PISOS SIEMPRE OPACOS
             opacity: 1.0,
           })}
           floorId={fl.id}
-          eventHandlers={interactive ? {
-            onPointerEnter: (e: any) => {
-              e.stopPropagation();
-              wallInteractions.handleWallPointerEnter(index);
-            },
-            onPointerLeave: wallInteractions.handleWallPointerLeave,
-            onPointerMove: (e: any) =>
-              openingDrag.handleMouseMove(
-                e,
-                wallInteractions.calculatePositionFromMouse
-              ),
-            onClick: (e: any) => {
-              e.stopPropagation();
-              wallInteractions.handleWallClick(index, e);
-            },
-            onContextMenu: (e: any) => {
-              e.stopPropagation();
-              if (onFloorContextMenu) {
-                onFloorContextMenu(
-                  e.nativeEvent,
-                  fl.id,
-                  fl.title,
-                  ElementType.Floor
-                );
-              }
-            },
-          } : {}}
+          eventHandlers={
+            interactive
+              ? {
+                  onPointerEnter: (e: any) => {
+                    e.stopPropagation();
+                    wallInteractions.handleWallPointerEnter(index);
+                  },
+                  onPointerLeave: wallInteractions.handleWallPointerLeave,
+                  onPointerMove: (e: any) =>
+                    openingDrag.handleMouseMove(
+                      e,
+                      wallInteractions.calculatePositionFromMouse
+                    ),
+                  onClick: (e: any) => {
+                    e.stopPropagation();
+                    wallInteractions.handleWallClick(index, e);
+                  },
+                  onContextMenu: (e: any) => {
+                    e.stopPropagation();
+                    if (onFloorContextMenu) {
+                      onFloorContextMenu(
+                        e.nativeEvent,
+                        fl.id,
+                        fl.title,
+                        ElementType.Floor
+                      );
+                    }
+                  },
+                }
+              : {}
+          }
         />
       ))}
 
