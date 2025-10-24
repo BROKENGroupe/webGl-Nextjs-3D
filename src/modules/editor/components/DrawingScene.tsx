@@ -1,7 +1,12 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Extrude, OrbitControls, GizmoHelper, GizmoViewport } from "@react-three/drei";
+import {
+  Extrude,
+  OrbitControls,
+  GizmoHelper,
+  GizmoViewport,
+} from "@react-three/drei";
 import * as THREE from "three";
 import { useEffect, useRef, Suspense } from "react";
 import { DrawingSurface } from "@/modules/editor/components/DrawingSurface";
@@ -12,8 +17,7 @@ import React, { useState } from "react";
 import { AcousticAnalysisModal } from "@/modules/analytics/components/modals/AcousticAnalysisModal"; //   NUEVO: Importar modal
 
 import { AppControls } from "@/modules/editor/components/AppControls";
-// import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
-import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
+import { AcousticMaterial } from "@/modules/materials/types/AcousticMaterial";
 
 import { IsoStudyConfigModal } from "@/modules/editor/components/modals/IsoStudyConfigModal";
 import { useCoordinatesStore } from "@/modules/editor/store/coordinatesStore";
@@ -29,7 +33,6 @@ import {
   LayerVisibility,
   LayerPanel,
 } from "@/modules/editor/components/asside/layer-panel";
-import ContextMenu from "./contextMenus/contextMenu";
 import FacadeContextMenu from "./contextMenus/FacadeContextMenu";
 import PropertiesModal from "./modals/PropertiesModal";
 import MaterialModal from "./modals/materialModal";
@@ -39,16 +42,15 @@ import { WallsToast } from "./extrudeToast";
 import OpenCellingContextMenu from "./contextMenus/openCellingContextMenu";
 import OpenFloorContextMenu from "./contextMenus/openFloorContextMenu";
 
-import { ElementType, Wall } from "@/modules/editor/types/walls";
-import { set } from "zod";
-import { color } from "framer-motion";
+import { ElementType } from "@/modules/editor/types/walls";
 import { ISO12354_4Engine } from "@/modules/editor/core/engineMath/ISO12354_4Engine";
 import { SegmentsVisualizer } from "./SegmentsVisualizer";
-import { FloorReplicationModal } from './modals/FloorReplicationModal';
-import { MultiFloorRenderer } from './MultiFloorRenderer';
-import { useFloorsStore } from '../store/floorsStore';
+import { FloorReplicationModal } from "./modals/FloorReplicationModal";
+import { MultiFloorRenderer } from "./MultiFloorRenderer";
+import { useFloorsStore } from "../store/floorsStore";
 import { LinePanel } from "./contextMenus/LinePanel";
 import { CollapsibleAsideTrigger } from "./asside/asside-lateral-trigger";
+import { PressureLevelBar } from "./PressureLevelBar";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -56,14 +58,10 @@ export default function DrawingScene() {
     currentPoints,
     currentHoleLines,
     currentHoles,
-    savedPointsForExtrusion,
-    savedHoleLinesForExtrusion,
-    savedHolesForExtrusion,
     isClosed,
     isExtruded,
     isDragging,
     planeXZCoordinates,
-    planeHoleCoordinates,
     hasPlaneCoordinates,
     setCurrentPoints,
     addCurrentPoint,
@@ -83,14 +81,14 @@ export default function DrawingScene() {
 
   //   NUEVO: States para el modal de análisis acústico
   const [showAcousticModal, setShowAcousticModal] = useState(false);
-  const [showWallsManager, setShowWallsManager] = useState(false);
   //   NUEVO: State para el modal de configuración ISO
   const [showIsoConfigModal, setShowIsoConfigModal] = useState(false);
   const [segments, setSegments] = useState<any[]>([]);
   const [showSegments, setShowSegments] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   // Nuevo estado para el modal de replicación
-  const [showFloorReplicationModal, setShowFloorReplicationModal] = useState(false);
+  const [showFloorReplicationModal, setShowFloorReplicationModal] =
+    useState(false);
 
   //   NUEVO: Acceso al store de paredes
   const { walls } = useWallsStore();
@@ -101,10 +99,6 @@ export default function DrawingScene() {
     heatmap: true,
     cube: true,
   };
-
-  function handleCloseContextMenu() {
-    setContextMenu({ ...contextMenu, visible: false });
-  }
 
   function handleProperties() {
     setShowPropertiesModal(true);
@@ -117,9 +111,7 @@ export default function DrawingScene() {
       setSelectedWallIndex(contextMenu.itemIndex);
     }
     setShowMaterialModal(true);
-    //handleCloseContextMenu();
   }
-  //handleCloseContextMenu();
 
   const [tempHoleLine, setTempHoleLine] = useState<THREE.Vector3[]>([]);
 
@@ -170,7 +162,6 @@ export default function DrawingScene() {
   });
 
   // Estados para drag & drop de puertas y ventanas
-  const [showOpeningsPalette, setShowOpeningsPalette] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [draggedTemplate, setDraggedTemplate] =
     useState<AcousticMaterial | null>(null);
@@ -178,7 +169,6 @@ export default function DrawingScene() {
   const { ceilings, addCeiling, updateWallByIndex } = useWallsStore();
   const { floors, addFloor, updateCeilingByIndex, updateFloorByIndex } =
     useWallsStore();
-  const { coordinates } = useCoordinatesStore();
 
   const [elementType, setElementType] = useState<ElementType>(ElementType.Wall);
 
@@ -192,7 +182,7 @@ export default function DrawingScene() {
     elementType: ElementType
   ) => {
     event.preventDefault();
-    event.stopPropagation(); //   AGREGAR: Evitar que el evento se propague
+    event.stopPropagation();
 
     //   AGREGAR: Forzar fin de drag si está activo
     if (isDragging) {
@@ -299,18 +289,18 @@ export default function DrawingScene() {
   };
 
   // NUEVO: Manejador de clic específico para vértices
-    const handleVertexClick = (index: number): boolean => {
-      if (isDragging) return false;
-  
-      // Si se hace clic en el primer vértice y hay suficientes puntos, cerrar la forma
-      if (!isClosed && index === 0 && currentPoints.length > 2) {
-        const closedPoints = [...currentPoints, currentPoints[0]];
-        setCurrentPoints(closedPoints);
-        setClosed(true);
-        return true; // Indicar que el evento fue manejado
-      }
-      return false; // Indicar que el evento no fue manejado
-    };
+  const handleVertexClick = (index: number): boolean => {
+    if (isDragging) return false;
+
+    // Si se hace clic en el primer vértice y hay suficientes puntos, cerrar la forma
+    if (!isClosed && index === 0 && currentPoints.length > 2) {
+      const closedPoints = [...currentPoints, currentPoints[0]];
+      setCurrentPoints(closedPoints);
+      setClosed(true);
+      return true;
+    }
+    return false;
+  };
 
   const handleClick3D = (point: THREE.Vector3) => {
     if (isDragging) return; // No procesar clicks si se está arrastrando
@@ -369,22 +359,6 @@ export default function DrawingScene() {
     updatePlaneCoordinatesFromCurrent();
   };
 
-  // Manejadores del menú contextual
-  const handleLineRightClick = (
-    id: string,
-    event: { clientX: number; clientY: number }
-  ) => {
-    setContextMenu({
-      visible: true,
-      x: event.clientX,
-      y: event.clientY,
-      itemType: "line",
-      itemIndex: null,
-    });
-
-    setSelectedLineId(id);
-  };
-
   const handleVertexRightClick = (
     vertexIndex: number,
     event: { clientX: number; clientY: number }
@@ -398,15 +372,10 @@ export default function DrawingScene() {
     });
   };
 
-  const handleContextMenuClose = () => {
-    setContextMenu((prev) => ({ ...prev, visible: false }));
-  };
-
   // Función para manejar la extrusión con coordenadas XZ
   const handleExtrude = () => {
-
     // Validar que tenemos una forma cerrada
-    if (!isClosed || currentPoints.length < 4) {      
+    if (!isClosed || currentPoints.length < 4) {
       alert("⚠️ Necesitas cerrar la forma antes de extruir");
       return;
     }
@@ -441,21 +410,6 @@ export default function DrawingScene() {
     clearPlaneCoordinates();
   };
 
-  const handleDelete = () => {
-    if (contextMenu.itemType === "line" && contextMenu.itemIndex !== null) {
-      // Eliminar el segmento de línea (quitar el punto en el índice + 1)
-      if (contextMenu.itemIndex + 1 < currentPoints.length) {
-        removeCurrentPoint(contextMenu.itemIndex + 1);
-      }
-    } else if (
-      contextMenu.itemType === "vertex" &&
-      contextMenu.itemIndex !== null
-    ) {
-      // Eliminar el vértice
-      removeCurrentPoint(contextMenu.itemIndex);
-    }
-  };
-
   // Limpiar datos guardados en localStorage y reiniciar el estado
   const handleClearStorage = () => {
     localStorage.clear();
@@ -482,9 +436,8 @@ export default function DrawingScene() {
 
   // Manejar inicio de drag desde la paleta
   const handleStartDrag = (template: AcousticMaterial) => {
-    console.log("🎯 Iniciando drag:", template.type);
     setIsDragActive(true);
-    setDraggedTemplate(template);   
+    setDraggedTemplate(template);
   };
 
   // Manejar drop en pared
@@ -518,15 +471,24 @@ export default function DrawingScene() {
     }
 
     if (template.type === ElementType.Wall) {
-      updateWallByIndex(wallIndex, { color: template.color, template: template });
+      updateWallByIndex(wallIndex, {
+        color: template.color,
+        template: template,
+      });
     }
 
     if (template.type === ElementType.Ceiling) {
-      updateCeilingByIndex(wallIndex, { color: template.color, template: template });
+      updateCeilingByIndex(wallIndex, {
+        color: template.color,
+        template: template,
+      });
     }
 
     if (template.type === ElementType.Floor) {
-      updateFloorByIndex(wallIndex, { color: template.color, template: template });
+      updateFloorByIndex(wallIndex, {
+        color: template.color,
+        template: template,
+      });
     }
 
     //   AGREGAR: Reset completo del estado de drag
@@ -534,24 +496,18 @@ export default function DrawingScene() {
     setDraggedTemplate(null);
     setDragging(false); //   También resetear isDragging del drawing store
 
-    setTimeout(() => {
-      // Esto asegura que todos los event listeners se reactiven correctamente
-      console.log("🔄 Estado de drag reseteado completamente");
-    }, 10);
+    setTimeout(() => {}, 10);
     setExtruded(true); // Asegurar que seguimos en 3D
   };
 
   // Manejar fin de drag (sin drop válido)
   const handleDragEnd = () => {
-    console.log("🚫 Drag cancelado");
     setIsDragActive(false);
     setDraggedTemplate(null);
     setDragging(false); //   También resetear isDragging del drawing store
 
     //   AGREGAR: Forzar limpieza de cualquier estado residual
-    setTimeout(() => {
-      console.log("🔄 Drag end completado");
-    }, 50);
+    setTimeout(() => {}, 50);
   };
 
   // Manejar tecla ESC para cancelar drag
@@ -571,15 +527,12 @@ export default function DrawingScene() {
 
   // Agregar función de emergencia:
   const handleFixExtrusion = () => {
-    console.log("🔧 Intentando arreglar extrusión...");
-
     // Volver a 2D
     setExtruded(false);
 
     // Esperar un momento y re-guardar coordenadas
     setTimeout(() => {
       if (currentPoints.length >= 4 && isClosed) {
-        console.log("🔄 Re-guardando coordenadas...");
         savePlaneCoordinates();
 
         // Volver a extruir
@@ -606,12 +559,12 @@ export default function DrawingScene() {
       planeXZCoordinates.length >= 3
         ? planeXZCoordinates
         : [
-          { x: -6.5, z: -7 },
-          { x: 4, z: -4.5 },
-          { x: 2, z: 6 },
-          { x: -7.5, z: 4.5 },
-          { x: -6.5, z: -6.5 },
-        ];
+            { x: -6.5, z: -7 },
+            { x: 4, z: -4.5 },
+            { x: 2, z: 6 },
+            { x: -7.5, z: 4.5 },
+            { x: -6.5, z: -6.5 },
+          ];
 
     const rawWalls = GeometryEngine.generateWallsFromCoordinates(coords);
     const newWalls = rawWalls.map((wall, idx) => ({
@@ -649,55 +602,66 @@ export default function DrawingScene() {
     }
 
     if (!isExtruded) {
-      console.log("Cannot calculate segments: Not in 3D mode.");
       return;
     }
 
     setIsCalculating(true);
-    console.log("Calculating segments for all surfaces...");
 
     const wallCalculationResults = walls.map((wall) =>
       ISO12354_4Engine.calculateFacadeSoundInsulation(wall, openings, [])
     );
 
-    const wallSegments = wallCalculationResults.flatMap(result => result.segments);
+    const wallSegments = wallCalculationResults.flatMap(
+      (result) => result.segments
+    );
 
     const ceilingCalculationResults = ceilings.map((ceiling) =>
       ISO12354_4Engine.calculateFacadeSoundInsulation(ceiling, openings, [])
     );
-    const ceilingSegments = ceilingCalculationResults.flatMap(result => result.segments);
+    const ceilingSegments = ceilingCalculationResults.flatMap(
+      (result) => result.segments
+    );
 
     const floorCalculationResults = floors.map((floor) =>
       ISO12354_4Engine.calculateFacadeSoundInsulation(floor, openings, [])
     );
-    const floorSegments = floorCalculationResults.flatMap(result => result.segments);
-
+    const floorSegments = floorCalculationResults.flatMap(
+      (result) => result.segments
+    );
 
     const allSegments = [
       ...wallSegments,
       ...ceilingSegments,
       ...floorSegments,
-    ].map(segment => {
+    ].map((segment) => {
       if (!segment || !segment.elements || segment.elements.length === 0) {
         return { ...segment, Lw: {}, R_segment: {} };
       }
       const R_segment = ISO12354_4Engine.calcSegmentR(segment.elements, []);
-      const Lw_segment = ISO12354_4Engine.calcLw(R_segment, segment.totalArea, useIsoStudyConfigStore.getState().Lp_in);
+      const Lw_segment = ISO12354_4Engine.calcLw(
+        R_segment,
+        segment.totalArea,
+        useIsoStudyConfigStore.getState().Lp_in
+      );
       return { ...segment, Lw: Lw_segment, R_segment: R_segment };
     });
 
     // Store the results in the Zustand store
     useIsoResultStore.getState().setIsoResult({
-      rwFinal: allSegments.reduce((acc, segment) => acc + (segment.R_segment[500] || 0), 0) / allSegments.length, // Example calculation
+      rwFinal:
+        allSegments.reduce(
+          (acc, segment) => acc + (segment.R_segment[500] || 0),
+          0
+        ) / allSegments.length, // Example calculation
       input: {
         walls: walls,
         openings: openings,
         wallCoordinates: planeXZCoordinates,
         Lp_in: useIsoStudyConfigStore.getState().Lp_in,
       },
-      heatmap: allSegments.map(segment => ({
+      heatmap: allSegments.map((segment) => ({
         id: segment.segmentIndex,
-        type: 'segment',
+        type: "segment",
         description: `Segment ${segment.segmentIndex}`,
         coordinates: segment.center,
         intensity: (segment.R_segment[500] || 0) / 100, // Example intensity
@@ -711,19 +675,16 @@ export default function DrawingScene() {
         setIsCalculating(false);
       }, 500);
     }, 500);
-
-
-
   };
 
   // Define the handler for ISO config confirmation
   const handleIsoConfigConfirm = (config: {
     height: number;
     venueType: string;
-  }) => {    
+  }) => {
     useIsoStudyConfigStore.getState().setConfig({
       height: config.height,
-      studyType: "iso12354-4", 
+      studyType: "iso12354-4",
       Lp_in: 70,
     });
     // Opcional: puedes cerrar el modal aquí si lo deseas
@@ -783,7 +744,13 @@ export default function DrawingScene() {
 
   return (
     <div
-      className={`w-full relative ${isDragActive ? "cursor-grabbing" : !isExtruded ? "cursor-crosshair" : "cursor-default"}`}
+      className={`w-full relative ${
+        isDragActive
+          ? "cursor-grabbing"
+          : !isExtruded
+          ? "cursor-crosshair"
+          : "cursor-default"
+      }`}
       style={{ height: "93.5vh" }}
     >
       <Canvas
@@ -794,12 +761,21 @@ export default function DrawingScene() {
         <ambientLight intensity={0.8} />
         <pointLight position={[10, 10, 10]} intensity={1} castShadow />
         {/* OrbitControls: solo permite rotar si no se está arrastrando un vértice */}
-        <OrbitControls enablePan={true} enableZoom={true} enableRotate={!isDragging} mouseButtons={{ RIGHT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN, }} />
+        <OrbitControls
+          enablePan={true}
+          enableZoom={true}
+          enableRotate={!isDragging}
+          mouseButtons={{ RIGHT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN }}
+        />
 
         {/* Control de órbita y vistas tipo CAD */}
         {isExtruded && (
           <GizmoHelper alignment="top-right" margin={[80, 80]}>
-            <GizmoViewport axisColors={['#f38ba8', '#a6e3a1', '#89b4fa']} labelColor="#cdd6f4" hideAxisHeads={true} />
+            <GizmoViewport
+              axisColors={["#f38ba8", "#a6e3a1", "#89b4fa"]}
+              labelColor="#cdd6f4"
+              hideAxisHeads={true}
+            />
           </GizmoHelper>
         )}
 
@@ -817,31 +793,14 @@ export default function DrawingScene() {
               onVertexClick={handleVertexClick} // NUEVO: Pasar el manejador de clic
             />
           )}
-              {/* //MODO 3D - Renderizar con funcionalidad de drag & drop
-        {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length > 2 && (
-          <ExtrudedShapeWithDraggableOpenings
-            planeCoordinates={[]}
-            onDropOpening={handleDropOpening}
-            isDragActive={isDragActive}
-            draggedTemplate={draggedTemplate}
-            showHeatmap={showHeatmap}
-            onToggleHeatmap={handleToggleHeatmap}
-            onAddFloor={handleAddFloor}
-            floors2={floors}
-            onWallContextMenu={handleWallContextMenu}
-            onOpeningContextMenu={handleOpeningContextMenu}
-            onCeilingContextMenu={handleCeilingContextMenu}
-            onFloorContextMenu={handleFloorContextMenu}
-            openings={openings}
-            ceilings2={ceilings}
-          />
-        )} */}
 
-        {showSegments && <SegmentsVisualizer segments={segments} />}         
+          {showSegments && <SegmentsVisualizer segments={segments} />}
 
           {/* VISTA 3D - Cuando está extruido Y tiene coordenadas */}
-          {isExtruded && hasPlaneCoordinates && planeXZCoordinates.length >= 3 && (
-            floorLevels.length > 0 ? (
+          {isExtruded &&
+            hasPlaneCoordinates &&
+            planeXZCoordinates.length >= 3 &&
+            (floorLevels.length > 0 ? (
               <MultiFloorRenderer
                 onDropOpening={handleDropOpening}
                 isDragActive={isDragActive}
@@ -871,15 +830,14 @@ export default function DrawingScene() {
                 onOpeningContextMenu={handleOpeningContextMenu}
                 onCeilingContextMenu={handleCeilingContextMenu}
                 onFloorContextMenu={handleFloorContextMenu}
-              />
-            )
-          )}
+              />              
+            ))}
         </Suspense>
 
         {/* Superficie de dibujo y Grid - Solo visible en 2D */}
         {!isExtruded && (
           <>
-  <gridHelper args={[500, 100, '#606060', '#f0f0f0']} />
+            <gridHelper args={[500, 100, "#606060", "#f0f0f0"]} />
             <DrawingSurface onClick3D={handleClick3D} />
           </>
         )}
@@ -956,13 +914,6 @@ export default function DrawingScene() {
         />
       )}
 
-      {/* PALETA DRAGGABLE DE PUERTAS Y VENTANAS */}
-      {/* <DraggableOpeningsPalette
-        isVisible={showOpeningsPalette}
-        onToggle={() => setShowOpeningsPalette(!showOpeningsPalette)}
-        onStartDrag={handleStartDrag}
-      /> */}
-
       {/*   NUEVO: Modal de Análisis Acústico */}
       <AcousticAnalysisModal
         isOpen={showAcousticModal}
@@ -1024,9 +975,9 @@ export default function DrawingScene() {
         onClose={() => setShowMaterialModal(false)}
       />
 
-      {/* Modal de contexto para la línea, fuera del grupo 3D */}      
+      {/* Modal de contexto para la línea, fuera del grupo 3D */}
 
-       <CollapsibleAsideTrigger side="right" open={lineMenuVisible && !!Extrude}>       
+      <CollapsibleAsideTrigger side="right" open={lineMenuVisible && !!Extrude}>
         <LinePanel
           lineId={selectedLineId ?? ""}
           onClose={() => setLineMenuVisible(false)}
@@ -1040,7 +991,8 @@ export default function DrawingScene() {
         onSuccess={(newFloorId) => {
           setShowFloorReplicationModal(false);
         }}
-      />
+      />     
+
     </div>
   );
 }
