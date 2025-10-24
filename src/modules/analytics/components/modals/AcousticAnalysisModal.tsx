@@ -45,6 +45,7 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/shared/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Progress } from '@react-three/drei';
+import { PressureLevelBarHorizontal } from '@/modules/editor/components/PressureLevelBarHorizontal';
 
 
 /**
@@ -291,7 +292,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
     switch (activeSection) {
       case 'general':
         return (
-          <div className="w-180 min-w-72">
+          <div className="min-w-72">
             <div>
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">Resumen General</h2>
               <p className="text-gray-600">
@@ -300,7 +301,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
             </div>
 
             {/* Cards de métricas principales */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-3">
               <Card className="border border-gray-200">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-gray-600">Área Total</CardTitle>
@@ -313,7 +314,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
                 </CardContent>
               </Card>
 
-              <Card className="border border-gray-200">
+              <Card className="border border-gray-200 mb-3">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-gray-600">Rw Promedio</CardTitle>
                 </CardHeader>
@@ -345,7 +346,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
             </div>
 
             {/* Gráfico de barras */}
-            <Card className="border border-gray-200">
+            <Card className="border border-gray-200 mb-3">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-gray-900">Índice Rw por Pared</CardTitle>
                 <CardDescription className="text-gray-600">
@@ -373,6 +374,14 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+
+             <PressureLevelBarHorizontal
+            value={75}
+            min={40}
+            max={120}
+            label="Nivel de presión sonora"
+            unit="dB"
+          />
 
             {isoResult && (
               <Card className="border border-gray-200 mt-6">
@@ -864,7 +873,7 @@ export const AcousticAnalysisModal: React.FC<AcousticAnalysisModalProps> = ({
             <div className="w-full h-full p-6 bg-white">
               {renderContent()}
             </div>
-          </div>
+          </div>         
         </div>
       </DialogContent>
     </Dialog>
