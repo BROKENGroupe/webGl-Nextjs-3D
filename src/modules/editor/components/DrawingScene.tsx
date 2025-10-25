@@ -49,6 +49,7 @@ import { MultiFloorRenderer } from "./MultiFloorRenderer";
 import { useFloorsStore } from "../store/floorsStore";
 import { LinePanel } from "./contextMenus/LinePanel";
 import { CollapsibleAsideTrigger } from "./asside/asside-lateral-trigger";
+import { FrequencyBandManager } from "../core/engineMath/FrequencyAnalysis";
 import { PressureLevelBar } from "./PressureLevelBar";
 import EngineFactory from "../core/engine/EngineFactory";
 
@@ -609,8 +610,12 @@ export default function DrawingScene() {
 
     setIsCalculating(true);
 
+
+    debugger
+    const frequencies = FrequencyBandManager.determineFrequencyBands(walls, ceilings, floors, openings)
+
     const wallCalculationResults = walls.map((wall) =>
-      ISO12354_4Engine.calculateFacadeSoundInsulation(wall, openings, [])
+      ISO12354_4Engine.calculateFacadeSoundInsulation(wall, openings, frequencies, 70)
     );
 
     const wallSegments = wallCalculationResults.flatMap(
@@ -618,14 +623,14 @@ export default function DrawingScene() {
     );
 
     const ceilingCalculationResults = ceilings.map((ceiling) =>
-      ISO12354_4Engine.calculateFacadeSoundInsulation(ceiling, openings, [])
+      ISO12354_4Engine.calculateFacadeSoundInsulation(ceiling, openings, frequencies, 70)
     );
     const ceilingSegments = ceilingCalculationResults.flatMap(
       (result) => result.segments
     );
 
     const floorCalculationResults = floors.map((floor) =>
-      ISO12354_4Engine.calculateFacadeSoundInsulation(floor, openings, [])
+      ISO12354_4Engine.calculateFacadeSoundInsulation(floor, openings, frequencies, 70)
     );
     const floorSegments = floorCalculationResults.flatMap(
       (result) => result.segments
@@ -639,12 +644,8 @@ export default function DrawingScene() {
       if (!segment || !segment.elements || segment.elements.length === 0) {
         return { ...segment, Lw: {}, R_segment: {} };
       }
-      const R_segment = ISO12354_4Engine.calcSegmentR(segment.elements, []);
-      const Lw_segment = ISO12354_4Engine.calcLw(
-        R_segment,
-        segment.totalArea,
-        useIsoStudyConfigStore.getState().Lp_in
-      );
+      const R_segment = ISO12354_4Engine.calcSegmentR(segment.elements,frequencies.bandType,frequencies.frequencies);
+      const Lw_segment = ISO12354_4Engine.calcLw(R_segment, segment.totalArea, useIsoStudyConfigStore.getState().Lp_in, frequencies.frequencies);
       return { ...segment, Lw: Lw_segment, R_segment: R_segment };
     });
 
