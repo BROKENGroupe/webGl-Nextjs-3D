@@ -5,6 +5,30 @@ import { ceilingAcousticPanel, ceilingConcreteSlab, ceilingGypsumBoard, ceilingM
 
 export type WallCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged';
 
+export type WallSegment = {
+  startX: number;
+  endX: number;
+  height: number;
+  startY?: number;
+  endY?: number;
+};
+
+export interface Wall {
+  [key: string]: any;
+}
+
+export interface FloorOpening {
+  [key: string]: any;
+}
+
+export interface Floor {
+  id: string;
+  name: string;
+  walls: Wall[];
+  openings: FloorOpening[];
+  baseHeight: number;
+}
+
 export enum ElementType {
   Wall = "wall",
   Floor = "floor",

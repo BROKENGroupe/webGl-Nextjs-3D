@@ -26,7 +26,6 @@ import { useIsoStudyConfigStore } from "@/modules/editor/store/isoStudyConfigSto
 import { useOpeningsStore } from "@/modules/editor/store/openingsStore";
 import { useIsoResultStore } from "@/modules/editor/store/isoResultStore";
 import { useWallsStore } from "@/modules/editor/store/wallsStore";
-import { GeometryEngine } from "@/modules/editor/core/engine/GeometryEngine";
 import { Opening, OpeningType } from "@/modules/editor/types/openings";
 import { CollapsibleAside } from "@/modules/editor/components/asside/asside-lateral";
 import {
@@ -51,6 +50,7 @@ import { useFloorsStore } from "../store/floorsStore";
 import { LinePanel } from "./contextMenus/LinePanel";
 import { CollapsibleAsideTrigger } from "./asside/asside-lateral-trigger";
 import { PressureLevelBar } from "./PressureLevelBar";
+import EngineFactory from "../core/engine/EngineFactory";
 
 export default function DrawingScene() {
   // Usar Zustand para el estado global
@@ -78,6 +78,8 @@ export default function DrawingScene() {
     clearPlaneCoordinates,
     updatePlaneCoordinatesFromCurrent,
   } = useDrawingStore();
+
+  const geometryEngine = EngineFactory.getGeometryEngine();
 
   //   NUEVO: States para el modal de análisis acústico
   const [showAcousticModal, setShowAcousticModal] = useState(false);
@@ -566,7 +568,7 @@ export default function DrawingScene() {
             { x: -6.5, z: -6.5 },
           ];
 
-    const rawWalls = GeometryEngine.generateWallsFromCoordinates(coords);
+    const rawWalls = geometryEngine.generateWallsFromCoordinates(coords);
     const newWalls = rawWalls.map((wall, idx) => ({
       ...wall,
       id: crypto.randomUUID(),
@@ -837,7 +839,7 @@ export default function DrawingScene() {
         {/* Superficie de dibujo y Grid - Solo visible en 2D */}
         {!isExtruded && (
           <>
-            <gridHelper args={[500, 100, "#606060", "#f0f0f0"]} />
+            <gridHelper args={[200, 100, "#606060", "#f0f0f0"]} />
             <DrawingSurface onClick3D={handleClick3D} />
           </>
         )}

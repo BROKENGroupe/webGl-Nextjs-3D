@@ -2,10 +2,8 @@ import { COLORS, MATERIAL_PROPERTIES } from '@/config/materials';
 import * as THREE from 'three';
 
 
-/**
- * =====================================================================================
- * MATERIAL SERVICE - Gestor Centralizado de Materiales Three.js
- * =====================================================================================
+/** 
+ * MATERIAL SERVICE - Gestor Centralizado de Materiales Three.js 
  * 
  * @description
  * MaterialService es una clase estática que centraliza la creación, gestión y 
@@ -105,30 +103,8 @@ export class MaterialService {
   }): THREE.MeshStandardMaterial {
     
     // ===== GENERACIÓN DE CLAVE ÚNICA =====
-    const key = `wall-${options?.isHovered}-${options?.isDragActive}-${options?.opacity}`;
-    
-    // ===== VERIFICACIÓN DE CACHE =====
-    // if (!this.materialCache.has(key)) {
-    //   // ===== CREACIÓN DE MATERIAL NUEVO =====
-    //   const material = new THREE.MeshStandardMaterial({
-    //     // Color dinámico basado en estado
-    //     color: "#ff0000",
-        
-    //     // Renderizado de ambas caras para paredes
-    //     side: THREE.DoubleSide,
-        
-    //     // Propiedades físicas desde configuración
-    //     roughness: MATERIAL_PROPERTIES.WALLS.roughness,
-    //     metalness: MATERIAL_PROPERTIES.WALLS.metalness,
-        
-    //     // Transparencia automática si necesaria
-    //     transparent: options?.isDragActive || (options?.opacity !== undefined),
-    //     opacity: options?.opacity ?? 1.0
-    //   });       
-      
-    //   // ===== ALMACENAMIENTO EN CACHE =====
-    //   this.materialCache.set(key, material);
-    // }
+    const key = `wall-${options?.isHovered}-${options?.isDragActive}-${options?.opacity}`;   
+  
 
     const material = new THREE.MeshStandardMaterial({
         // Color dinámico basado en estado

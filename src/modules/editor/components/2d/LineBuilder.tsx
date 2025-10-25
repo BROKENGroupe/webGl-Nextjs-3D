@@ -64,21 +64,14 @@ export function LineBuilder({
   const [hoveredVertexIndex, setHoveredVertexIndex] = useState<number | null>(null);
   const [hoveredLineIndex, setHoveredLineIndex] = useState<number | null>(null);
   
-  //   VERIFICAR: ¿El hook se está ejecutando?
-  console.log('🔥 LineBuilder render, points:', points.length); // DEBUG
-  
-  // Hook de sistema de arrastre
   const dragSystem = useDragSystem(
     (index, position) => {
-      console.log('🔥 Point move:', index, position); // DEBUG
       onPointMove?.(index, position);
     },
     () => {
-      console.log('🔥 Drag start'); // DEBUG
       onDragStart?.();
     },
     () => {
-      console.log('🔥 Drag end'); // DEBUG
       onDragEnd?.();
     }
   );
@@ -87,15 +80,12 @@ export function LineBuilder({
   const eventHandler = new LineEventHandler({
     onVertexClick,
     onVertexDragStart: (index) => {
-      console.log('🔥 EventHandler: Starting drag for vertex', index); // DEBUG
       dragSystem.startDrag(index);
     },
     onVertexDragEnd: () => {
-      console.log('🔥 EventHandler: Ending drag'); // DEBUG
       dragSystem.endDrag();
     },
     onVertexHover: (index) => {
-      console.log('🔥 EventHandler: Vertex hover', index); // DEBUG
       setHoveredVertexIndex(index);
     },
     onLineHover: setHoveredLineIndex,

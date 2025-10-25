@@ -1,59 +1,41 @@
 import * as THREE from 'three';
+import type { IGeometryAdapter } from "./contracts/IGeometryAdapter";
 
-/**
- * =====================================================================================
- * LINE GEOMETRY ENGINE - Motor de Cálculos Geométricos para Líneas 3D
- * =====================================================================================
- * 
- * @description
- * LineGeometryEngine centraliza todos los cálculos geométricos necesarios para
- * el renderizado y manipulación de líneas 3D. Proporciona métodos optimizados
- * para transformaciones, orientaciones y posicionamiento de elementos lineales.
- * 
- * @author insonor Team
- * @version 1.0.0
- * @since 2025
+/** 
+ * Motor de Cálculos Geométricos para Líneas 3D
  */
-
 export class LineGeometryEngine {
-  
   /**
-   * @method calculateLineTransform
-   * @description Calcula la transformación completa para un segmento de línea
-   * 
-   * @param {THREE.Vector3} start - Punto de inicio de la línea
-   * @param {THREE.Vector3} end - Punto final de la línea
-   * @returns {Object} Datos de transformación para renderizado
-   * 
-   * @example
-   * const transform = LineGeometryEngine.calculateLineTransform(
-   *   new THREE.Vector3(0, 0, 0),
-   *   new THREE.Vector3(1, 0, 1)
-   * );
-   * // Resultado: { distance: 1.414, direction: Vector3, midPoint: Vector3, quaternion: Quaternion }
+   * @param adapter Adaptador de geometría compatible (Three.js, Babylon, etc.)
    */
-  static calculateLineTransform(start: THREE.Vector3, end: THREE.Vector3) {
-    const distance = start.distanceTo(end);
+  constructor(private adapter: IGeometryAdapter) {}
 
-    // FIX: Si la distancia es casi cero, no se puede normalizar el vector de dirección.
-    // Devuelve una transformación por defecto para evitar errores de NaN.
+  /**
+   * Calcula la transformación completa para un segmento de línea.
+   * @param start Punto inicial.
+   * @param end Punto final.
+   * @returns Objeto con distancia, dirección, punto medio y cuaternión de orientación.
+   */
+  calculateLineTransform(start: any, end: any) {
+    const distance = this.adapter.distance(start, end);
+
     const epsilon = 0.0001;
     if (distance < epsilon) {
       return {
         distance: 0,
-        direction: new THREE.Vector3(1, 0, 0), // Dirección por defecto, no importa cuál
+        direction: this.adapter.createVector3(1, 0, 0),
         midPoint: start,
-        quaternion: new THREE.Quaternion(), // Cuaternión identidad
+        quaternion: new THREE.Quaternion(),
       };
     }
 
-    const direction = new THREE.Vector3().subVectors(end, start).normalize();
-    const midPoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-    
-    // Calcular cuaternión para orientación
-    const axis = new THREE.Vector3(1, 0, 0); // Eje X (longitud del rectángulo)
+    const direction = this.adapter.subVectors(end, start).normalize();
+    const midPoint = this.adapter.addVectors(start, end).multiplyScalar(0.5);
+
+    // Cuaternión para orientación (solo con THREE.js, si usas otro motor, adapta aquí)
+    const axis = this.adapter.createVector3(1, 0, 0);
     const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, direction);
-    
+
     return {
       distance,
       direction,
@@ -63,19 +45,17 @@ export class LineGeometryEngine {
   }
 
   /**
-   * @method calculateLineDimensions
-   * @description Calcula dimensiones de línea basadas en estado de interacción
-   * 
-   * @param {boolean} isHovered - Si la línea está en estado hover
-   * @param {Object} options - Opciones de configuración
-   * @returns {Object} Dimensiones para geometría de línea
+   * Calcula dimensiones de línea basadas en estado de interacción.
+   * @param isHovered Si la línea está en estado hover.
+   * @param options Opciones de ancho base, ancho hover y profundidad.
+   * @returns Objeto con width, depth y outlineWidth.
    */
-  static calculateLineDimensions(
-    isHovered: boolean, 
-    options: { 
-      baseWidth?: number; 
-      hoverWidth?: number; 
-      depth?: number 
+  calculateLineDimensions(
+    isHovered: boolean,
+    options: {
+      baseWidth?: number;
+      hoverWidth?: number;
+      depth?: number;
     } = {}
   ) {
     const {
@@ -92,73 +72,65 @@ export class LineGeometryEngine {
   }
 
   /**
-   * @method calculateVertexScale
-   * @description Calcula la escala de vértice basada en estado de interacción
-   * 
-   * @param {boolean} isHovered - Si el vértice está en hover
-   * @param {boolean} isDragged - Si el vértice está siendo arrastrado
-   * @returns {number} Factor de escala
+   * Calcula la escala de vértice basada en estado de interacción.
+   * @param isHovered Si el vértice está en estado hover.
+   * @param isDragged Si el vértice está siendo arrastrado.
+   * @returns Escala numérica para el vértice.
    */
-  static calculateVertexScale(isHovered: boolean, isDragged: boolean): number {
+  calculateVertexScale(isHovered: boolean, isDragged: boolean): number {
     if (isDragged) return 1.3;
     if (isHovered) return 1.2;
     return 1.0;
   }
 
   /**
-   * @method snapToGrid
-   * @description Aplica snap-to-grid a una posición 3D
-   * 
-   * @param {THREE.Vector3} position - Posición original
-   * @param {number} increment - Incremento de grid
-   * @param {boolean} enabled - Si el snap está habilitado
-   * @returns {THREE.Vector3} Posición con snap aplicado
+   * Aplica snap-to-grid a una posición 3D.
+   * @param position Vector de posición.
+   * @param increment Tamaño del snap.
+   * @param enabled Si el snap está habilitado.
+   * @returns Vector ajustado al snap.
    */
-  static snapToGrid(
-    position: THREE.Vector3, 
-    increment: number = 0.1, 
+  snapToGrid(
+    position: any,
+    increment: number = 0.1,
     enabled: boolean = true
-  ): THREE.Vector3 {
-    if (!enabled) return position.clone();
-    
-    return new THREE.Vector3(
+  ): any {
+    if (!enabled) return this.adapter.cloneVector(position);
+
+    return this.adapter.createVector3(
       Math.round(position.x / increment) * increment,
-      0, // Mantener en plano Y=0
+      0,
       Math.round(position.z / increment) * increment
     );
   }
 
   /**
-   * @method createRaycastPlane
-   * @description Crea un plano invisible para raycasting
-   * 
-   * @param {number} size - Tamaño del plano
-   * @returns {THREE.Mesh} Plano configurado para raycasting
+   * Crea un plano invisible para raycasting.
+   * @param size Tamaño del plano.
+   * @returns Mesh plano para raycasting.
    */
-  static createRaycastPlane(size: number = 100): THREE.Mesh {
+  createRaycastPlane(size: number = 100): THREE.Mesh {
     const geometry = new THREE.PlaneGeometry(size, size);
-    const material = new THREE.MeshBasicMaterial({ 
-      transparent: true, 
-      opacity: 0 
+    const material = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0
     });
     const plane = new THREE.Mesh(geometry, material);
-    
-    plane.rotation.x = -Math.PI / 2; // Orientación horizontal
-    plane.position.y = 0; // Nivel del suelo
-    
+
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.y = 0;
+
     return plane;
   }
 
   /**
-   * @method intersectPlane
-   * @description Calcula intersección de rayo con plano para posicionamiento
-   * 
-   * @param {THREE.Raycaster} raycaster - Raycaster configurado
-   * @param {THREE.Mesh} plane - Plano de intersección
-   * @returns {THREE.Vector3 | null} Punto de intersección o null
+   * Calcula intersección de rayo con plano para posicionamiento.
+   * @param raycaster Raycaster de THREE.js.
+   * @param plane Plano de raycasting.
+   * @returns Vector de intersección o null.
    */
-  static intersectPlane(
-    raycaster: THREE.Raycaster, 
+  intersectPlane(
+    raycaster: THREE.Raycaster,
     plane: THREE.Mesh
   ): THREE.Vector3 | null {
     const intersects = raycaster.intersectObject(plane);
@@ -166,30 +138,44 @@ export class LineGeometryEngine {
   }
 
   /**
-   * @method createInternalWall
-   * @description Crea una línea interna (pared divisoria) entre dos puntos
-   * 
-   * @param {THREE.Vector3} start - Punto inicial de la división
-   * @param {THREE.Vector3} end - Punto final de la división
-   * @returns {Object} Objeto pared interna para renderizado y lógica
-   * 
-   * @example
-   * const wall = LineGeometryEngine.createInternalWall(
-   *   new THREE.Vector3(1, 0, 1),
-   *   new THREE.Vector3(4, 0, 1)
-   * );
+   * Crea una línea interna (pared divisoria) entre dos puntos.
+   * @param start Punto inicial.
+   * @param end Punto final.
+   * @returns Objeto representando la pared interna.
    */
-  static createInternalWall(start: THREE.Vector3, end: THREE.Vector3) {
+  createInternalWall(start: any, end: any) {
     return {
       id: crypto.randomUUID(),
       start,
       end,
       type: "internal",
-      material: "divider", // Puedes personalizar el material
-      color: "#e53935",    // Rojo para divisiones internas
+      material: "divider",
+      color: "#e53935",
       thickness: 0.03,
-      height: 2.5,         // Altura estándar, ajusta según tu lógica
-      // Puedes agregar más propiedades si lo necesitas
+      height: 2.5,
     };
+  }
+
+  /**
+   * Calcula el punto medio entre dos puntos.
+   * @param a Primer punto.
+   * @param b Segundo punto.
+   * @returns Vector punto medio.
+   */
+  getMidpoint(a: any, b: any) {
+    return this.adapter.multiplyScalar(
+      this.adapter.addVectors(a, b),
+      0.5
+    );
+  }
+
+  /**
+   * Calcula la distancia entre dos puntos.
+   * @param a Primer punto.
+   * @param b Segundo punto.
+   * @returns Distancia numérica.
+   */
+  getLength(a: any, b: any) {
+    return this.adapter.distance(a, b);
   }
 }

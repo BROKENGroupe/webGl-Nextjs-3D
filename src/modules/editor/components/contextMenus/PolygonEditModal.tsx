@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { LineAdvanceEngine } from "../../core/engine/LineAdvanceEngine";
+import EngineFactory from "../../core/engine/EngineFactory";
 import { useDrawingStore } from "@/modules/editor/store/drawingStore";
 import { Button } from "@/shared/ui/button";
+import { Card, CardHeader, CardContent, CardFooter } from "@/shared/ui/card";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
 
+/**
+ * Modal para editar lados y colores de un polígono.
+ */
 interface PolygonEditModalProps {
   visible: boolean;
   onClose: () => void;
@@ -14,6 +21,9 @@ export function PolygonEditModal({ visible, onClose }: PolygonEditModalProps) {
 
   const [sideLengths, setSideLengths] = useState<number[]>([]);
   const [sideColors, setSideColors] = useState<string[]>([]);
+
+  const geometryAdapter = EngineFactory.getGeometryAdapter();
+  const lineGeometryEngine = useMemo(() => new LineAdvanceEngine(geometryAdapter), [geometryAdapter]);
 
   useEffect(() => {
     if (visible && currentPoints.length >= 3) {
@@ -32,101 +42,47 @@ export function PolygonEditModal({ visible, onClose }: PolygonEditModalProps) {
 
   if (currentPoints.length < 3) {
     return (
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.25)",
-          zIndex: 99999,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        onClick={onClose}
-      >
-        <div
-          style={{
-            minWidth: "340px",
-            background: "#fff",
-            border: "1px solid #ccc",
-            boxShadow: "0 2px 16px rgba(0,0,0,0.25)",
-            borderRadius: "12px",
-            padding: "24px 0",
-            zIndex: 99999,
-            position: "relative",
-          }}
-          onClick={e => e.stopPropagation()}
-        >
-          <div style={{ padding: "10px 24px" }}>
-            <h3 style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>Editar lados y colores</h3>
-            <p style={{ color: "#ef4444" }}>Debes tener al menos 3 lados para editar el polígono.</p>
-          </div>
-          <div style={{ padding: "10px 24px", display: "flex", gap: 8 }}>
-            <Button
-              variant="secondary"
-              style={{
-                flex: 1,
-                background: "#fff",
-                color: "#222",
-                borderRadius: 5,
-                fontWeight: 400,
-                fontSize: 13,
-                padding: "7px 0",
-                minWidth: 0,
-                boxShadow: "none",
-                border: "1px solid #e5e7eb"
-              }}
-              onClick={onClose}
-            >
+      <div className="fixed inset-0 bg-black/25 z-[99999] flex items-center justify-center" onClick={onClose}>
+        <Card className="min-w-[340px] relative" onClick={e => e.stopPropagation()}>
+          <CardHeader>
+            <h3 className="font-semibold text-lg mb-2">Editar lados y colores</h3>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-500">Debes tener al menos 3 lados para editar el polígono.</p>
+          </CardContent>
+          <CardFooter className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={onClose}>
               Cerrar
             </Button>
-          </div>
-        </div>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
 
-  const handleApplyPolygonChanges = () => {    
-      const center = currentPoints.reduce((acc, p) => acc.add(p), new THREE.Vector3()).multiplyScalar(1 / 4);
-      const direction = new THREE.Vector3().subVectors(currentPoints[1], currentPoints[0]).normalize();
-      const { lines, points } = LineAdvanceEngine.generateQuadrilateralFromSizes(sideLengths, center, direction);
+  const handleApplyPolygonChanges = () => {
+    const center = currentPoints.reduce((acc, p) => acc.add(p), new THREE.Vector3()).multiplyScalar(1 / currentPoints.length);
+    const direction = new THREE.Vector3().subVectors(currentPoints[1], currentPoints[0]).normalize();
 
-      setCurrentPoints(points);
-      lines.forEach(l => updateCurrentLine(l.id, l));
-      onClose();    
+    const { lines, points } = lineGeometryEngine.generateQuadrilateralFromSizes(sideLengths, center, direction);
+
+    setCurrentPoints(points);
+    lines.forEach(l => updateCurrentLine(l.id, l));
+    onClose();
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.25)",
-        zIndex: 99999,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          minWidth: "340px",
-          background: "#fff",
-          border: "1px solid #ccc",
-          boxShadow: "0 2px 16px rgba(0,0,0,0.25)",
-          borderRadius: "12px",
-          padding: "24px 0",
-          zIndex: 99999,
-          position: "relative",
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div style={{ padding: "10px 24px" }}>
-          <h3 style={{ fontWeight: 600, fontSize: 16, marginBottom: 12 }}>Editar lados y colores</h3>
+    <div className="fixed inset-0 bg-black/25 z-[99999] flex items-center justify-center" onClick={onClose}>
+      <Card className="min-w-[340px] relative" onClick={e => e.stopPropagation()}>
+        <CardHeader>
+          <h3 className="font-semibold text-lg mb-2">Editar lados y colores</h3>
+        </CardHeader>
+        <CardContent>
           {sideLengths.map((len, idx) => (
-            <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <input
+            <div key={idx} className="flex items-center gap-2 mb-2">
+              <Label htmlFor={`length-${idx}`} className="text-xs text-gray-600">Lado {idx + 1}</Label>
+              <Input
+                id={`length-${idx}`}
                 type="number"
                 min={0.01}
                 step={0.01}
@@ -136,15 +92,10 @@ export function PolygonEditModal({ visible, onClose }: PolygonEditModalProps) {
                   newLengths[idx] = Number(e.target.value);
                   setSideLengths(newLengths);
                 }}
-                style={{
-                  width: 70,
-                  padding: "4px 8px",
-                  borderRadius: 5,
-                  border: "1px solid #ccc",
-                  fontSize: 13,
-                }}
+                className="w-20"
               />
-              <input
+              <Input
+                id={`color-${idx}`}
                 type="color"
                 value={sideColors[idx]}
                 onChange={e => {
@@ -152,56 +103,20 @@ export function PolygonEditModal({ visible, onClose }: PolygonEditModalProps) {
                   newColors[idx] = e.target.value;
                   setSideColors(newColors);
                 }}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 6,
-                  border: "1px solid #ccc",
-                }}
+                className="w-7 h-7 p-0 border rounded"
               />
-              <span style={{ fontSize: 12, color: "#666" }}>Lado {idx + 1}</span>
             </div>
           ))}
-        </div>
-        <div style={{ padding: "10px 24px", display: "flex", gap: 8 }}>
-          <Button
-            variant="default"
-            style={{
-              flex: 1,
-              background: "#222",
-              color: "#fff",
-              borderRadius: 5,
-              fontWeight: 500,
-              fontSize: 13,
-              padding: "7px 0",
-              minWidth: 0,
-              boxShadow: "none",
-              border: "1px solid #e5e7eb"
-            }}
-            onClick={handleApplyPolygonChanges}
-          >
+        </CardContent>
+        <CardFooter className="flex gap-2">
+          <Button variant="default" className="flex-1" onClick={handleApplyPolygonChanges}>
             Aplicar
           </Button>
-          <Button
-            variant="secondary"
-            style={{
-              flex: 1,
-              background: "#fff",
-              color: "#222",
-              borderRadius: 5,
-              fontWeight: 400,
-              fontSize: 13,
-              padding: "7px 0",
-              minWidth: 0,
-              boxShadow: "none",
-              border: "1px solid #e5e7eb"
-            }}
-            onClick={onClose}
-          >
+          <Button variant="secondary" className="flex-1" onClick={onClose}>
             Cancelar
           </Button>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

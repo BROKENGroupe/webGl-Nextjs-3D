@@ -1,20 +1,28 @@
 import { COLORS } from "@/config/materials";
-import React from "react";
-import { GeometryEngine } from "../../core/engine/GeometryEngine";
+import React, { useMemo } from "react";
 
-export function FloorsGroup({ floors, depth }: { floors: any[]; depth: number }) {
+// Para usar Babylon (cuando implementes el adaptador)
+// EngineFactory.setEngineType("babylon");
+
+import { GeometryEngine } from "../../core/engine/GeometryEngine";
+import { ThreeGeometryAdapter } from "../../core/engine/adapters/ThreeGeometryAdapter";
+import EngineFactory from "../../core/engine/EngineFactory";
+
+export function FloorsGroup({ floors, depth }: { floors: any[]; depth: number }) {  
+  const geometryEngine = EngineFactory.getGeometryEngine();
+
   return (
     <>
       {floors.map((floor, idx) => {
         const wallMeshes = floor.walls.map((wall: any, wIdx: number) => (
           <mesh
             key={`wall-${floor.id}-${wIdx}`}
-            geometry={GeometryEngine.createWallGeometry(
+            geometry={geometryEngine.createWallGeometry(
               wIdx,
               wall.start,
               wall.end,
               depth,
-              []
+              wall.openings || []
             )}
           >
             <meshStandardMaterial
@@ -26,7 +34,7 @@ export function FloorsGroup({ floors, depth }: { floors: any[]; depth: number })
         ));
         const ceilingMesh = (
           <mesh
-            geometry={GeometryEngine.createCeilingGeometry(
+            geometry={geometryEngine.createCeilingGeometry(
               floor.coordinates,
               depth
             )}
@@ -40,7 +48,7 @@ export function FloorsGroup({ floors, depth }: { floors: any[]; depth: number })
           </mesh>
         );
         const floorMesh = (
-          <mesh geometry={GeometryEngine.createFloorGeometry(floor.coordinates)}>
+          <mesh geometry={geometryEngine.createFloorGeometry(floor.coordinates)}>
             <meshStandardMaterial
               color={COLORS.wall}
               transparent

@@ -1,30 +1,39 @@
 import { useMemo, useCallback } from "react";
 import { GeometryEngine } from "../core/engine/GeometryEngine";
 import { Point2D } from "../types/openings";
+import { ThreeGeometryAdapter } from "../core/engine/adapters/ThreeGeometryAdapter";
+import EngineFactory from "../core/engine/EngineFactory";
+
 export function useRoomGeometry(
-  coordinatesToUse: { x: number; z: number }[], // or a more specific type if available
+  coordinatesToUse: { x: number; z: number }[],
   depth: number,
-  openings: any // replace 'any' with a more specific type if possible
+  openings: any
 ) {
   const points: Point2D[] = useMemo(
     () => coordinatesToUse.map(({ x, z }) => ({ x, z })),
     [coordinatesToUse]
   );
 
+ 
+
+  // Instancia el adaptador y el motor de geometría
+  const geometryAdapter = EngineFactory.getGeometryAdapter();
+  const geometryEngine = useMemo(() => new GeometryEngine(geometryAdapter), [geometryAdapter]);
+
   const floorGeometry = useMemo(
-    () => GeometryEngine.createFloorGeometry(points),
-    [points]
+    () => geometryEngine.createFloorGeometry(points),
+    [geometryEngine, points]
   );
   const ceilingGeometry = useMemo(
-    () => GeometryEngine.createCeilingGeometry(points, depth),
-    [points, depth]
+    () => geometryEngine.createCeilingGeometry(points, depth),
+    [geometryEngine, points, depth]
   );
   const createWallGeometry = useCallback(
     (wallIndex: number, p1: Point2D, p2: Point2D) => {
-      const wallOpenings = GeometryEngine.getOpeningsForWall(openings, wallIndex);
-      return GeometryEngine.createWallGeometry(wallIndex, p1, p2, depth, wallOpenings);
+      const wallOpenings = geometryEngine.getOpeningsForWall(openings, wallIndex);
+      return geometryEngine.createWallGeometry(wallIndex, p1, p2, depth, wallOpenings);
     },
-    [depth, openings, coordinatesToUse]
+    [geometryEngine, depth, openings, coordinatesToUse]
   );
   return { floorGeometry, ceilingGeometry, createWallGeometry };
 }

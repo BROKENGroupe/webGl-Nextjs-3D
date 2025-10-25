@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { LineGeometryEngine } from "../../core/engine/LineGeometryEngine";
+import { ThreeGeometryAdapter } from "../../core/engine/adapters/ThreeGeometryAdapter";
 import { LINE_COLORS } from "@/config/materials";
-
+import React, { useMemo } from "react";
+import EngineFactory from "../../core/engine/EngineFactory";
 
 type VertexProps = {
   point: THREE.Vector3;
@@ -20,7 +22,12 @@ export function Vertex({
   eventHandler = {},
   index,
 }: VertexProps) {
-  const scale = LineGeometryEngine.calculateVertexScale(hovered, dragged);
+  // Instancia el adaptador y el motor de geometría
+  const geometryAdapter = EngineFactory.getGeometryAdapter();
+  const lineGeometryEngine = useMemo(() => new LineGeometryEngine(geometryAdapter), [geometryAdapter]);
+
+  // Usa la instancia para calcular el scale
+  const scale = lineGeometryEngine.calculateVertexScale(hovered, dragged);
 
   const baseColor = dragged
     ? (isShiftMode ? LINE_COLORS.vertexDragged : LINE_COLORS.vertexDragged)

@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import { LineGeometryEngine } from "../../core/engine/LineGeometryEngine";
+import { ThreeGeometryAdapter } from "../../core/engine/adapters/ThreeGeometryAdapter";
 import { LINE_COLORS } from "@/config/materials";
 import { Html } from "@react-three/drei";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useDrawingStore } from "@/modules/editor/store/drawingStore";
+import EngineFactory from "../../core/engine/EngineFactory";
 
 type LineProps = {
   id?: string;
@@ -33,17 +35,21 @@ export function Line({
     id || `line-${Date.now()}-${Math.floor(Math.random() * 100000)}`
   );
 
+  // Instancia el adaptador y el motor de geometría
+  const geometryAdapter = EngineFactory.getGeometryAdapter();
+  const lineGeometryEngine = useMemo(() => new LineGeometryEngine(geometryAdapter), [geometryAdapter]);
+
   // Busca la línea actualizada en el store
   const line = currentLines.find((l) => l.id === lineIdRef.current);
 
-  // Calcula la distancia real
-  const realDistance = LineGeometryEngine.calculateLineTransform(start, end).distance;
+  // Calcula la distancia real usando la instancia
+  const realDistance = lineGeometryEngine.calculateLineTransform(start, end).distance;
 
   // Usa el valor editado si existe, si no la distancia real
   const legendDistance = line?.length ?? realDistance;
 
-  const transform = LineGeometryEngine.calculateLineTransform(start, end);
-  const dimensions = LineGeometryEngine.calculateLineDimensions(hovered);
+  const transform = lineGeometryEngine.calculateLineTransform(start, end);
+  const dimensions = lineGeometryEngine.calculateLineDimensions(hovered);
 
   useEffect(() => {
     // Buscar si la línea ya existe por id
@@ -172,9 +178,6 @@ export function Line({
           args={[transform.distance + 0.015, 0.004, dimensions.outlineWidth]}
         />
         <meshBasicMaterial
-          // color={
-          //   hovered ? LINE_COLORS.lineOutlineHover : LINE_COLORS.lineOutline
-          // }
           color={renderColor}
           transparent={true}
           opacity={1}

@@ -3,10 +3,11 @@ import { useDrawingStore } from "@/modules/editor/store/drawingStore";
 import { Button } from "@/shared/ui/button";
 import EditableHeaderLine from "./EditableHeaderLine";
 import * as THREE from "three";
-import { LineAdvanceEngine, resizeLineWithSnapAndUpdateNeighbors } from "../../core/engine/LineAdvanceEngine";
+import { LineAdvanceEngine } from "../../core/engine/LineAdvanceEngine";
 import { ArrowRight } from "lucide-react";
 import { predefinedColors } from "@/shared/lib/utils";
 import { Checkbox } from "@/shared/ui/checkbox";
+import { ThreeGeometryAdapter } from "../../core/engine/adapters/ThreeGeometryAdapter";
 
 export function LinePanel({
   lineId,
@@ -41,6 +42,10 @@ export function LinePanel({
   // Snap-to-grid size (puedes obtenerlo de la configuración global si lo tienes)
   const snapSize = 0.5;
 
+  // Instancia de la clase con el adaptador actual
+  const geometryAdapter = new ThreeGeometryAdapter();
+  const lineAdvanceEngine = new LineAdvanceEngine(geometryAdapter);
+
   React.useEffect(() => {
     setLineName(name);
     setSelectedColor(color);
@@ -71,8 +76,8 @@ export function LinePanel({
     if (!originalLineLength || originalLengths.length !== currentLines.length)
       return;
 
-    // NO aplicar snap-to-grid al valor ingresado, usar el valor exacto del input
-    const scaledLength = LineAdvanceEngine.scaleLength(
+    // Usar el método de instancia
+    const scaledLength = lineAdvanceEngine.scaleLength(
       newLength,
       limitVisualSize,
       snapSize
@@ -90,20 +95,20 @@ export function LinePanel({
     switch (action) {
       case "square":
       case "polygon": {
-        const { updatedLines, newPoints } = resizeLineWithSnapAndUpdateNeighbors(
+        const { updatedLines, newPoints } = lineAdvanceEngine.resizeLineWithSnapAndUpdateNeighbors(
           lineId,
           currentLines,
           scaledLength
         );
         updatedLines.forEach((l) => updateCurrentLine(l.id, l));
-        setCurrentPoints(newPoints[0].clone ? [...newPoints, newPoints[0].clone()] : []);
+        setCurrentPoints(newPoints[0]?.clone ? [...newPoints, newPoints[0].clone()] : []);
         setLineLength(scaledLength);
         setOriginalLineLength(scaledLength);
         setOriginalLengths(updatedLines.map((l) => l.length));
         break;
       }
       case "proportion": {
-        const newLines = LineAdvanceEngine.resizeProportionally(
+        const newLines = lineAdvanceEngine.resizeProportionally(
           currentLines,
           originalLengths,
           originalLineLength,
@@ -120,13 +125,13 @@ export function LinePanel({
       default: {
         const l = currentLines.find((l) => l.id === lineId);
         if (!l) return;
-        const { updatedLines, newPoints } = resizeLineWithSnapAndUpdateNeighbors(
+        const { updatedLines, newPoints } = lineAdvanceEngine.resizeLineWithSnapAndUpdateNeighbors(
           lineId,
           currentLines,
           scaledLength
         );
         updatedLines.forEach((l) => updateCurrentLine(l.id, l));
-        setCurrentPoints(newPoints[0].clone ? [...newPoints, newPoints[0].clone()] : []);
+        setCurrentPoints(newPoints[0]?.clone ? [...newPoints, newPoints[0].clone()] : []);
         setLineLength(scaledLength);
         setOriginalLineLength(scaledLength);
         setOriginalLengths(
@@ -150,15 +155,13 @@ export function LinePanel({
 
   const handleLengthInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if(value === "") {
+    if (value === "") {
       return;
     }
-    // Permite vacío o número válido
     setInputLength(Number(value));
   };
 
   const handleLengthBlur = () => {
-    // Solo aplica el cambio si es un número válido
     if (typeof inputLength === "number" && !isNaN(inputLength)) {
       handleLengthChange(inputLength);
     }
@@ -166,7 +169,6 @@ export function LinePanel({
 
   return (
     <div className="bg-white relative">
-      {/* Botón de cerrar en la esquina superior izquierda */}
       <button
         onClick={onClose}
         aria-label="Cerrar panel"

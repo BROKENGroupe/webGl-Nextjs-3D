@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { ElementType } from "@/modules/editor/types/walls";
 import { CreateMaterialModal } from '@/modules/materials/components/CreateMaterialModal';
 import { DeleteConfirmationModal } from '@/modules/materials/components/DeleteConfirmationModal';
@@ -14,10 +14,6 @@ import { MaterialsTable } from '@/modules/materials/components/MaterialsTable';
 import { PageHeader } from '@/modules/materials/components/PageHeader';
 import { useMaterials } from '@/modules/materials/hooks/useMaterials';
 import { Skeleton } from '@/shared/ui/skeleton';
-
-
-
-
 
 const MaterialsViewer = () => {
   const {

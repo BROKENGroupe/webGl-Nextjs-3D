@@ -3,6 +3,20 @@ import { windowStandard, windowDoubleGlazed } from "@/data/acousticWindows";
 import { AcousticMaterial, ThirdOctave } from '@/modules/materials/types/AcousticMaterial';
 
 
+export type WallPosition = {
+  wallIndex: number;
+  position: number;
+  worldX: number;
+  worldY: number;
+  worldZ: number;
+};
+
+export type DisplayPosition = {
+  x: number;
+  y: number;
+  z: number;
+};
+
 export type OpeningType = 'door' | 'window' | 'double-door' | 'sliding-door';
 
 export interface Point2D {

@@ -1,10 +1,15 @@
-// dragOpenings.ts
-// Lógica separada para drag-and-drop de openings (puertas y ventanas)
-
 import { AcousticMaterial } from "@/modules/editor/types/AcousticMaterial";
 import { ElementType } from "../../types/walls";
 
+/**
+ * Lógica separada para drag-and-drop de openings (puertas y ventanas)
+ */
 
+/**
+ * Obtiene el color de borde para el tipo de elemento.
+ * @param type Tipo de elemento (Door, Window, Ceiling, etc).
+ * @returns Color hexadecimal para el borde.
+ */
 export function getBorderColor(type: string): string {
   const colors: Record<string, string> = {
     [ElementType.Door]: '#8B4513',
@@ -14,6 +19,11 @@ export function getBorderColor(type: string): string {
   return colors[type] ?? '#6B7280';
 }
 
+/**
+ * Obtiene el emoji/icono para el tipo de elemento.
+ * @param type Tipo de elemento (Door, Window, Ceiling, etc).
+ * @returns Emoji como string.
+ */
 function getDragIcon(type: string): string {
   switch (type) {
     case ElementType.Door:
@@ -31,6 +41,14 @@ function getDragIcon(type: string): string {
   }
 }
 
+/**
+ * Maneja el evento de inicio de drag para openings.
+ * Crea una imagen personalizada para el drag y setea el template en el dataTransfer.
+ * @param e Evento de drag de React.
+ * @param template Template de AcousticMaterial que se está arrastrando.
+ * @param onStartDrag Callback opcional al iniciar el drag.
+ * @param setDraggedItem Callback opcional para setear el item arrastrado.
+ */
 export function handleOpeningDragStart(
   e: React.DragEvent,
   template: AcousticMaterial,
@@ -88,6 +106,11 @@ export function handleOpeningDragStart(
   e.dataTransfer.effectAllowed = 'copy';
 }
 
+/**
+ * Maneja el evento de fin de drag para openings.
+ * Limpia el item arrastrado.
+ * @param setDraggedItem Callback opcional para limpiar el item arrastrado.
+ */
 export function handleOpeningDragEnd(setDraggedItem?: (item: null) => void) {
   if (setDraggedItem) setDraggedItem(null);
 }

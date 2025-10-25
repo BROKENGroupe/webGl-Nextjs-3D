@@ -57,9 +57,11 @@ import * as THREE from 'three';
 import { useWallsStore } from '@/modules/editor/store/wallsStore';
 import { useOpeningsStore } from '@/modules/editor/store/openingsStore';
 import { useIsoResultStore } from '@/modules/editor/store/isoResultStore';
-import { AcousticAnalysisEngine } from '@/modules/editor/core/engine/AcousticAnalysisEngine';
+
 import { heatmapFragmentShader } from '../../shaders/heatmapFragment';
 import { heatmapVertexShader } from '../../shaders/heatmapSurfaceVertex';
+import EngineFactory from '../../core/engine/EngineFactory';
+import { AcousticAnalysisEngine } from '@/modules/analytics/core/engine/AcousticAnalysisEngine';
 
 
 /**
@@ -170,6 +172,9 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
    */
   const { walls } = useWallsStore();
   const { openings } = useOpeningsStore();
+
+  const geometryEngine = EngineFactory.getGeometryAdapter();
+  const acousticAnalysisEngine = useMemo(() => new AcousticAnalysisEngine(geometryEngine), [geometryEngine]);
   
   /**
    * @section Referencias para elementos Three.js
@@ -223,14 +228,14 @@ export const AcousticHeatmapShader: React.FC<AcousticHeatmapShaderProps> = ({
     }
 
     try {
-      const data = AcousticAnalysisEngine.generateDetailedAcousticHeatmap(
+      const data = acousticAnalysisEngine.generateDetailedAcousticHeatmap(
         walls,
         openings,
         wallCoordinates,
         Lp_in
       );
 
-      const dataResult = AcousticAnalysisEngine.calculateExteriorLevelsWithISO(
+      const dataResult = acousticAnalysisEngine.calculateExteriorLevelsWithISO(
         walls,
         openings,
         wallCoordinates,
